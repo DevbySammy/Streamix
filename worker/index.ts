@@ -9,7 +9,11 @@ export default {
   ): Promise<Response> {
     const url = new URL(request.url);
 
-    // Temporary health check
+    /*
+     * Simple health check.
+     * Visit /api/health after deployment to confirm
+     * the Cloudflare Worker is running.
+     */
     if (url.pathname === "/api/health") {
       return Response.json({
         status: "ok",
@@ -17,7 +21,14 @@ export default {
       });
     }
 
-    // TMDB API proxy
+    /*
+     * TMDB search proxy.
+     *
+     * The browser calls:
+     * /api/tmdb/search?query=batman&type=movie
+     *
+     * The TMDB token stays inside Cloudflare.
+     */
     if (url.pathname === "/api/tmdb/search") {
       const query = url.searchParams.get("query");
       const type = url.searchParams.get("type") || "multi";
@@ -29,14 +40,19 @@ export default {
         );
       }
 
-      const endpoint =
-        type === "movie"
-          ? "https://api.themoviedb.org/3/search/movie"
-          : type === "tv"
-            ? "https://api.themoviedb.org/3/search/tv"
-            : "https://api.themoviedb.org/3/search/multi";
+      let endpoint =
+        "https://api.themoviedb.org/3/search/multi";
+
+      if (type === "movie") {
+        endpoint = "https://api.themoviedb.org/3/search/movie";
+      }
+
+      if (type === "tv") {
+        endpoint = "https://api.themoviedb.org/3/search/tv";
+      }
 
       const tmdbUrl = new URL(endpoint);
+
       tmdbUrl.searchParams.set("query", query);
       tmdbUrl.searchParams.set("include_adult", "false");
       tmdbUrl.searchParams.set("language", "en-US");
@@ -55,6 +71,8 @@ export default {
       });
     }
 
-    return new Response(null, { status: 404 });
+    return new Response("Not Found", {
+      status: 404
+    });
   }
 };
