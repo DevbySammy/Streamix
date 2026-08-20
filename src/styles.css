@@ -253,10 +253,18 @@ font-size: 12px;
 font-weight: 700;
 }
 
-.filters .selected {
-background: rgba(255, 61, 141, 0.08);
-color: #ff3d8d;
-border: 1px solid #ff3d8d;
+.filters button.selected {
+  background: rgba(255, 61, 141, 0.08);
+  color: #ff3d8d;
+  border: 1px solid #ff3d8d;
+}
+
+.filters button.selected:hover,
+.filters button.selected:focus,
+.filters button.selected:active {
+  background: rgba(255, 61, 141, 0.08);
+  color: #ff3d8d;
+  border-color: #ff3d8d;
 }
 
 /* Movie / TV format */
