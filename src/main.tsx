@@ -1,11 +1,10 @@
-import React, {useEffect, useMemo, useState} from 'react';
-import {createRoot} from 'react-dom/client';
+import React, { useEffect, useMemo, useState } from 'react';
+import { createRoot } from 'react-dom/client';
 import {
   Bell,
   Check,
   ChevronDown,
-  ChevronLeft,
-  ChevronRight,
+  ChevronUp,
   Clock,
   Film,
   LogOut,
@@ -28,7 +27,6 @@ type Title = {
   poster: string;
   backdrop: string;
   overview: string;
-  addedAt?: string;
 };
 
 type Profile = {
@@ -60,17 +58,17 @@ type Scheduled = {
   message: string;
 };
 
-type SortOption =
-  | 'name-asc'
-  | 'name-desc'
-  | 'year-desc'
-  | 'year-asc';
-
 type HeroSettings = {
-  titleId: string | null;
+  title: Title;
+  width: number;
+  height: number;
   positionX: number;
   positionY: number;
 };
+
+/* --------------------------------------------------
+   INITIAL DATA
+-------------------------------------------------- */
 
 const initialProfiles: Profile[] = [
   {
@@ -88,11 +86,9 @@ const initialState: Record<string, State> = {
   }
 };
 
-const initialHero: HeroSettings = {
-  titleId: null,
-  positionX: 50,
-  positionY: 50
-};
+/* --------------------------------------------------
+   HELPERS
+-------------------------------------------------- */
 
 const uid = () =>
   Math.random().toString(36).slice(2) +
@@ -161,22 +157,27 @@ async function searchTMDB(
 
       return {
         id: `tmdb-${kind}-${item.id}`,
+
         name:
           kind === 'movie'
             ? item.title
             : item.name,
+
         kind,
+
         year: date
           ? Number(date.slice(0, 4))
           : 0,
+
         poster: item.poster_path
           ? `https://image.tmdb.org/t/p/w500${item.poster_path}`
           : 'https://placehold.co/500x750/171717/ffffff?text=No+Poster',
+
         backdrop: item.backdrop_path
           ? `https://image.tmdb.org/t/p/w1280${item.backdrop_path}`
           : '',
-        overview: item.overview || '',
-        addedAt: new Date().toISOString()
+
+        overview: item.overview || ''
       };
     });
 }
@@ -216,19 +217,22 @@ function App() {
       []
     );
 
-  const [heroSettings, setHeroSettings] =
-    useStored<HeroSettings>(
-      'sx-hero-settings',
-      initialHero
+  const [hero, setHero] =
+    useStored<HeroSettings | null>(
+      'sx-hero',
+      null
     );
+
+  const [
+    dismissedRecoProfiles,
+    setDismissedRecoProfiles
+  ] = useStored<Record<string, boolean>>(
+    'sx-reco-dismissed',
+    {}
+  );
 
   const [profileId, setProfileId] =
     useState('admin');
-
-  const [tab, setTab] =
-    useState<'library' | 'rewatch'>(
-      'library'
-    );
 
   const [filter, setFilter] =
     useState<
@@ -239,9 +243,9 @@ function App() {
     useState<'all' | Kind>('all');
 
   const [sort, setSort] =
-    useState<SortOption>(
-      'name-asc'
-    );
+    useState<
+      'name-asc' | 'name-desc' | 'date-new' | 'date-old'
+    >('name-asc');
 
   const [q, setQ] = useState('');
 
@@ -272,153 +276,118 @@ function App() {
   const isAdmin =
     profileId === 'admin';
 
-  const profile =
+  const p =
     profiles.find(
       x => x.id === profileId
     ) || profiles[0];
 
-  const state =
+  const st =
     states[profileId] || {
       watched: [],
       watchlist: [],
       rewatch: []
     };
 
-  const hero = heroSettings.titleId
-    ? library.find(
-        x => x.id === heroSettings.titleId
-      ) || null
-    : null;
-
   /* --------------------------------------------------
      TODAY'S RECOMMENDATION
   -------------------------------------------------- */
 
-  const recommendation = useMemo(() => {
-    const watchlistTitles =
-      library.filter(
-        title =>
-          state.watchlist.includes(
-            title.id
-          ) &&
-          !state.watched.includes(
-            title.id
-          )
-      );
-
-    return watchlistTitles[0] || null;
-  }, [
-    library,
-    state
-  ]);
-
-  /*
-   * Show Today's Reco once per profile.
-   * It is intentionally stored separately for
-   * each profile.
-   */
+  const rec = library.find(
+    title =>
+      st.watchlist.includes(title.id) &&
+      !st.watched.includes(title.id)
+  );
 
   useEffect(() => {
     if (
-      !profileId ||
-      !recommendation
+      !isAdmin &&
+      rec &&
+      !dismissedRecoProfiles[profileId]
     ) {
-      return;
-    }
-
-    const key =
-      `sx-reco-seen-${profileId}`;
-
-    const alreadySeen =
-      localStorage.getItem(key);
-
-    if (!alreadySeen) {
       setShowReco(true);
+    } else {
+      setShowReco(false);
     }
   }, [
     profileId,
-    recommendation
+    isAdmin,
+    rec?.id,
+    dismissedRecoProfiles
   ]);
 
-  const closeRecommendation = () => {
-    localStorage.setItem(
-      `sx-reco-seen-${profileId}`,
-      'true'
-    );
-
+  const dismissReco = () => {
     setShowReco(false);
+
+    setDismissedRecoProfiles({
+      ...dismissedRecoProfiles,
+      [profileId]: true
+    });
   };
 
   /* --------------------------------------------------
-     SORTING
+     VISIBLE LIBRARY
   -------------------------------------------------- */
 
   const visible = useMemo(() => {
-    const filtered =
-      library
-        .filter(title =>
-          title.name
-            .toLowerCase()
-            .includes(
-              q.toLowerCase()
-            )
-        )
-        .filter(
-          title =>
-            kind === 'all' ||
-            title.kind === kind
-        )
-        .filter(title =>
-          tab === 'rewatch'
-            ? state.rewatch.includes(
-                title.id
-              )
-            : filter === 'all' ||
-              (
-                filter === 'watched'
-                  ? state.watched.includes(
-                      title.id
-                    )
-                  : state.watchlist.includes(
-                      title.id
-                    )
-              )
-        );
-
-    return [...filtered].sort(
-      (a, b) => {
-        switch (sort) {
-          case 'name-desc':
-            return b.name.localeCompare(
-              a.name
-            );
-
-          case 'year-desc':
-            return b.year - a.year;
-
-          case 'year-asc':
-            return a.year - b.year;
-
-          case 'name-asc':
-          default:
-            return a.name.localeCompare(
-              b.name
-            );
+    let results = library
+      .filter(t =>
+        t.name
+          .toLowerCase()
+          .includes(q.toLowerCase())
+      )
+      .filter(
+        t =>
+          kind === 'all' ||
+          t.kind === kind
+      )
+      .filter(t => {
+        if (filter === 'all') {
+          return true;
         }
+
+        if (filter === 'watched') {
+          return st.watched.includes(
+            t.id
+          );
+        }
+
+        return st.watchlist.includes(
+          t.id
+        );
+      });
+
+    results.sort((a, b) => {
+      if (sort === 'name-asc') {
+        return a.name.localeCompare(
+          b.name
+        );
       }
-    );
+
+      if (sort === 'name-desc') {
+        return b.name.localeCompare(
+          a.name
+        );
+      }
+
+      if (sort === 'date-new') {
+        return b.year - a.year;
+      }
+
+      return a.year - b.year;
+    });
+
+    return results;
   }, [
     library,
     q,
     kind,
-    tab,
     filter,
     sort,
-    state
+    st
   ]);
 
   /* --------------------------------------------------
-     STATE ACTIONS
+     STATE
   -------------------------------------------------- */
 
   const updateState = (
@@ -426,21 +395,21 @@ function App() {
   ) => {
     setStates({
       ...states,
-      [profileId]: fn(state)
+      [profileId]: fn(st)
     });
   };
 
   const toggle = (
-    array: keyof State,
+    arr: keyof State,
     id: string
   ) => {
     updateState(s => ({
       ...s,
-      [array]: s[array].includes(id)
-        ? s[array].filter(
+      [arr]: s[arr].includes(id)
+        ? s[arr].filter(
             x => x !== id
           )
-        : [...s[array], id]
+        : [...s[arr], id]
     }));
   };
 
@@ -453,7 +422,7 @@ function App() {
   ) => {
     setLibrary(
       library.filter(
-        title => title.id !== id
+        t => t.id !== id
       )
     );
 
@@ -461,53 +430,50 @@ function App() {
       ...states
     };
 
-    Object.keys(
-      nextStates
-    ).forEach(id => {
-      nextStates[id] = {
-        watched:
-          nextStates[id].watched.filter(
-            x => x !== id
-          ),
-        watchlist:
-          nextStates[id].watchlist.filter(
-            x => x !== id
-          ),
-        rewatch:
-          nextStates[id].rewatch.filter(
-            x => x !== id
-          )
-      };
-    });
+    Object.keys(nextStates).forEach(
+      key => {
+        nextStates[key] = {
+          watched:
+            nextStates[key].watched.filter(
+              x => x !== id
+            ),
+
+          watchlist:
+            nextStates[key].watchlist.filter(
+              x => x !== id
+            ),
+
+          rewatch:
+            nextStates[key].rewatch.filter(
+              x => x !== id
+            )
+        };
+      }
+    );
 
     setStates(nextStates);
 
     setReminders(
       reminders.filter(
-        reminder =>
-          reminder.titleId !== id
+        r => r.titleId !== id
       )
     );
 
     setScheduled(
       scheduled.filter(
-        item =>
-          item.titleId !== id
+        r => r.titleId !== id
       )
     );
 
     if (
-      heroSettings.titleId === id
+      hero?.title.id === id
     ) {
-      setHeroSettings({
-        ...heroSettings,
-        titleId: null
-      });
+      setHero(null);
     }
   };
 
   /* --------------------------------------------------
-     PROFILE MANAGEMENT
+     ADD PROFILE
   -------------------------------------------------- */
 
   const addProfile = (
@@ -517,8 +483,7 @@ function App() {
     const newProfile: Profile = {
       id: uid(),
       name:
-        name.trim() ||
-        'New Profile',
+        name || 'New Profile',
       avatar:
         avatar || '🙂'
     };
@@ -540,41 +505,36 @@ function App() {
     setEditing(null);
   };
 
+  /* --------------------------------------------------
+     PROFILE REORDER
+  -------------------------------------------------- */
+
   const moveProfile = (
     index: number,
     direction: 'up' | 'down'
   ) => {
-    if (
-      index === 0 &&
-      direction === 'up'
-    ) {
-      return;
-    }
+    const next = [...profiles];
 
-    if (
-      index ===
-        profiles.length - 1 &&
-      direction === 'down'
-    ) {
-      return;
-    }
-
-    const next = [
-      ...profiles
-    ];
-
-    const target =
+    const newIndex =
       direction === 'up'
         ? index - 1
         : index + 1;
 
-    [
-      next[index],
-      next[target]
-    ] = [
-      next[target],
-      next[index]
-    ];
+    if (
+      newIndex < 0 ||
+      newIndex >= next.length
+    ) {
+      return;
+    }
+
+    const temp =
+      next[index];
+
+    next[index] =
+      next[newIndex];
+
+    next[newIndex] =
+      temp;
 
     setProfiles(next);
   };
@@ -602,12 +562,14 @@ function App() {
             }
           >
             <span>
-              {profile.avatar}
+              {p.avatar}
             </span>
 
-            {profile.name}
+            {p.name}
 
-            <ChevronDown size={16} />
+            <ChevronDown
+              size={16}
+            />
           </button>
 
           {isAdmin && (
@@ -656,35 +618,37 @@ function App() {
         className="hero"
         style={{
           backgroundImage:
-            hero?.backdrop
-              ? `linear-gradient(
-                  90deg,
-                  rgba(0,0,0,.92),
-                  rgba(0,0,0,.15)
-                ),
-                url(${hero.backdrop})`
+            hero?.title.backdrop
+              ? `linear-gradient(90deg,rgba(0,0,0,.92),rgba(0,0,0,.15)),url(${hero.title.backdrop})`
               : 'none',
 
-          backgroundPosition:
-            `${heroSettings.positionX}% ${heroSettings.positionY}%`
+          backgroundSize: hero
+            ? `${hero.width}% ${hero.height}%`
+            : 'cover',
+
+          backgroundPosition: hero
+            ? `${hero.positionX}% ${hero.positionY}%`
+            : 'center'
         }}
       >
 
         <div className="hero-content">
 
-          <div className="eyebrow">
-            FEATURED
-          </div>
-
           {hero ? (
             <>
+              <div className="eyebrow">
+                FEATURED
+              </div>
+
               <h1>
-                {hero.name}
+                {hero.title.name}
               </h1>
 
               <p>
-                {hero.year} ·{' '}
-                {hero.kind === 'movie'
+                {hero.title.year}
+                {' · '}
+                {hero.title.kind ===
+                'movie'
                   ? 'Movie'
                   : 'TV Show'}
               </p>
@@ -702,6 +666,10 @@ function App() {
             </>
           ) : (
             <>
+              <div className="eyebrow">
+                FEATURED
+              </div>
+
               <h1>
                 Your library is empty
               </h1>
@@ -720,247 +688,223 @@ function App() {
           )}
 
         </div>
+
       </section>
 
       {/* MAIN */}
 
       <main>
 
-        {/* PRIMARY NAVIGATION */}
+        {/* LIBRARY FILTERS */}
 
-        <div className="switch">
+        <div className="toolbar">
 
-          <button
-            className={
-              tab === 'library'
-                ? 'active'
-                : ''
-            }
-            onClick={() => {
-              setTab('library');
-              setFilter('all');
-            }}
-          >
-            Library
-          </button>
+          <div className="filters">
 
-          {!isAdmin && (
             <button
               className={
-                tab === 'rewatch'
-                  ? 'active rewatch-tab'
-                  : 'rewatch-tab'
+                filter === 'all'
+                  ? 'selected'
+                  : ''
               }
               onClick={() =>
-                setTab('rewatch')
+                setFilter('all')
               }
             >
-              ↻ {profile.name}'s
-              Re-watch
+              All
             </button>
-          )}
+
+            <button
+              className={
+                filter ===
+                'watchlist'
+                  ? 'selected'
+                  : ''
+              }
+              onClick={() =>
+                setFilter(
+                  'watchlist'
+                )
+              }
+            >
+              Watchlist
+            </button>
+
+            <button
+              className={
+                filter === 'watched'
+                  ? 'selected'
+                  : ''
+              }
+              onClick={() =>
+                setFilter('watched')
+              }
+            >
+              Watched
+            </button>
+
+          </div>
+
+          <div className="search">
+
+            <Search size={18} />
+
+            <input
+              value={q}
+              onChange={e =>
+                setQ(e.target.value)
+              }
+              placeholder="Search library"
+            />
+
+          </div>
 
         </div>
 
-        {/* LIBRARY CONTROLS */}
+        {/* FORMAT + SORT */}
 
-        {tab === 'library' && (
-          <>
-            <div className="toolbar">
+        <div className="format">
 
-              <div className="filters">
+          <button
+            className={
+              kind === 'all'
+                ? 'selected'
+                : ''
+            }
+            onClick={() =>
+              setKind('all')
+            }
+          >
+            All
+          </button>
 
-                <button
-                  className={
-                    filter === 'all'
-                      ? 'selected'
-                      : ''
-                  }
-                  onClick={() =>
-                    setFilter('all')
-                  }
-                >
-                  All
-                </button>
+          <button
+            className={
+              kind === 'movie'
+                ? 'selected'
+                : ''
+            }
+            onClick={() =>
+              setKind('movie')
+            }
+          >
+            <Film size={15} />
+            Movies
+          </button>
 
-                <button
-                  className={
-                    filter ===
-                    'watchlist'
-                      ? 'selected'
-                      : ''
-                  }
-                  onClick={() =>
-                    setFilter(
-                      'watchlist'
-                    )
-                  }
-                >
-                  Watchlist
-                </button>
+          <button
+            className={
+              kind === 'tv'
+                ? 'selected'
+                : ''
+            }
+            onClick={() =>
+              setKind('tv')
+            }
+          >
+            <Tv size={15} />
+            TV
+          </button>
 
-                <button
-                  className={
-                    filter ===
-                    'watched'
-                      ? 'selected'
-                      : ''
-                  }
-                  onClick={() =>
-                    setFilter(
-                      'watched'
-                    )
-                  }
-                >
-                  Watched
-                </button>
+          <select
+            value={sort}
+            onChange={e =>
+              setSort(
+                e.target.value as
+                  | 'name-asc'
+                  | 'name-desc'
+                  | 'date-new'
+                  | 'date-old'
+              )
+            }
+          >
+            <option value="name-asc">
+              A–Z
+            </option>
 
-              </div>
+            <option value="name-desc">
+              Z–A
+            </option>
 
-              <div className="search">
+            <option value="date-new">
+              Newest
+            </option>
 
-                <Search size={18} />
+            <option value="date-old">
+              Oldest
+            </option>
+          </select>
 
-                <input
-                  value={q}
-                  onChange={e =>
-                    setQ(
-                      e.target.value
-                    )
-                  }
-                  placeholder="Search library"
-                />
+        </div>
 
-              </div>
+        {/* RE-WATCH */}
 
-            </div>
+        {!isAdmin && (
+          <div
+            style={{
+              marginTop: '18px',
+              marginBottom: '8px'
+            }}
+          >
+            <button
+              className="pink"
+              onClick={() => {
+                const current =
+                  st.rewatch;
 
-            <div className="format">
-
-              <button
-                className={
-                  kind === 'all'
-                    ? 'selected'
-                    : ''
+                if (current.length) {
+                  setFilter('all');
                 }
-                onClick={() =>
-                  setKind('all')
-                }
-              >
-                All
-              </button>
-
-              <button
-                className={
-                  kind === 'movie'
-                    ? 'selected'
-                    : ''
-                }
-                onClick={() =>
-                  setKind('movie')
-                }
-              >
-                <Film size={15} />
-                Movies
-              </button>
-
-              <button
-                className={
-                  kind === 'tv'
-                    ? 'selected'
-                    : ''
-                }
-                onClick={() =>
-                  setKind('tv')
-                }
-              >
-                <Tv size={15} />
-                TV
-              </button>
-
-              <select
-                className="sort-select"
-                value={sort}
-                onChange={e =>
-                  setSort(
-                    e.target
-                      .value as SortOption
-                  )
-                }
-                aria-label="Sort library"
-              >
-                <option value="name-asc">
-                  Name A–Z
-                </option>
-
-                <option value="name-desc">
-                  Name Z–A
-                </option>
-
-                <option value="year-desc">
-                  Newest release
-                </option>
-
-                <option value="year-asc">
-                  Oldest release
-                </option>
-              </select>
-
-            </div>
-          </>
+              }}
+            >
+              ↻ {p.name}'s Re-watch
+            </button>
+          </div>
         )}
 
-        {/* LIBRARY */}
+        {/* GRID */}
 
         <div className="grid">
 
-          {visible.map(title => (
+          {visible.map(t => (
             <Card
-              key={title.id}
-              t={title}
-              st={state}
+              key={t.id}
+              t={t}
+              st={st}
               isAdmin={isAdmin}
               onWatch={() =>
                 toggle(
                   'watched',
-                  title.id
+                  t.id
                 )
               }
               onList={() =>
                 toggle(
                   'watchlist',
-                  title.id
+                  t.id
                 )
               }
               onRewatch={() =>
                 toggle(
                   'rewatch',
-                  title.id
+                  t.id
                 )
               }
               onRemove={() =>
-                removeTitle(
-                  title.id
-                )
+                removeTitle(t.id)
               }
               onReminder={() =>
-                setShowReminder(
-                  title
-                )
+                setShowReminder(t)
               }
               onSchedule={() =>
-                setShowSchedule(
-                  title
-                )
+                setShowSchedule(t)
               }
             />
           ))}
 
           {!visible.length && (
             <div className="empty">
-              {library.length === 0
-                ? 'Your library is empty.'
-                : 'Nothing here yet.'}
+              Nothing here yet.
             </div>
           )}
 
@@ -968,56 +912,78 @@ function App() {
 
       </main>
 
-      {/* TODAY'S RECOMMENDATION */}
+      {/* TODAY'S RECO */}
 
       {showReco &&
-        recommendation && (
+        rec &&
+        !isAdmin && (
           <Modal
             title="Today's Reco"
             onClose={
-              closeRecommendation
+              dismissReco
             }
           >
-            <div className="reco">
+
+            <div
+              className="reco"
+              style={{
+                padding:
+                  '12px 4px 8px'
+              }}
+            >
 
               <img
-                src={
-                  recommendation.poster
-                }
-                alt={
-                  recommendation.name
-                }
+                src={rec.poster}
+                alt={rec.name}
               />
 
               <div>
 
-                <div className="reco-label">
-                  FROM YOUR WATCHLIST
+                <div
+                  style={{
+                    display:
+                      'inline-block',
+                    padding:
+                      '6px 10px',
+                    borderRadius:
+                      '999px',
+                    background:
+                      'rgba(255,255,255,.08)',
+                    marginBottom:
+                      '10px'
+                  }}
+                >
+                  <strong>
+                    {rec.name}
+                  </strong>
                 </div>
 
-                <h2>
-                  {recommendation.name}
-                </h2>
-
                 <p>
-                  {recommendation.year} ·{' '}
-                  {recommendation.kind ===
+                  {rec.year}
+                  {' · '}
+                  {rec.kind ===
                   'movie'
                     ? 'Movie'
                     : 'TV Show'}
                 </p>
 
-                {recommendation.overview && (
-                  <p>
-                    {
-                      recommendation.overview
-                    }
-                  </p>
-                )}
+                <p>
+                  {rec.overview}
+                </p>
+
+                <button
+                  className="pink"
+                  onClick={
+                    dismissReco
+                  }
+                >
+                  Got it
+                </button>
 
               </div>
 
             </div>
+
           </Modal>
         )}
 
@@ -1034,23 +1000,24 @@ function App() {
           <div className="profiles">
 
             {profiles.map(
-              (item, index) => (
+              (profile, index) => (
                 <div
                   className="profile-row"
-                  key={item.id}
+                  key={profile.id}
                 >
 
                   <button
                     onClick={() => {
                       setProfileId(
-                        item.id
+                        profile.id
                       );
+
                       setShowProfile(
                         false
                       );
                     }}
                     className={
-                      item.id ===
+                      profile.id ===
                       profileId
                         ? 'current'
                         : ''
@@ -1058,14 +1025,14 @@ function App() {
                   >
 
                     <span className="avatar">
-                      {item.avatar}
+                      {profile.avatar}
                     </span>
 
                     <span>
-                      {item.name}
+                      {profile.name}
                     </span>
 
-                    {item.id ===
+                    {profile.id ===
                       profileId && (
                       <Check
                         size={18}
@@ -1075,32 +1042,21 @@ function App() {
                   </button>
 
                   {isAdmin &&
-                    item.id !==
+                    profile.id !==
                       'admin' && (
-                      <button
-                        className="icon"
-                        onClick={() => {
-                          setEditing(
-                            item
-                          );
-                          setShowProfile(
-                            false
-                          );
+                      <div
+                        style={{
+                          display:
+                            'flex',
+                          gap:
+                            '4px'
                         }}
                       >
-                        ✎
-                      </button>
-                    )}
-
-                  {isAdmin &&
-                    profiles.length >
-                      1 && (
-                      <div className="profile-order">
 
                         <button
                           className="icon"
                           disabled={
-                            index === 0
+                            index === 1
                           }
                           onClick={() =>
                             moveProfile(
@@ -1108,9 +1064,9 @@ function App() {
                               'up'
                             )
                           }
-                          aria-label="Move profile up"
+                          title="Move up"
                         >
-                          <ChevronLeft
+                          <ChevronUp
                             size={16}
                           />
                         </button>
@@ -1128,11 +1084,25 @@ function App() {
                               'down'
                             )
                           }
-                          aria-label="Move profile down"
+                          title="Move down"
                         >
-                          <ChevronRight
+                          <ChevronDown
                             size={16}
                           />
+                        </button>
+
+                        <button
+                          className="icon"
+                          onClick={() => {
+                            setEditing(
+                              profile
+                            );
+                            setShowProfile(
+                              false
+                            );
+                          }}
+                        >
+                          ✎
                         </button>
 
                       </div>
@@ -1188,15 +1158,15 @@ function App() {
               : (
                   setProfiles(
                     profiles.map(
-                      item =>
-                        item.id ===
+                      x =>
+                        x.id ===
                         editing.id
                           ? {
-                              ...item,
+                              ...x,
                               name,
                               avatar
                             }
-                          : item
+                          : x
                     )
                   ),
                   setEditing(null)
@@ -1208,15 +1178,16 @@ function App() {
               : () => {
                   setProfiles(
                     profiles.filter(
-                      item =>
-                        item.id !==
+                      x =>
+                        x.id !==
                         editing.id
                     )
                   );
 
-                  const nextStates = {
-                    ...states
-                  };
+                  const nextStates =
+                    {
+                      ...states
+                    };
 
                   delete nextStates[
                     editing.id
@@ -1227,6 +1198,7 @@ function App() {
                   );
 
                   setEditing(null);
+
                   setProfileId(
                     'admin'
                   );
@@ -1243,12 +1215,14 @@ function App() {
           onClose={() =>
             setShowAdd(false)
           }
-          onAdd={title =>
+          onAdd={title => {
             setLibrary([
               ...library,
               title
-            ])
-          }
+            ]);
+
+            setShowAdd(false);
+          }}
         />
       )}
 
@@ -1285,9 +1259,7 @@ function App() {
           <ScheduleModal
             title={showSchedule}
             profiles={profiles.filter(
-              item =>
-                item.id !==
-                'admin'
+              x => x.id !== 'admin'
             )}
             onClose={() =>
               setShowSchedule(null)
@@ -1305,26 +1277,19 @@ function App() {
 
       {/* HERO EDITOR */}
 
-      {showHero &&
-        isAdmin && (
-          <HeroModal
-            hero={hero}
-            library={library}
-            settings={
-              heroSettings
-            }
-            onClose={() =>
-              setShowHero(false)
-            }
-            onSave={settings => {
-              setHeroSettings(
-                settings
-              );
-
-              setShowHero(false);
-            }}
-          />
-        )}
+      {showHero && isAdmin && (
+        <HeroModal
+          hero={hero}
+          library={library}
+          onClose={() =>
+            setShowHero(false)
+          }
+          onSave={settings => {
+            setHero(settings);
+            setShowHero(false);
+          }}
+        />
+      )}
 
       {/* FOOTER */}
 
@@ -1335,8 +1300,8 @@ function App() {
 
           {
             reminders.filter(
-              reminder =>
-                reminder.profileId ===
+              r =>
+                r.profileId ===
                 profileId
             ).length
           }
@@ -1346,7 +1311,8 @@ function App() {
 
         {isAdmin && (
           <span>
-            {scheduled.length}{' '}
+            {scheduled.length}
+            {' '}
             scheduled reco(s)
           </span>
         )}
@@ -1354,7 +1320,7 @@ function App() {
         <button
           onClick={() =>
             alert(
-              'Sign out will be connected to your real authentication system.'
+              'Browser push notifications will be added through the notification system.'
             )
           }
         >
@@ -1422,7 +1388,9 @@ function Card({
             onClick={onRemove}
             title="Remove title"
           >
-            <Trash2 size={16} />
+            <Trash2
+              size={16}
+            />
           </button>
         )}
 
@@ -1468,45 +1436,43 @@ function Card({
 
         </div>
 
-        <div className="small-actions">
+        {!isAdmin && (
+          <div className="small-actions">
 
-          {!isAdmin && (
             <button
+              onClick={onRewatch}
               className={
                 st.rewatch.includes(
                   t.id
                 )
-                  ? 'rewatch-action on'
-                  : 'rewatch-action'
-              }
-              onClick={
-                onRewatch
+                  ? 'on'
+                  : ''
               }
             >
               ↻ Re-watch
             </button>
-          )}
 
-          <button
-            onClick={
-              onReminder
-            }
-          >
-            <Bell size={14} />
-            Remind me
-          </button>
-
-          {isAdmin && (
             <button
-              onClick={
-                onSchedule
-              }
+              onClick={onReminder}
+            >
+              <Bell size={14} />
+              Remind me
+            </button>
+
+          </div>
+        )}
+
+        {isAdmin && (
+          <div className="small-actions">
+
+            <button
+              onClick={onSchedule}
             >
               Schedule reco
             </button>
-          )}
 
-        </div>
+          </div>
+        )}
 
       </div>
 
@@ -1608,9 +1574,7 @@ function ProfileEditor({
           autoFocus
           value={name}
           onChange={e =>
-            setName(
-              e.target.value
-            )
+            setName(e.target.value)
           }
         />
       </label>
@@ -1629,24 +1593,23 @@ function ProfileEditor({
             '🐱',
             '🦋',
             '🔥'
-          ].map(item => (
+          ].map(emoji => (
             <button
               className={
-                avatar === item
+                avatar === emoji
                   ? 'picked'
                   : ''
               }
               onClick={() =>
-                setAvatar(item)
+                setAvatar(emoji)
               }
-              key={item}
+              key={emoji}
             >
-              {item}
+              {emoji}
             </button>
           ))}
 
         </div>
-
       </label>
 
       <label>
@@ -1704,7 +1667,7 @@ function AddTitle({
   onClose: () => void;
   onAdd: (title: Title) => void;
 }) {
-  const [query, setQuery] =
+  const [q, setQ] =
     useState('');
 
   const [results, setResults] =
@@ -1717,42 +1680,44 @@ function AddTitle({
     useState('');
 
   useEffect(() => {
-    if (!query.trim()) {
+    if (!q.trim()) {
       setResults([]);
       return;
     }
 
     const timer =
-      setTimeout(async () => {
-        setLoading(true);
-        setError('');
+      setTimeout(
+        async () => {
+          setLoading(true);
+          setError('');
 
-        try {
-          const data =
-            await searchTMDB(
-              query
+          try {
+            const data =
+              await searchTMDB(q);
+
+            setResults(data);
+          } catch {
+            setError(
+              'Unable to search TMDB right now.'
             );
-
-          setResults(data);
-        } catch {
-          setError(
-            'Unable to search TMDB right now.'
-          );
-        } finally {
-          setLoading(false);
-        }
-      }, 400);
+          } finally {
+            setLoading(false);
+          }
+        },
+        400
+      );
 
     return () =>
       clearTimeout(timer);
-  }, [query]);
+  }, [q]);
 
   const available =
     results.filter(
       title =>
         !library.some(
-          item =>
-            item.id === title.id
+          existing =>
+            existing.id ===
+            title.id
         )
     );
 
@@ -1773,11 +1738,9 @@ function AddTitle({
 
         <input
           autoFocus
-          value={query}
+          value={q}
           onChange={e =>
-            setQuery(
-              e.target.value
-            )
+            setQ(e.target.value)
           }
           placeholder="Search movies and TV shows"
         />
@@ -1816,7 +1779,8 @@ function AddTitle({
               </b>
 
               <span>
-                {title.year} ·{' '}
+                {title.year}
+                {' · '}
                 {title.kind ===
                 'movie'
                   ? 'Movie'
@@ -1832,8 +1796,8 @@ function AddTitle({
 
                 setResults(
                   results.filter(
-                    item =>
-                      item.id !==
+                    x =>
+                      x.id !==
                       title.id
                   )
                 );
@@ -1926,10 +1890,10 @@ function ReminderModal({
       </button>
 
       <p className="muted">
-        Notification delivery will
-        be connected to the
-        Streamix notification
-        system.
+        Push notifications will
+        require browser notification
+        permission and backend
+        notification support.
       </p>
 
     </Modal>
@@ -1986,6 +1950,7 @@ function ScheduleModal({
             )
           }
         >
+
           {profiles.map(profile => (
             <option
               value={profile.id}
@@ -1994,6 +1959,7 @@ function ScheduleModal({
               {profile.name}
             </option>
           ))}
+
         </select>
       </label>
 
@@ -2048,8 +2014,7 @@ function ScheduleModal({
           onSave({
             id: uid(),
             profileId,
-            titleId:
-              title.id,
+            titleId: title.id,
             date,
             time,
             message
@@ -2070,40 +2035,72 @@ function ScheduleModal({
 function HeroModal({
   hero,
   library,
-  settings,
   onClose,
   onSave
 }: {
-  hero: Title | null;
+  hero: HeroSettings | null;
   library: Title[];
-  settings: HeroSettings;
   onClose: () => void;
   onSave: (
     settings: HeroSettings
   ) => void;
 }) {
-  const [titleId, setTitleId] =
-    useState<string>(
-      settings.titleId ||
-        library[0]?.id ||
-        ''
-    );
+  const initialTitle =
+    hero?.title ||
+    library[0];
 
-  const [positionX, setPositionX] =
+  const [id, setId] =
     useState(
-      settings.positionX
-    );
-
-  const [positionY, setPositionY] =
-    useState(
-      settings.positionY
+      initialTitle?.id || ''
     );
 
   const selectedTitle =
     library.find(
-      title =>
-        title.id === titleId
-    ) || hero;
+      x => x.id === id
+    ) || initialTitle;
+
+  const [width, setWidth] =
+    useState(
+      hero?.width || 100
+    );
+
+  const [height, setHeight] =
+    useState(
+      hero?.height || 100
+    );
+
+  const [positionX, setPositionX] =
+    useState(
+      hero?.positionX || 50
+    );
+
+  const [positionY, setPositionY] =
+    useState(
+      hero?.positionY || 50
+    );
+
+  if (!selectedTitle) {
+    return (
+      <Modal
+        title="Edit Hero"
+        onClose={onClose}
+      >
+
+        <p className="muted">
+          Add a movie or TV show
+          first to create a hero.
+        </p>
+
+        <button
+          className="pink full"
+          onClick={onClose}
+        >
+          Close
+        </button>
+
+      </Modal>
+    );
+  }
 
   return (
     <Modal
@@ -2111,115 +2108,294 @@ function HeroModal({
       onClose={onClose}
     >
 
-      <p>
-        Choose which title
-        appears in the featured
-        hero.
+      <p className="muted">
+        The image automatically
+        fits the hero area first.
+        Adjust the size and crop
+        only if needed.
       </p>
 
-      {library.length === 0 ? (
-        <p className="muted">
-          Add a movie or TV show
-          to your library first.
-        </p>
-      ) : (
-        <>
-          <label>
-            Hero title
+      {/* LARGE PREVIEW */}
 
-            <select
-              value={titleId}
-              onChange={e =>
-                setTitleId(
+      <div
+        style={{
+          width: '100%',
+          aspectRatio: '8 / 3',
+          borderRadius: '14px',
+          overflow: 'hidden',
+          position: 'relative',
+          background: '#111',
+          marginBottom: '24px'
+        }}
+      >
+
+        {selectedTitle.backdrop ? (
+          <img
+            src={
+              selectedTitle.backdrop
+            }
+            alt={
+              selectedTitle.name
+            }
+            style={{
+              width: `${width}%`,
+              height: `${height}%`,
+              maxWidth: 'none',
+              maxHeight: 'none',
+              objectFit: 'cover',
+              position: 'absolute',
+              left: `${positionX}%`,
+              top: `${positionY}%`,
+              transform:
+                'translate(-50%, -50%)',
+              transition:
+                'all .15s ease'
+            }}
+          />
+        ) : (
+          <div
+            style={{
+              width: '100%',
+              height: '100%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent:
+                'center',
+              color: '#888'
+            }}
+          >
+            No backdrop available
+          </div>
+        )}
+
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            background:
+              'linear-gradient(90deg,rgba(0,0,0,.72),rgba(0,0,0,.05))',
+            pointerEvents: 'none'
+          }}
+        />
+
+        <div
+          style={{
+            position: 'absolute',
+            left: '24px',
+            bottom: '20px',
+            color: '#fff',
+            pointerEvents: 'none'
+          }}
+        >
+
+          <div
+            style={{
+              fontSize: '11px',
+              letterSpacing: '2px',
+              fontWeight: 700,
+              opacity: 0.75,
+              marginBottom: '5px'
+            }}
+          >
+            FEATURED
+          </div>
+
+          <strong
+            style={{
+              fontSize:
+                'clamp(20px,3vw,34px)'
+            }}
+          >
+            {selectedTitle.name}
+          </strong>
+
+        </div>
+
+      </div>
+
+      {/* TITLE */}
+
+      <label>
+        Hero title
+
+        <select
+          value={id}
+          onChange={e => {
+            setId(
+              e.target.value
+            );
+
+            setWidth(100);
+            setHeight(100);
+            setPositionX(50);
+            setPositionY(50);
+          }}
+        >
+
+          {library.map(title => (
+            <option
+              key={title.id}
+              value={title.id}
+            >
+              {title.name}
+            </option>
+          ))}
+
+        </select>
+      </label>
+
+      {/* SIZE */}
+
+      <div
+        style={{
+          marginTop: '22px'
+        }}
+      >
+
+        <strong>
+          Image size
+        </strong>
+
+        <p className="muted">
+          The default is 100%,
+          which gives you the
+          automatic fit. Adjust
+          the sliders if you want
+          more or less of the
+          image visible.
+        </p>
+
+        <label>
+          Width
+
+          <input
+            type="range"
+            min="80"
+            max="160"
+            value={width}
+            onChange={e =>
+              setWidth(
+                Number(
                   e.target.value
                 )
-              }
-            >
-              {library.map(title => (
-                <option
-                  key={title.id}
-                  value={title.id}
-                >
-                  {title.name}
-                </option>
-              ))}
-            </select>
-          </label>
-
-          {selectedTitle?.backdrop && (
-            <div
-              className="hero-preview"
-              style={{
-                backgroundImage:
-                  `url(${selectedTitle.backdrop})`,
-                backgroundPosition:
-                  `${positionX}% ${positionY}%`
-              }}
-            >
-              <div className="hero-preview-overlay">
-                Preview
-              </div>
-            </div>
-          )}
-
-          <label>
-            Image horizontal crop
-
-            <input
-              type="range"
-              min="0"
-              max="100"
-              value={positionX}
-              onChange={e =>
-                setPositionX(
-                  Number(
-                    e.target.value
-                  )
-                )
-              }
-            />
-
-            <span className="muted">
-              {positionX}%
-            </span>
-          </label>
-
-          <label>
-            Image vertical crop
-
-            <input
-              type="range"
-              min="0"
-              max="100"
-              value={positionY}
-              onChange={e =>
-                setPositionY(
-                  Number(
-                    e.target.value
-                  )
-                )
-              }
-            />
-
-            <span className="muted">
-              {positionY}%
-            </span>
-          </label>
-
-          <button
-            className="pink full"
-            onClick={() =>
-              onSave({
-                titleId,
-                positionX,
-                positionY
-              })
+              )
             }
-          >
-            Save Hero
-          </button>
-        </>
-      )}
+          />
+
+          <span className="muted">
+            {width}%
+          </span>
+        </label>
+
+        <label>
+          Height
+
+          <input
+            type="range"
+            min="80"
+            max="160"
+            value={height}
+            onChange={e =>
+              setHeight(
+                Number(
+                  e.target.value
+                )
+              )
+            }
+          />
+
+          <span className="muted">
+            {height}%
+          </span>
+        </label>
+
+      </div>
+
+      {/* CROP */}
+
+      <div
+        style={{
+          marginTop: '22px'
+        }}
+      >
+
+        <strong>
+          Crop / Position
+        </strong>
+
+        <p className="muted">
+          Fine-tune where the image
+          sits inside the hero.
+        </p>
+
+        <label>
+          Horizontal
+
+          <input
+            type="range"
+            min="0"
+            max="100"
+            value={positionX}
+            onChange={e =>
+              setPositionX(
+                Number(
+                  e.target.value
+                )
+              )
+            }
+          />
+        </label>
+
+        <label>
+          Vertical
+
+          <input
+            type="range"
+            min="0"
+            max="100"
+            value={positionY}
+            onChange={e =>
+              setPositionY(
+                Number(
+                  e.target.value
+                )
+              )
+            }
+          />
+        </label>
+
+      </div>
+
+      {/* RESET */}
+
+      <button
+        className="ghost full"
+        onClick={() => {
+          setWidth(100);
+          setHeight(100);
+          setPositionX(50);
+          setPositionY(50);
+        }}
+      >
+        Reset image
+      </button>
+
+      {/* SAVE */}
+
+      <button
+        className="pink full"
+        onClick={() =>
+          onSave({
+            title: selectedTitle,
+            width,
+            height,
+            positionX,
+            positionY
+          })
+        }
+      >
+        Save Hero
+      </button>
 
     </Modal>
   );
