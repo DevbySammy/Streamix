@@ -45,67 +45,6 @@ type Scheduled={
   message:string;
 };
 
-/* --------------------------------------------------
-   MOCK LIBRARY
--------------------------------------------------- */
-
-const mock:Title[]=[
- {
-  id:'matrix',
-  name:'The Matrix',
-  kind:'movie',
-  year:1999,
-  poster:'https://image.tmdb.org/t/p/w500/f89U3ADr1oiB1s9GkdPOEpXUk5H.jpg',
-  backdrop:'https://image.tmdb.org/t/p/w1280/fNG7i7RqMErkcqhohV2a6cV1Ehy.jpg',
-  overview:'A hacker discovers that the world he knows is an elaborate simulation.'
- },
- {
-  id:'interstellar',
-  name:'Interstellar',
-  kind:'movie',
-  year:2014,
-  poster:'https://image.tmdb.org/t/p/w500/gEU2QniE6E77NI6lCU6MxlNBvIx.jpg',
-  backdrop:'https://image.tmdb.org/t/p/w1280/xJHokMbljvjADYdit5fK5QTB1lx.jpg',
-  overview:'Explorers travel through a wormhole in space in an attempt to ensure humanity’s survival.'
- },
- {
-  id:'the-bear',
-  name:'The Bear',
-  kind:'tv',
-  year:2022,
-  poster:'https://image.tmdb.org/t/p/w500/sHFlbKS3WLqMnpAcZsVv0M9w5sR.jpg',
-  backdrop:'https://image.tmdb.org/t/p/w1280/7C2j9rA0j3xqVhX0vJvX4q5t6uI.jpg',
-  overview:'A young chef returns to Chicago to run his family sandwich shop.'
- },
- {
-  id:'succession',
-  name:'Succession',
-  kind:'tv',
-  year:2018,
-  poster:'https://image.tmdb.org/t/p/w500/7HW47XbkNQ5fiwQFYGqwR5f7k4s.jpg',
-  backdrop:'https://image.tmdb.org/t/p/w1280/8Y4i1M8i1fV0G0xY7z8gq2vWqKp.jpg',
-  overview:'A powerful family faces an uncertain future as control of their media empire is contested.'
- },
- {
-  id:'spirited-away',
-  name:'Spirited Away',
-  kind:'movie',
-  year:2001,
-  poster:'https://image.tmdb.org/t/p/w500/39wmItIWsg5sZMyRUHLkWBcuVCM.jpg',
-  backdrop:'https://image.tmdb.org/t/p/w1280/AbC2D3e4F5g6H7i8J9k0L1m2N3o.jpg',
-  overview:'A young girl enters a mysterious spirit world and must find her way home.'
- },
- {
-  id:'severance',
-  name:'Severance',
-  kind:'tv',
-  year:2022,
-  poster:'https://image.tmdb.org/t/p/w500/l9x7pZ5mKQ8r5H0q7tYv2W3x4aB.jpg',
-  backdrop:'https://image.tmdb.org/t/p/w1280/l9x7pZ5mKQ8r5H0q7tYv2W3x4aB.jpg',
-  overview:'Employees undergo a procedure that separates their work and personal memories.'
- }
-];
-
 const initialProfiles:Profile[]=[
  {id:'admin',name:'Admin',avatar:'👑'},
  {id:'sarah',name:'Sarah',avatar:'🌸'},
