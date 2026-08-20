@@ -844,12 +844,6 @@ function App() {
     return (
       <div className="app">
 
-   <header>
-  <div className="logo">
-    STREAM<span>IX</span>
-  </div>
-</header>
-
         <main>
           <div
             style={{
@@ -867,15 +861,25 @@ function App() {
                   "min(560px, 100%)"
               }}
             >
-              <div
-                style={{
-                  textAlign: "center",
-                  marginBottom: "28px"
-                }}
-              >
-                <h1>
-                  Who's watching?
-                </h1>
+           <div
+  style={{
+    textAlign: "center",
+    marginBottom: "28px"
+  }}
+>
+  <div
+    className="logo"
+    style={{
+      justifyContent: "center",
+      marginBottom: "28px"
+    }}
+  >
+    STREAM<span>IX</span>
+  </div>
+
+  <h1>
+    Who's watching?
+  </h1>
 
                 <p className="muted">
                   Choose a profile to
