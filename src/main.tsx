@@ -934,52 +934,56 @@ function App() {
     setEditing(null);
   }
 
-  function reorderProfiles(
-    draggedId: string,
-    targetId: string
-  ) {
-    if (
-      draggedId === targetId ||
-      !isAdmin
-        draggedId === "admin" ||
+function reorderProfiles(
+  draggedId: string,
+  targetId: string
+) {
+  if (
+    draggedId === targetId ||
+    !isAdmin ||
+    draggedId === "admin" ||
     targetId === "admin"
-    ) {
-      return;
-    }
+  ) {
+    return;
+  }
 
-    setProfiles(current => {
-      const draggedIndex =
-        current.findIndex(
-          profile =>
-            profile.id === draggedId
-        );
-
-      const targetIndex =
-        current.findIndex(
-          profile =>
-            profile.id === targetId
-        );
-
-      if (
-        draggedIndex === -1 ||
-        targetIndex === -1
-      ) {
-        return current;
-      }
-
-      const next = [...current];
-      const [draggedProfile] =
-        next.splice(draggedIndex, 1);
-
-      next.splice(
-        targetIndex,
-        0,
-        draggedProfile
+   setProfiles(current => {
+    const draggedIndex =
+      current.findIndex(
+        profile =>
+          profile.id === draggedId
       );
 
-      return next;
-    });
-  }
+    const targetIndex =
+      current.findIndex(
+        profile =>
+          profile.id === targetId
+      );
+
+    if (
+      draggedIndex === -1 ||
+      targetIndex === -1
+    ) {
+      return current;
+    }
+
+    const next = [...current];
+
+    const [draggedProfile] =
+      next.splice(
+        draggedIndex,
+        1
+      );
+
+    next.splice(
+      targetIndex,
+      0,
+      draggedProfile
+    );
+
+    return next;
+  });
+}
 
   /* =======================================================
      RENDER
