@@ -792,8 +792,7 @@ const key =
   "sx-reco-seen-" +
   profileId;
 
-const alreadySeen =
-  localStorage.getItem(key);
+const alreadySeen = false;
 
 if (!alreadySeen) {
   setShowReco(true);
@@ -944,21 +943,23 @@ setDragPointerId(null);
 CLOSE RECOMMENDATION
 ======================================================= */
 
-function closeRecommendation() {
-if (!profileId) {
-return;
-}
+async function closeRecommendation() {
+  if (!profileId) {
+    return;
+  }
 
+  try {
+    await fetch("/api/recommendation-status", {
+      method: "POST"
+    });
+  } catch (error) {
+    console.error(
+      "Failed to save recommendation status:",
+      error
+    );
+  }
 
-localStorage.setItem(
-  "sx-reco-seen-" +
-    profileId,
-  "true"
-);
-
-setShowReco(false);
-
-
+  setShowReco(false);
 }
 
 /* =======================================================
