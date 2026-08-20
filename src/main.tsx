@@ -2019,16 +2019,7 @@ function reorderProfiles(
           </span>
         )}
 
-        {/* REAL SIGN OUT */}
-
-        <button
-          onClick={signOut}
-        >
-          <LogOut
-            size={14}
-          />
-          Sign out
-        </button>
+       
 
       </footer>
 
