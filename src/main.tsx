@@ -1,4 +1,3 @@
-```tsx
 import React, { useEffect, useMemo, useState } from "react";
 import { createRoot } from "react-dom/client";
 import {
@@ -2709,4 +2708,3 @@ createRoot(rootElement).render(
     <App />
   </React.StrictMode>
 );
-```
