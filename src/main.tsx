@@ -151,8 +151,6 @@ if (!cleanQuery) {
 return [];
 }
 
-const API_BASE_URL = "https://streamix.gaintrainstrong.workers.dev";
-
   const API_BASE_URL =
   "https://streamix.gaintrainstrong.workers.dev";
 
