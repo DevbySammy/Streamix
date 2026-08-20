@@ -2536,9 +2536,9 @@ const [showPassword, setShowPassword] =
 useState(false);
 
 const hasPassword =
-Boolean(
-profile.password
-);
+  profile.id === "admin"
+    ? true
+    : Boolean(profile.password);
 
 function handleLogin() {
 if (
