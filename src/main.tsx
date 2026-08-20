@@ -295,15 +295,18 @@ function App() {
      AUTHENTICATION / SESSION
   ======================================================= */
 
-  const [profileId, setProfileId] =
-    useStored<string | null>(
-      "sx-session",
-      null
-    );
+ const [profileId, setProfileId] =
+  useStored<string | null>(
+    "sx-session",
+    null
+  );
 
-  const [viewingAs, setViewingAs] =
-    useState<string | null>(null);
-
+const [viewingAs, setViewingAs] =
+  useStored<string | null>(
+    "sx-viewing-as",
+    null
+  );
+  
   const [tab, setTab] =
     useState<"library" | "rewatch">(
       "library"
@@ -440,22 +443,22 @@ function App() {
      CURRENT USER / PERMISSIONS
   ======================================================= */
 
-  const isAdminUser =
-    profileId === "admin";
+const isAdminUser =
+  profileId === "admin";
 
-  const isViewingAs =
-    isAdminUser &&
-    viewingAs !== null;
+const isViewingAs =
+  isAdminUser &&
+  viewingAs !== null;
 
-  const isAdmin =
-    isAdminUser &&
-    !isViewingAs;
+const isAdmin =
+  isAdminUser &&
+  !isViewingAs;
 
-  const effectiveProfileId =
-    viewingAs || profileId;
-
-  const effectiveProfile =
-    effectiveProfileId
+const effectiveProfileId =
+  isViewingAs
+    ? viewingAs
+    : profileId;
+  
       ? profiles.find(
           item =>
             item.id ===
@@ -690,76 +693,77 @@ function App() {
      FILTERING + SORTING
   ======================================================= */
 
-  const visible = useMemo(() => {
-    const filtered =
-      library
-        .filter(title =>
-          title.name
-            .toLowerCase()
-            .includes(
-              q.toLowerCase()
-            )
-        )
-        .filter(title => {
-          if (kind === "all") {
-            return true;
-          }
+ const visible = useMemo(() => {
+  const filtered =
+    library
+      .filter(title =>
+        title.name
+          .toLowerCase()
+          .includes(
+            q.toLowerCase()
+          )
+      )
+      .filter(title => {
+        if (kind === "all") {
+          return true;
+        }
 
-          return title.kind === kind;
-        })
-        .filter(title => {
-          if (tab === "rewatch") {
-            return state.rewatch.includes(
-              title.id
-            );
-          }
-
-          if (filter === "all") {
-            return true;
-          }
-
-          if (filter === "watched") {
-            return state.watched.includes(
-              title.id
-            );
-          }
-
-          return state.watchlist.includes(
+        return title.kind === kind;
+      })
+      .filter(title => {
+        if (tab === "rewatch") {
+          return state.rewatch.includes(
             title.id
           );
-        });
-
-    return [...filtered].sort(
-      (a, b) => {
-        switch (sort) {
-          case "name-desc":
-            return b.name.localeCompare(
-              a.name
-            );
-
-          case "year-desc":
-            return b.year - a.year;
-
-          case "year-asc":
-            return a.year - b.year;
-
-          case "name-asc":
-          default:
-            return a.name.localeCompare(
-              b.name
-            );
         }
+
+        if (filter === "all") {
+          return true;
+        }
+
+        if (filter === "watched") {
+          return state.watched.includes(
+            title.id
+          );
+        }
+
+        return state.watchlist.includes(
+          title.id
+        );
+      });
+
+  return [...filtered].sort(
+    (a, b) => {
+      switch (sort) {
+        case "name-desc":
+          return b.name.localeCompare(
+            a.name
+          );
+
+        case "year-desc":
+          return b.year - a.year;
+
+        case "year-asc":
+          return a.year - b.year;
+
+        case "name-asc":
+        default:
+          return a.name.localeCompare(
+            b.name
+          );
       }
-    );
-  }, [
-    library,
-    q,
-    kind,
-    tab,
-    filter,
-    sort,
-    state
-  ]);
+    }
+  );
+}, [
+  library,
+  q,
+  kind,
+  tab,
+  filter,
+  sort,
+  state
+]);
+
 
   /* =======================================================
      STATE ACTIONS
