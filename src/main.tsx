@@ -1456,233 +1456,278 @@ function App() {
           </Modal>
         )}
 
-      {/* PROFILES */}
+   {/* PROFILES */}
 
-      {showProfile && (
-        <Modal
-          title="Profiles"
-          compact
-          onClose={() =>
-            setShowProfile(false)
-          }
-        >
+{showProfile && (
+  <Modal
+    title="Profiles"
+    compact
+    onClose={() =>
+      setShowProfile(false)
+    }
+  >
 
-          <div className="profiles">
+    <div className="profiles">
 
-            {orderedProfiles.map(
-              item => (
+      {orderedProfiles.map(
+        (item, index) => (
+          <React.Fragment key={item.id}>
+
+            {/* DROP INDICATOR */}
+
+            {isAdmin &&
+              draggedProfileId &&
+              draggedProfileId !== item.id &&
+              item.id !== "admin" && (
                 <div
-                  className={
-                    "profile-row" +
-                    (draggedProfileId ===
-                    item.id
-                      ? " dragging"
-                      : "")
-                  }
-                  key={item.id}
-                  onDragOver={event => {
-                    if (
-                      !isAdmin ||
-                      !draggedProfileId
-                    ) {
-                      return;
-                    }
+                  className="profile-drop-indicator"
+                  aria-hidden="true"
+                />
+              )}
 
-                    event.preventDefault();
+            {/* PROFILE ROW */}
 
-                    event.dataTransfer.dropEffect =
-                      "move";
-                  }}
-                  onDrop={event => {
-                    if (
-                      !isAdmin ||
-                      !draggedProfileId
-                    ) {
-                      return;
-                    }
+            <div
+              className={
+                "profile-row" +
+                (draggedProfileId ===
+                item.id
+                  ? " dragging"
+                  : "")
+              }
 
-                    event.preventDefault();
+              onDragOver={event => {
+                if (
+                  !isAdmin ||
+                  !draggedProfileId ||
+                  draggedProfileId ===
+                    item.id ||
+                  item.id === "admin"
+                ) {
+                  return;
+                }
 
-                    reorderProfiles(
-                      draggedProfileId,
-                      item.id
-                    );
+                event.preventDefault();
 
-                    setDraggedProfileId(
-                      null
-                    );
-                  }}
-                >
+                event.dataTransfer.dropEffect =
+                  "move";
+              }}
 
-                  <button
-                    onClick={() => {
-                      if (
-                        item.id ===
-                        effectiveProfileId
-                      ) {
-                        setShowProfile(
-                          false
-                        );
-                        return;
-                      }
+              onDrop={event => {
+                if (
+                  !isAdmin ||
+                  !draggedProfileId ||
+                  draggedProfileId ===
+                    item.id ||
+                  item.id === "admin"
+                ) {
+                  return;
+                }
 
-                      if (isAdminUser) {
-                        if (
-                          item.id ===
-                          "admin"
-                        ) {
-                          setViewingAs(
-                            null
-                          );
+                event.preventDefault();
 
-                          setProfileId(
-                            "admin"
-                          );
-                        } else {
-                          setViewingAs(
-                            item.id
-                          );
+                reorderProfiles(
+                  draggedProfileId,
+                  item.id
+                );
 
-                          setProfileId(
-                            "admin"
-                          );
-                        }
+                setDraggedProfileId(
+                  null
+                );
+              }}
+            >
 
-                        setShowProfile(
-                          false
-                        );
+              {/* PROFILE SELECT */}
 
-                        return;
-                      }
-
-                      setLoginProfile(
-                        item
-                      );
-
-                      setShowProfile(
-                        false
-                      );
-                    }}
-                    className={
-                      item.id ===
-                      effectiveProfileId
-                        ? "current"
-                        : ""
-                    }
-                  >
-
-                    <span className="avatar">
-                      {item.avatar}
-                    </span>
-
-                    <span>
-                      {item.name}
-                    </span>
-
-                    {item.id ===
-                      effectiveProfileId && (
-                      <Check size={18} />
-                    )}
-
-                  </button>
-
-                  <button
-                    className="icon"
-                    disabled={
-                      !isAdminUser &&
-                      item.id !==
-                        profileId
-                    }
-                    onClick={() => {
-                      if (
-                        !isAdminUser &&
-                        item.id !==
-                          profileId
-                      ) {
-                        return;
-                      }
-
-                      setEditing(item);
-                      setShowProfile(
-                        false
-                      );
-                    }}
-                    aria-label={
-                      item.id ===
-                        effectiveProfileId ||
-                      isAdminUser
-                        ? "Profile settings"
-                        : "Switch to this profile to edit settings"
-                    }
-                    title={
-                      item.id ===
-                        effectiveProfileId ||
-                      isAdminUser
-                        ? "Profile settings"
-                        : "Switch to this profile to edit settings"
-                    }
-                  >
-                    <Settings size={17} />
-                  </button>
-
-                  {isAdmin &&
-                    item.id !==
-                      "admin" && (
-                      <div
-                        className="profile-drag-handle"
-                        draggable
-                        onDragStart={event => {
-                          event.dataTransfer.effectAllowed =
-                            "move";
-
-                          setDraggedProfileId(
-                            item.id
-                          );
-                        }}
-                        onDragEnd={() =>
-                          setDraggedProfileId(
-                            null
-                          )
-                        }
-                        role="button"
-                        tabIndex={0}
-                        aria-label={
-                          "Drag to reorder " +
-                          item.name
-                        }
-                        title="Drag to reorder"
-                      >
-                        <GripVertical size={20} />
-                      </div>
-                    )}
-
-                </div>
-              )
-            )}
-
-            {isAdmin && (
               <button
-                className="add-profile"
                 onClick={() => {
-                  setEditing({
-                    id: "new",
-                    name: "",
-                    avatar: "🙂"
-                  });
+                  if (
+                    item.id ===
+                    effectiveProfileId
+                  ) {
+                    setShowProfile(
+                      false
+                    );
+                    return;
+                  }
 
-                  setShowProfile(false);
+                  if (isAdminUser) {
+                    if (
+                      item.id ===
+                      "admin"
+                    ) {
+                      setViewingAs(
+                        null
+                      );
+
+                      setProfileId(
+                        "admin"
+                      );
+                    } else {
+                      setViewingAs(
+                        item.id
+                      );
+
+                      setProfileId(
+                        "admin"
+                      );
+                    }
+
+                    setShowProfile(
+                      false
+                    );
+
+                    return;
+                  }
+
+                  setLoginProfile(
+                    item
+                  );
+
+                  setShowProfile(
+                    false
+                  );
                 }}
+
+                className={
+                  item.id ===
+                  effectiveProfileId
+                    ? "current"
+                    : ""
+                }
               >
-                <Plus />
-                Add Profile
+
+                <span className="avatar">
+                  {item.avatar}
+                </span>
+
+                <span>
+                  {item.name}
+                </span>
+
+                {item.id ===
+                  effectiveProfileId && (
+                  <Check size={18} />
+                )}
+
               </button>
-            )}
 
-          
-          </div>
+              {/* PROFILE SETTINGS */}
 
-        </Modal>
+              <button
+                className="icon"
+                disabled={
+                  !isAdminUser &&
+                  item.id !==
+                    profileId
+                }
+                onClick={() => {
+                  if (
+                    !isAdminUser &&
+                    item.id !==
+                      profileId
+                  ) {
+                    return;
+                  }
+
+                  setEditing(item);
+
+                  setShowProfile(
+                    false
+                  );
+                }}
+
+                aria-label={
+                  item.id ===
+                    effectiveProfileId ||
+                  isAdminUser
+                    ? "Profile settings"
+                    : "Switch to this profile to edit settings"
+                }
+
+                title={
+                  item.id ===
+                    effectiveProfileId ||
+                  isAdminUser
+                    ? "Profile settings"
+                    : "Switch to this profile to edit settings"
+                }
+              >
+                <Settings size={17} />
+              </button>
+
+              {/* DRAG HANDLE */}
+
+              {isAdmin &&
+                item.id !==
+                  "admin" && (
+                  <div
+                    className="profile-drag-handle"
+                    draggable
+
+                    onDragStart={event => {
+                      event.dataTransfer.effectAllowed =
+                        "move";
+
+                      setDraggedProfileId(
+                        item.id
+                      );
+                    }}
+
+                    onDragEnd={() =>
+                      setDraggedProfileId(
+                        null
+                      )
+                    }
+
+                    role="button"
+                    tabIndex={0}
+
+                    aria-label={
+                      "Drag to reorder " +
+                      item.name
+                    }
+
+                    title="Drag to reorder"
+                  >
+                    <GripVertical
+                      size={20}
+                    />
+                  </div>
+                )}
+
+            </div>
+
+          </React.Fragment>
+        )
       )}
+
+      {/* ADD PROFILE */}
+
+      {isAdmin && (
+        <button
+          className="add-profile"
+          onClick={() => {
+            setEditing({
+              id: "new",
+              name: "",
+              avatar: "🙂"
+            });
+
+            setShowProfile(
+              false
+            );
+          }}
+        >
+          <Plus />
+          Add Profile
+        </button>
+      )}
+
+    </div>
+
+  </Modal>
+)}
 
       {/* PROFILE LOGIN */}
 
