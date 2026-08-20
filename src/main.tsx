@@ -14,9 +14,13 @@ import {
   Settings,
   Trash2,
   Tv,
-  X,
+  X
 } from "lucide-react";
 import "./styles.css";
+
+/* =========================================================
+   TYPES
+========================================================= */
 
 type Kind = "movie" | "tv";
 
@@ -72,27 +76,35 @@ type HeroSettings = {
   positionY: number;
 };
 
+/* =========================================================
+   DEFAULT DATA
+========================================================= */
+
 const initialProfiles: Profile[] = [
   {
     id: "admin",
     name: "Admin",
-    avatar: "👑",
-  },
+    avatar: "👑"
+  }
 ];
 
 const initialState: Record<string, State> = {
   admin: {
     watched: [],
     watchlist: [],
-    rewatch: [],
-  },
+    rewatch: []
+  }
 };
 
 const initialHero: HeroSettings = {
   titleId: null,
   positionX: 50,
-  positionY: 50,
+  positionY: 50
 };
+
+/* =========================================================
+   HELPERS
+========================================================= */
 
 function uid(): string {
   return (
@@ -104,10 +116,7 @@ function uid(): string {
 function useStored<T>(
   key: string,
   fallback: T
-): readonly [
-  T,
-  React.Dispatch<React.SetStateAction<T>>
-] {
+): [T, React.Dispatch<React.SetStateAction<T>>] {
   const [value, setValue] = useState<T>(() => {
     try {
       const stored = localStorage.getItem(key);
@@ -116,9 +125,7 @@ function useStored<T>(
         return fallback;
       }
 
-      const parsed = JSON.parse(stored);
-
-      return parsed ?? fallback;
+      return JSON.parse(stored) as T;
     } catch {
       return fallback;
     }
@@ -135,23 +142,43 @@ function useStored<T>(
     }
   }, [key, value]);
 
-  return [value, setValue] as const;
+  return [value, setValue];
 }
 
-/* ==================================================
-   TMDB SERVICE
-================================================== */
+function getPosterUrl(path: string | null | undefined): string {
+  if (!path) {
+    return "https://placehold.co/500x750/171717/ffffff?text=No+Poster";
+  }
+
+  return "https://image.tmdb.org/t/p/w500" + path;
+}
+
+function getBackdropUrl(
+  path: string | null | undefined
+): string {
+  if (!path) {
+    return "";
+  }
+
+  return "https://image.tmdb.org/t/p/w1280" + path;
+}
+
+/* =========================================================
+   TMDB
+========================================================= */
 
 async function searchTMDB(
   query: string
 ): Promise<Title[]> {
-  if (!query.trim()) {
+  const cleanQuery = query.trim();
+
+  if (!cleanQuery) {
     return [];
   }
 
   const url =
     "/api/tmdb/search?query=" +
-    encodeURIComponent(query) +
+    encodeURIComponent(cleanQuery) +
     "&type=multi";
 
   const response = await fetch(url);
@@ -179,16 +206,15 @@ async function searchTMDB(
           ? "tv"
           : "movie";
 
-      const date =
+      const releaseDate =
         kind === "movie"
           ? item.release_date
           : item.first_air_date;
 
       const year =
-        date &&
-        typeof date === "string" &&
-        date.length >= 4
-          ? Number(date.slice(0, 4))
+        releaseDate &&
+        typeof releaseDate === "string"
+          ? Number(releaseDate.slice(0, 4))
           : 0;
 
       const name =
@@ -196,39 +222,40 @@ async function searchTMDB(
           ? item.title || "Untitled"
           : item.name || "Untitled";
 
-      const poster = item.poster_path
-        ? "https://image.tmdb.org/t/p/w500" +
-          item.poster_path
-        : "https://placehold.co/500x750/171717/ffffff?text=No+Poster";
-
-      const backdrop = item.backdrop_path
-        ? "https://image.tmdb.org/t/p/w1280" +
-          item.backdrop_path
-        : "";
-
       return {
         id:
           "tmdb-" +
           kind +
           "-" +
           String(item.id),
+
         name,
+
         kind,
+
         year,
-        poster,
-        backdrop,
+
+        poster: getPosterUrl(
+          item.poster_path
+        ),
+
+        backdrop: getBackdropUrl(
+          item.backdrop_path
+        ),
+
         overview:
           typeof item.overview === "string"
             ? item.overview
             : "",
-        addedAt: new Date().toISOString(),
+
+        addedAt: new Date().toISOString()
       };
     });
 }
 
-/* ==================================================
+/* =========================================================
    APP
-================================================== */
+========================================================= */
 
 function App() {
   const [library, setLibrary] =
@@ -284,12 +311,9 @@ function App() {
     useState<"all" | Kind>("all");
 
   const [sort, setSort] =
-    useState<SortOption>(
-      "name-asc"
-    );
+    useState<SortOption>("name-asc");
 
-  const [q, setQ] =
-    useState("");
+  const [q, setQ] = useState("");
 
   const [showProfile, setShowProfile] =
     useState(false);
@@ -315,62 +339,61 @@ function App() {
   const [menu, setMenu] =
     useState(false);
 
-  const isAdmin =
-    profileId === "admin";
+  const isAdmin = profileId === "admin";
 
   const profile =
     profiles.find(
-      (item) => item.id === profileId
+      item => item.id === profileId
     ) || profiles[0];
 
   const state =
     states[profileId] || {
       watched: [],
       watchlist: [],
-      rewatch: [],
+      rewatch: []
     };
 
-  const hero =
-    heroSettings.titleId
-      ? library.find(
-          (item) =>
-            item.id ===
-            heroSettings.titleId
-        ) || null
-      : null;
+  const hero = heroSettings.titleId
+    ? library.find(
+        item =>
+          item.id ===
+          heroSettings.titleId
+      ) || null
+    : null;
 
-  /* ==================================================
-     TODAY'S RECOMMENDATION
-  ================================================== */
+  /* =======================================================
+     RECOMMENDATION
+  ======================================================= */
 
   const recommendation = useMemo(() => {
     const watchlistTitles =
-      library.filter(
-        (title) =>
+      library.filter(title => {
+        const inWatchlist =
           state.watchlist.includes(
             title.id
-          ) &&
-          !state.watched.includes(
-            title.id
-          )
-      );
+          );
 
-    return (
-      watchlistTitles[0] || null
-    );
+        const alreadyWatched =
+          state.watched.includes(
+            title.id
+          );
+
+        return (
+          inWatchlist &&
+          !alreadyWatched
+        );
+      });
+
+    return watchlistTitles[0] || null;
   }, [library, state]);
 
   useEffect(() => {
-    if (
-      !profileId ||
-      !recommendation
-    ) {
+    if (!profileId || !recommendation) {
       return;
     }
 
     const key =
-      "sx-reco-seen-" +
-      profileId;
+      "sx-reco-seen-" + profileId;
 
     const alreadySeen =
       localStorage.getItem(key);
@@ -378,51 +401,40 @@ function App() {
     if (!alreadySeen) {
       setShowReco(true);
     }
-  }, [
-    profileId,
-    recommendation,
-  ]);
+  }, [profileId, recommendation]);
 
-  const closeRecommendation =
-    () => {
-      localStorage.setItem(
-        "sx-reco-seen-" +
-          profileId,
-        "true"
-      );
+  function closeRecommendation() {
+    localStorage.setItem(
+      "sx-reco-seen-" + profileId,
+      "true"
+    );
 
-      setShowReco(false);
-    };
+    setShowReco(false);
+  }
 
-  /* ==================================================
+  /* =======================================================
      FILTERING + SORTING
-  ================================================== */
+  ======================================================= */
 
   const visible = useMemo(() => {
-    const searchTerm =
-      q.trim().toLowerCase();
-
     const filtered =
       library
-        .filter((title) => {
-          if (!searchTerm) {
+        .filter(title =>
+          title.name
+            .toLowerCase()
+            .includes(
+              q.toLowerCase()
+            )
+        )
+        .filter(title => {
+          if (kind === "all") {
             return true;
           }
 
-          return title.name
-            .toLowerCase()
-            .includes(searchTerm);
+          return title.kind === kind;
         })
-        .filter((title) => {
-          return (
-            kind === "all" ||
-            title.kind === kind
-          );
-        })
-        .filter((title) => {
-          if (
-            tab === "rewatch"
-          ) {
+        .filter(title => {
+          if (tab === "rewatch") {
             return state.rewatch.includes(
               title.id
             );
@@ -432,9 +444,7 @@ function App() {
             return true;
           }
 
-          if (
-            filter === "watched"
-          ) {
+          if (filter === "watched") {
             return state.watched.includes(
               title.id
             );
@@ -474,104 +484,92 @@ function App() {
     tab,
     filter,
     sort,
-    state,
+    state
   ]);
 
-  /* ==================================================
+  /* =======================================================
      STATE ACTIONS
-  ================================================== */
+  ======================================================= */
 
-  const updateState = (
-    updater: (current: State) => State
-  ) => {
-    setStates((currentStates) => {
+  function updateState(
+    fn: (current: State) => State
+  ) {
+    setStates(currentStates => {
       const currentState =
         currentStates[profileId] || {
           watched: [],
           watchlist: [],
-          rewatch: [],
+          rewatch: []
         };
 
       return {
         ...currentStates,
         [profileId]:
-          updater(currentState),
+          fn(currentState)
       };
     });
-  };
+  }
 
-  const toggle = (
+  function toggle(
     array: keyof State,
     id: string
-  ) => {
-    updateState((current) => {
-      const currentArray =
-        current[array];
-
+  ) {
+    updateState(current => {
       const exists =
-        currentArray.includes(id);
+        current[array].includes(id);
 
       return {
         ...current,
         [array]: exists
-          ? currentArray.filter(
-              (item) =>
-                item !== id
+          ? current[array].filter(
+              item => item !== id
             )
           : [
-              ...currentArray,
-              id,
-            ],
+              ...current[array],
+              id
+            ]
       };
     });
-  };
+  }
 
-  /* ==================================================
+  /* =======================================================
      REMOVE TITLE
-  ================================================== */
+  ======================================================= */
 
-  const removeTitle = (
-    id: string
-  ) => {
-    setLibrary((currentLibrary) =>
+  function removeTitle(id: string) {
+    setLibrary(currentLibrary =>
       currentLibrary.filter(
-        (title) =>
-          title.id !== id
+        title => title.id !== id
       )
     );
 
-    setStates((currentStates) => {
+    setStates(currentStates => {
       const nextStates = {
-        ...currentStates,
+        ...currentStates
       };
 
-      Object.keys(
-        nextStates
-      ).forEach(
-        (profileKey) => {
-          const current =
+      Object.keys(nextStates).forEach(
+        profileKey => {
+          const profileState =
             nextStates[
               profileKey
             ];
 
-          nextStates[
-            profileKey
-          ] = {
+          nextStates[profileKey] = {
             watched:
-              current.watched.filter(
-                (item) =>
-                  item !== id
+              profileState.watched.filter(
+                item => item !== id
               ),
+
             watchlist:
-              current.watchlist.filter(
-                (item) =>
-                  item !== id
+              profileState.watchlist.filter(
+                item => item !== id
               ),
+
             rewatch:
-              current.rewatch.filter(
-                (item) =>
-                  item !== id
-              ),
+              profileState.rewatch.filter(
+                item => item !== id
+              )
           };
         }
       );
@@ -579,128 +577,112 @@ function App() {
       return nextStates;
     });
 
-    setReminders(
-      (currentReminders) =>
-        currentReminders.filter(
-          (reminder) =>
-            reminder.titleId !== id
-        )
+    setReminders(current =>
+      current.filter(
+        reminder =>
+          reminder.titleId !== id
+      )
     );
 
-    setScheduled(
-      (currentScheduled) =>
-        currentScheduled.filter(
-          (item) =>
-            item.titleId !== id
-        )
+    setScheduled(current =>
+      current.filter(
+        item =>
+          item.titleId !== id
+      )
     );
 
-    setHeroSettings(
-      (currentSettings) => {
-        if (
-          currentSettings.titleId !==
-          id
-        ) {
-          return currentSettings;
-        }
-
-        return {
-          ...currentSettings,
-          titleId: null,
-        };
+    setHeroSettings(current => {
+      if (current.titleId !== id) {
+        return current;
       }
-    );
-  };
 
-  /* ==================================================
+      return {
+        ...current,
+        titleId: null
+      };
+    });
+  }
+
+  /* =======================================================
      PROFILE MANAGEMENT
-  ================================================== */
+  ======================================================= */
 
-  const addProfile = (
+  function addProfile(
     name: string,
     avatar: string
-  ) => {
-    const newProfile: Profile =
-      {
-        id: uid(),
-        name:
-          name.trim() ||
-          "New Profile",
-        avatar:
-          avatar || "🙂",
-      };
+  ) {
+    const newProfile: Profile = {
+      id: uid(),
+      name:
+        name.trim() ||
+        "New Profile",
+      avatar:
+        avatar || "🙂"
+    };
 
-    setProfiles(
-      (currentProfiles) => [
-        ...currentProfiles,
-        newProfile,
-      ]
-    );
+    setProfiles(current => [
+      ...current,
+      newProfile
+    ]);
 
-    setStates(
-      (currentStates) => ({
-        ...currentStates,
-        [newProfile.id]: {
-          watched: [],
-          watchlist: [],
-          rewatch: [],
-        },
-      })
-    );
+    setStates(current => ({
+      ...current,
+      [newProfile.id]: {
+        watched: [],
+        watchlist: [],
+        rewatch: []
+      }
+    }));
 
     setEditing(null);
-  };
+  }
 
-  const moveProfile = (
+  function moveProfile(
     index: number,
     direction: "up" | "down"
-  ) => {
-    setProfiles(
-      (currentProfiles) => {
-        if (
-          index === 0 &&
-          direction === "up"
-        ) {
-          return currentProfiles;
-        }
+  ) {
+    if (
+      direction === "up" &&
+      index === 0
+    ) {
+      return;
+    }
 
-        if (
-          index ===
-            currentProfiles.length -
-              1 &&
-          direction === "down"
-        ) {
-          return currentProfiles;
-        }
+    if (
+      direction === "down" &&
+      index === profiles.length - 1
+    ) {
+      return;
+    }
 
-        const next = [
-          ...currentProfiles,
-        ];
+    setProfiles(current => {
+      const next = [...current];
 
-        const target =
-          direction === "up"
-            ? index - 1
-            : index + 1;
+      const target =
+        direction === "up"
+          ? index - 1
+          : index + 1;
 
-        const temp =
-          next[index];
+      const temp =
+        next[index];
 
-        next[index] =
-          next[target];
+      next[index] =
+        next[target];
 
-        next[target] = temp;
+      next[target] =
+        temp;
 
-        return next;
-      }
-    );
-  };
+      return next;
+    });
+  }
 
-  /* ==================================================
+  /* =======================================================
      RENDER
-  ================================================== */
+  ======================================================= */
 
   return (
     <div className="app">
+
       {/* HEADER */}
 
       <header>
@@ -709,6 +691,7 @@ function App() {
         </div>
 
         <div className="header-right">
+
           <button
             className="profile-pill"
             onClick={() =>
@@ -716,12 +699,10 @@ function App() {
             }
           >
             <span>
-              {profile?.avatar ||
-                "🙂"}
+              {profile.avatar}
             </span>
 
-            {profile?.name ||
-              "Profile"}
+            {profile.name}
 
             <ChevronDown
               size={16}
@@ -733,8 +714,7 @@ function App() {
               className="admin-badge"
               onClick={() =>
                 setMenu(
-                  (current) =>
-                    !current
+                  current => !current
                 )
               }
             >
@@ -744,13 +724,14 @@ function App() {
 
           {menu && isAdmin && (
             <div className="admin-menu">
+
               <button
                 onClick={() => {
                   setShowAdd(true);
                   setMenu(false);
                 }}
               >
-                <Plus size={18} />
+                <Plus />
                 Add title
               </button>
 
@@ -760,13 +741,13 @@ function App() {
                   setMenu(false);
                 }}
               >
-                <Settings
-                  size={18}
-                />
+                <Settings />
                 Edit hero
               </button>
+
             </div>
           )}
+
         </div>
       </header>
 
@@ -774,33 +755,42 @@ function App() {
 
       <section
         className="hero"
-        style={{
-          backgroundImage:
-            hero?.backdrop
-              ? "linear-gradient(90deg, rgba(0,0,0,.92), rgba(0,0,0,.15)), url(" +
-                hero.backdrop +
-                ")"
-              : "none",
+        style={
+          hero &&
+          hero.backdrop
+            ? {
+                backgroundImage:
+                  "linear-gradient(90deg, rgba(0,0,0,.92), rgba(0,0,0,.15)), url(" +
+                  hero.backdrop +
+                  ")",
 
-          backgroundPosition:
-            String(
-              heroSettings.positionX
-            ) +
-            "% " +
-            String(
-              heroSettings.positionY
-            ) +
-            "%",
-        }}
+                backgroundPosition:
+                  String(
+                    heroSettings.positionX
+                  ) +
+                  "% " +
+                  String(
+                    heroSettings.positionY
+                  ) +
+                  "%"
+              }
+            : {
+                backgroundImage:
+                  "none"
+              }
+        }
       >
         <div className="hero-content">
+
           <div className="eyebrow">
             FEATURED
           </div>
 
           {hero ? (
             <>
-              <h1>{hero.name}</h1>
+              <h1>
+                {hero.name}
+              </h1>
 
               <p>
                 {hero.year} ·{" "}
@@ -814,9 +804,7 @@ function App() {
                 <button
                   className="ghost"
                   onClick={() =>
-                    setShowHero(
-                      true
-                    )
+                    setShowHero(true)
                   }
                 >
                   Edit Hero
@@ -841,15 +829,18 @@ function App() {
               )}
             </>
           )}
+
         </div>
       </section>
 
       {/* MAIN */}
 
       <main>
+
         {/* PRIMARY NAVIGATION */}
 
         <div className="switch">
+
           <button
             className={
               tab === "library"
@@ -875,18 +866,22 @@ function App() {
                 setTab("rewatch")
               }
             >
-              ↻ {profile?.name}'s
-              Re-watch
+              ↻ {profile.name}'s
+              {" "}Re-watch
             </button>
           )}
+
         </div>
 
         {/* LIBRARY CONTROLS */}
 
         {tab === "library" && (
           <>
+
             <div className="toolbar">
+
               <div className="filters">
+
                 <button
                   className={
                     filter === "all"
@@ -918,7 +913,8 @@ function App() {
 
                 <button
                   className={
-                    filter === "watched"
+                    filter ===
+                    "watched"
                       ? "selected"
                       : ""
                   }
@@ -930,26 +926,33 @@ function App() {
                 >
                   Watched
                 </button>
+
               </div>
 
               <div className="search">
-                <Search size={18} />
+
+                <Search
+                  size={18}
+                />
 
                 <input
                   value={q}
-                  onChange={(event) =>
+                  onChange={event =>
                     setQ(
                       event.target.value
                     )
                   }
                   placeholder="Search library"
                 />
+
               </div>
+
             </div>
 
             {/* FORMAT + SORT */}
 
             <div className="format">
+
               <button
                 className={
                   kind === "all"
@@ -973,7 +976,9 @@ function App() {
                   setKind("movie")
                 }
               >
-                <Film size={15} />
+                <Film
+                  size={15}
+                />
                 Movies
               </button>
 
@@ -987,14 +992,16 @@ function App() {
                   setKind("tv")
                 }
               >
-                <Tv size={15} />
+                <Tv
+                  size={15}
+                />
                 TV
               </button>
 
               <select
                 className="sort-select"
                 value={sort}
-                onChange={(event) =>
+                onChange={event =>
                   setSort(
                     event.target
                       .value as SortOption
@@ -1018,14 +1025,17 @@ function App() {
                   Oldest release
                 </option>
               </select>
+
             </div>
+
           </>
         )}
 
         {/* LIBRARY */}
 
         <div className="grid">
-          {visible.map((title) => (
+
+          {visible.map(title => (
             <Card
               key={title.id}
               t={title}
@@ -1069,13 +1079,14 @@ function App() {
 
           {!visible.length && (
             <div className="empty">
-              {library.length ===
-              0
+              {library.length === 0
                 ? "Your library is empty."
                 : "Nothing here yet."}
             </div>
           )}
+
         </div>
+
       </main>
 
       {/* TODAY'S RECOMMENDATION */}
@@ -1089,6 +1100,7 @@ function App() {
             }
           >
             <div className="reco">
+
               <img
                 src={
                   recommendation.poster
@@ -1099,20 +1111,17 @@ function App() {
               />
 
               <div>
+
                 <div className="reco-label">
                   FROM YOUR WATCHLIST
                 </div>
 
                 <h2>
-                  {
-                    recommendation.name
-                  }
+                  {recommendation.name}
                 </h2>
 
                 <p>
-                  {
-                    recommendation.year
-                  }{" "}
+                  {recommendation.year}{" "}
                   ·{" "}
                   {recommendation.kind ===
                   "movie"
@@ -1127,7 +1136,9 @@ function App() {
                     }
                   </p>
                 )}
+
               </div>
+
             </div>
           </Modal>
         )}
@@ -1141,13 +1152,16 @@ function App() {
             setShowProfile(false)
           }
         >
+
           <div className="profiles">
+
             {profiles.map(
               (item, index) => (
                 <div
                   className="profile-row"
                   key={item.id}
                 >
+
                   <button
                     onClick={() => {
                       setProfileId(
@@ -1157,14 +1171,6 @@ function App() {
                       setShowProfile(
                         false
                       );
-
-                      setTab(
-                        "library"
-                      );
-
-                      setFilter(
-                        "all"
-                      );
                     }}
                     className={
                       item.id ===
@@ -1173,6 +1179,7 @@ function App() {
                         : ""
                     }
                   >
+
                     <span className="avatar">
                       {item.avatar}
                     </span>
@@ -1187,6 +1194,7 @@ function App() {
                         size={18}
                       />
                     )}
+
                   </button>
 
                   {isAdmin &&
@@ -1203,10 +1211,6 @@ function App() {
                             false
                           );
                         }}
-                        aria-label={
-                          "Edit " +
-                          item.name
-                        }
                       >
                         ✎
                       </button>
@@ -1216,6 +1220,7 @@ function App() {
                     profiles.length >
                       1 && (
                       <div className="profile-order">
+
                         <button
                           className="icon"
                           disabled={
@@ -1254,8 +1259,10 @@ function App() {
                             size={16}
                           />
                         </button>
+
                       </div>
                     )}
+
                 </div>
               )
             )}
@@ -1267,7 +1274,7 @@ function App() {
                   setEditing({
                     id: "new",
                     name: "",
-                    avatar: "🙂",
+                    avatar: "🙂"
                   });
 
                   setShowProfile(
@@ -1279,7 +1286,9 @@ function App() {
                 Add Profile
               </button>
             )}
+
           </div>
+
         </Modal>
       )}
 
@@ -1297,30 +1306,26 @@ function App() {
           }
           onSave={(name, avatar) => {
             if (
-              editing.id ===
-              "new"
+              editing.id === "new"
             ) {
               addProfile(
                 name,
                 avatar
               );
+
               return;
             }
 
             setProfiles(
-              (currentProfiles) =>
-                currentProfiles.map(
-                  (item) =>
+              current =>
+                current.map(
+                  item =>
                     item.id ===
                     editing.id
                       ? {
                           ...item,
-                          name:
-                            name.trim() ||
-                            item.name,
-                          avatar:
-                            avatar ||
-                            item.avatar,
+                          name,
+                          avatar
                         }
                       : item
                 )
@@ -1332,65 +1337,31 @@ function App() {
             editing.id === "new"
               ? undefined
               : () => {
-                  const deletingId =
-                    editing.id;
-
                   setProfiles(
-                    (
-                      currentProfiles
-                    ) =>
-                      currentProfiles.filter(
-                        (item) =>
+                    current =>
+                      current.filter(
+                        item =>
                           item.id !==
-                          deletingId
+                          editing.id
                       )
                   );
 
                   setStates(
-                    (
-                      currentStates
-                    ) => {
-                      const next =
-                        {
-                          ...currentStates,
-                        };
+                    current => {
+                      const next = {
+                        ...current
+                      };
 
                       delete next[
-                        deletingId
+                        editing.id
                       ];
 
                       return next;
                     }
                   );
 
-                  setReminders(
-                    (
-                      currentReminders
-                    ) =>
-                      currentReminders.filter(
-                        (
-                          reminder
-                        ) =>
-                          reminder.profileId !==
-                          deletingId
-                      )
-                  );
-
-                  setScheduled(
-                    (
-                      currentScheduled
-                    ) =>
-                      currentScheduled.filter(
-                        (item) =>
-                          item.profileId !==
-                          deletingId
-                      )
-                  );
-
                   setEditing(null);
-                  setProfileId(
-                    "admin"
-                  );
+                  setProfileId("admin");
                 }
           }
         />
@@ -1404,14 +1375,12 @@ function App() {
           onClose={() =>
             setShowAdd(false)
           }
-          onAdd={(title) => {
-            setLibrary(
-              (currentLibrary) => [
-                ...currentLibrary,
-                title,
-              ]
-            );
-          }}
+          onAdd={title =>
+            setLibrary(current => [
+              ...current,
+              title
+            ])
+          }
         />
       )}
 
@@ -1424,43 +1393,41 @@ function App() {
             setShowReminder(null)
           }
           onSave={(date, time) => {
-            setReminders(
-              (currentReminders) => [
-                ...currentReminders,
-                {
-                  id: uid(),
-                  profileId,
-                  titleId:
-                    showReminder.id,
-                  date,
-                  time,
-                },
-              ]
-            );
+            setReminders(current => [
+              ...current,
+              {
+                id: uid(),
+                profileId,
+                titleId:
+                  showReminder.id,
+                date,
+                time
+              }
+            ]);
 
             setShowReminder(null);
           }}
         />
       )}
 
-      {/* SCHEDULE RECOMMENDATION */}
+      {/* SCHEDULE */}
 
       {showSchedule &&
         isAdmin && (
           <ScheduleModal
             title={showSchedule}
             profiles={profiles.filter(
-              (item) =>
+              item =>
                 item.id !== "admin"
             )}
             onClose={() =>
               setShowSchedule(null)
             }
-            onSave={(item) => {
+            onSave={item => {
               setScheduled(
-                (currentScheduled) => [
-                  ...currentScheduled,
-                  item,
+                current => [
+                  ...current,
+                  item
                 ]
               );
 
@@ -1480,7 +1447,7 @@ function App() {
             onClose={() =>
               setShowHero(false)
             }
-            onSave={(settings) => {
+            onSave={settings => {
               setHeroSettings(
                 settings
               );
@@ -1493,12 +1460,15 @@ function App() {
       {/* FOOTER */}
 
       <footer>
+
         <span>
-          <Clock size={14} />
+          <Clock
+            size={14}
+          />
 
           {
             reminders.filter(
-              (reminder) =>
+              reminder =>
                 reminder.profileId ===
                 profileId
             ).length
@@ -1520,17 +1490,21 @@ function App() {
             )
           }
         >
-          <LogOut size={14} />
+          <LogOut
+            size={14}
+          />
           Sign out
         </button>
+
       </footer>
+
     </div>
   );
 }
 
-/* ==================================================
+/* =========================================================
    CARD
-================================================== */
+========================================================= */
 
 function Card({
   t,
@@ -1541,7 +1515,7 @@ function Card({
   onRewatch,
   onRemove,
   onReminder,
-  onSchedule,
+  onSchedule
 }: {
   t: Title;
   st: State;
@@ -1553,13 +1527,13 @@ function Card({
   onReminder: () => void;
   onSchedule: () => void;
 }) {
-  const isWatched =
-    st.watched.includes(
+  const isOnWatchlist =
+    st.watchlist.includes(
       t.id
     );
 
-  const isWatchlist =
-    st.watchlist.includes(
+  const isWatched =
+    st.watched.includes(
       t.id
     );
 
@@ -1570,11 +1544,13 @@ function Card({
 
   return (
     <article className="card">
+
       <div className="poster-wrap">
+
         <img
           src={t.poster}
           alt={t.name}
-          onError={(event) => {
+          onError={event => {
             event.currentTarget.src =
               "https://placehold.co/500x750/171717/ffffff?text=" +
               encodeURIComponent(
@@ -1592,46 +1568,37 @@ function Card({
         {isAdmin && (
           <button
             className="remove"
-            onClick={() => {
-              const confirmed =
-                window.confirm(
-                  "Remove " +
-                    t.name +
-                    " from the library?"
-                );
-
-              if (confirmed) {
-                onRemove();
-              }
-            }}
+            onClick={onRemove}
             title="Remove title"
             aria-label={
-              "Remove " +
-              t.name
+              "Remove " + t.name
             }
           >
-            <Trash2 size={16} />
+            <Trash2
+              size={16}
+            />
           </button>
         )}
+
       </div>
 
       <div className="card-body">
+
         <h3>{t.name}</h3>
 
-        <p>{t.year || "Year unknown"}</p>
+        <p>{t.year}</p>
 
         <div className="actions">
+
           <button
             className={
-              isWatchlist
+              isOnWatchlist
                 ? "on"
                 : ""
             }
             onClick={onList}
           >
-            {isWatchlist
-              ? "✓ Watchlist"
-              : "+ Watchlist"}
+            + Watchlist
           </button>
 
           <button
@@ -1646,9 +1613,11 @@ function Card({
               ? "✓ Watched"
               : "Mark watched"}
           </button>
+
         </div>
 
         <div className="small-actions">
+
           {!isAdmin && (
             <button
               className={
@@ -1656,9 +1625,7 @@ function Card({
                   ? "rewatch-action on"
                   : "rewatch-action"
               }
-              onClick={
-                onRewatch
-              }
+              onClick={onRewatch}
             >
               ↻ Re-watch
             </button>
@@ -1667,31 +1634,38 @@ function Card({
           <button
             onClick={onReminder}
           >
-            <Bell size={14} />
+            <Bell
+              size={14}
+            />
             Remind me
           </button>
 
           {isAdmin && (
             <button
-              onClick={onSchedule}
+              onClick={
+                onSchedule
+              }
             >
               Schedule reco
             </button>
           )}
+
         </div>
+
       </div>
+
     </article>
   );
 }
 
-/* ==================================================
+/* =========================================================
    MODAL
-================================================== */
+========================================================= */
 
 function Modal({
   title,
   onClose,
-  children,
+  children
 }: {
   title: string;
   onClose: () => void;
@@ -1700,7 +1674,7 @@ function Modal({
   return (
     <div
       className="overlay"
-      onMouseDown={(event) => {
+      onMouseDown={event => {
         if (
           event.currentTarget ===
           event.target
@@ -1709,13 +1683,11 @@ function Modal({
         }
       }}
     >
-      <div
-        className="modal"
-        role="dialog"
-        aria-modal="true"
-        aria-label={title}
-      >
+
+      <div className="modal">
+
         <div className="modal-head">
+
           <h2>{title}</h2>
 
           <button
@@ -1725,23 +1697,26 @@ function Modal({
           >
             <X />
           </button>
+
         </div>
 
         {children}
+
       </div>
+
     </div>
   );
 }
 
-/* ==================================================
+/* =========================================================
    PROFILE EDITOR
-================================================== */
+========================================================= */
 
 function ProfileEditor({
   profile,
   onClose,
   onSave,
-  onDelete,
+  onDelete
 }: {
   profile: Profile | null;
   onClose: () => void;
@@ -1769,7 +1744,7 @@ function ProfileEditor({
     "⭐",
     "🐱",
     "🦋",
-    "🔥",
+    "🔥"
   ];
 
   return (
@@ -1781,18 +1756,18 @@ function ProfileEditor({
       }
       onClose={onClose}
     >
+
       <label>
         Profile Name
 
         <input
           autoFocus
           value={name}
-          onChange={(event) =>
+          onChange={event =>
             setName(
               event.target.value
             )
           }
-          placeholder="Profile name"
         />
       </label>
 
@@ -1800,24 +1775,24 @@ function ProfileEditor({
         Profile Photo
 
         <div className="emoji-grid">
-          {avatars.map(
-            (item) => (
-              <button
-                type="button"
-                className={
-                  avatar === item
-                    ? "picked"
-                    : ""
-                }
-                onClick={() =>
-                  setAvatar(item)
-                }
-                key={item}
-              >
-                {item}
-              </button>
-            )
-          )}
+
+          {avatars.map(item => (
+            <button
+              className={
+                avatar === item
+                  ? "picked"
+                  : ""
+              }
+              onClick={() =>
+                setAvatar(item)
+              }
+              key={item}
+              type="button"
+            >
+              {item}
+            </button>
+          ))}
+
         </div>
       </label>
 
@@ -1827,19 +1802,14 @@ function ProfileEditor({
         <input
           type="file"
           accept="image/*"
-          onChange={() => {
-            // Upload handling can be
-            // connected later.
-          }}
         />
       </label>
 
       <button
         className="pink full"
-        disabled={!name.trim()}
         onClick={() =>
           onSave(
-            name.trim(),
+            name,
             avatar
           )
         }
@@ -1851,12 +1821,11 @@ function ProfileEditor({
         <button
           className="danger full"
           onClick={() => {
-            const confirmed =
+            if (
               window.confirm(
                 "Delete this profile?"
-              );
-
-            if (confirmed) {
+              )
+            ) {
               onDelete();
             }
           }}
@@ -1864,24 +1833,23 @@ function ProfileEditor({
           Delete Profile
         </button>
       )}
+
     </Modal>
   );
 }
 
-/* ==================================================
+/* =========================================================
    ADD TITLE
-================================================== */
+========================================================= */
 
 function AddTitle({
   library,
   onClose,
-  onAdd,
+  onAdd
 }: {
   library: Title[];
   onClose: () => void;
-  onAdd: (
-    title: Title
-  ) => void;
+  onAdd: (title: Title) => void;
 }) {
   const [query, setQuery] =
     useState("");
@@ -1896,17 +1864,14 @@ function AddTitle({
     useState("");
 
   useEffect(() => {
-    const trimmed =
+    const cleanQuery =
       query.trim();
 
-    if (!trimmed) {
+    if (!cleanQuery) {
       setResults([]);
       setError("");
-      setLoading(false);
       return;
     }
-
-    let cancelled = false;
 
     const timer =
       window.setTimeout(
@@ -1917,41 +1882,32 @@ function AddTitle({
           try {
             const data =
               await searchTMDB(
-                trimmed
+                cleanQuery
               );
 
-            if (!cancelled) {
-              setResults(data);
-            }
+            setResults(data);
           } catch {
-            if (!cancelled) {
-              setResults([]);
-              setError(
-                "Unable to search TMDB right now."
-              );
-            }
+            setError(
+              "Unable to search TMDB right now."
+            );
           } finally {
-            if (!cancelled) {
-              setLoading(false);
-            }
+            setLoading(false);
           }
         },
         400
       );
 
-    return () => {
-      cancelled = true;
+    return () =>
       window.clearTimeout(
         timer
       );
-    };
   }, [query]);
 
   const available =
     results.filter(
-      (title) =>
+      title =>
         !library.some(
-          (item) =>
+          item =>
             item.id ===
             title.id
         )
@@ -1962,24 +1918,29 @@ function AddTitle({
       title="Add Movie / TV Show"
       onClose={onClose}
     >
+
       <p className="muted">
         Search TMDB for movies
         and TV shows.
       </p>
 
       <div className="search wide">
-        <Search size={18} />
+
+        <Search
+          size={18}
+        />
 
         <input
           autoFocus
           value={query}
-          onChange={(event) =>
+          onChange={event =>
             setQuery(
               event.target.value
             )
           }
           placeholder="Search movies and TV shows"
         />
+
       </div>
 
       {loading && (
@@ -1995,74 +1956,69 @@ function AddTitle({
       )}
 
       <div className="result-list">
-        {available.map(
-          (title) => (
-            <div
-              className="result"
-              key={title.id}
-            >
-              <img
-                src={title.poster}
-                alt={title.name}
-              />
 
-              <div>
-                <b>{title.name}</b>
+        {available.map(title => (
+          <div
+            className="result"
+            key={title.id}
+          >
 
-                <span>
-                  {title.year ||
-                    "Year unknown"}{" "}
-                  ·{" "}
-                  {title.kind ===
-                  "movie"
-                    ? "Movie"
-                    : "TV Show"}
-                </span>
-              </div>
+            <img
+              src={title.poster}
+              alt={title.name}
+            />
 
-              <button
-                className="pink add"
-                onClick={() => {
-                  onAdd(title);
+            <div>
 
-                  setResults(
-                    (currentResults) =>
-                      currentResults.filter(
-                        (item) =>
-                          item.id !==
-                          title.id
-                      )
-                  );
-                }}
-              >
-                + Add
-              </button>
+              <b>
+                {title.name}
+              </b>
+
+              <span>
+                {title.year} ·{" "}
+                {title.kind ===
+                "movie"
+                  ? "Movie"
+                  : "TV Show"}
+              </span>
+
             </div>
-          )
-        )}
 
-        {!loading &&
-          query.trim() &&
-          !error &&
-          available.length ===
-            0 && (
-            <p className="muted">
-              No titles found.
-            </p>
-          )}
+            <button
+              className="pink add"
+              onClick={() => {
+                onAdd(title);
+
+                setResults(
+                  current =>
+                    current.filter(
+                      item =>
+                        item.id !==
+                        title.id
+                    )
+                );
+              }}
+            >
+              + Add
+            </button>
+
+          </div>
+        ))}
+
       </div>
+
     </Modal>
   );
 }
 
-/* ==================================================
+/* =========================================================
    REMINDER
-================================================== */
+========================================================= */
 
 function ReminderModal({
   title,
   onClose,
-  onSave,
+  onSave
 }: {
   title: Title;
   onClose: () => void;
@@ -2082,6 +2038,7 @@ function ReminderModal({
       title="Remind Me"
       onClose={onClose}
     >
+
       <p>
         Set a reminder for{" "}
         <b>{title.name}</b>.
@@ -2093,7 +2050,7 @@ function ReminderModal({
         <input
           type="date"
           value={date}
-          onChange={(event) =>
+          onChange={event =>
             setDate(
               event.target.value
             )
@@ -2107,7 +2064,7 @@ function ReminderModal({
         <input
           type="time"
           value={time}
-          onChange={(event) =>
+          onChange={event =>
             setTime(
               event.target.value
             )
@@ -2134,19 +2091,20 @@ function ReminderModal({
         Streamix notification
         system.
       </p>
+
     </Modal>
   );
 }
 
-/* ==================================================
+/* =========================================================
    SCHEDULE RECOMMENDATION
-================================================== */
+========================================================= */
 
 function ScheduleModal({
   title,
   profiles,
   onClose,
-  onSave,
+  onSave
 }: {
   title: Title;
   profiles: Profile[];
@@ -2155,7 +2113,7 @@ function ScheduleModal({
     item: Scheduled
   ) => void;
 }) {
-  const [selectedProfileId, setSelectedProfileId] =
+  const [profileId, setProfileId] =
     useState(
       profiles[0]?.id || ""
     );
@@ -2176,35 +2134,36 @@ function ScheduleModal({
       title="Schedule Personal Recommendation"
       onClose={onClose}
     >
-      {profiles.length ===
-      0 ? (
+
+      {profiles.length === 0 ? (
         <p className="muted">
-          Add a personal profile
-          before scheduling a
-          recommendation.
+          Create a profile first.
         </p>
       ) : (
         <>
+
           <label>
             Profile
 
             <select
-              value={
-                selectedProfileId
-              }
-              onChange={(event) =>
-                setSelectedProfileId(
+              value={profileId}
+              onChange={event =>
+                setProfileId(
                   event.target.value
                 )
               }
             >
               {profiles.map(
-                (item) => (
+                profile => (
                   <option
-                    value={item.id}
-                    key={item.id}
+                    value={
+                      profile.id
+                    }
+                    key={
+                      profile.id
+                    }
                   >
-                    {item.name}
+                    {profile.name}
                   </option>
                 )
               )}
@@ -2217,7 +2176,7 @@ function ScheduleModal({
             <input
               type="date"
               value={date}
-              onChange={(event) =>
+              onChange={event =>
                 setDate(
                   event.target.value
                 )
@@ -2231,7 +2190,7 @@ function ScheduleModal({
             <input
               type="time"
               value={time}
-              onChange={(event) =>
+              onChange={event =>
                 setTime(
                   event.target.value
                 )
@@ -2244,7 +2203,7 @@ function ScheduleModal({
 
             <textarea
               value={message}
-              onChange={(event) =>
+              onChange={event =>
                 setMessage(
                   event.target.value
                 )
@@ -2255,41 +2214,41 @@ function ScheduleModal({
           <button
             className="pink full"
             disabled={
-              !selectedProfileId ||
+              !profileId ||
               !date
             }
             onClick={() =>
               onSave({
                 id: uid(),
-                profileId:
-                  selectedProfileId,
+                profileId,
                 titleId:
                   title.id,
                 date,
                 time,
-                message:
-                  message.trim(),
+                message
               })
             }
           >
             Schedule
           </button>
+
         </>
       )}
+
     </Modal>
   );
 }
 
-/* ==================================================
+/* =========================================================
    HERO EDITOR
-================================================== */
+========================================================= */
 
 function HeroModal({
   hero,
   library,
   settings,
   onClose,
-  onSave,
+  onSave
 }: {
   hero: Title | null;
   library: Title[];
@@ -2318,7 +2277,7 @@ function HeroModal({
 
   const selectedTitle =
     library.find(
-      (title) =>
+      title =>
         title.id === titleId
     ) || hero;
 
@@ -2327,41 +2286,39 @@ function HeroModal({
       title="Edit Hero"
       onClose={onClose}
     >
+
       <p>
-        Choose which title
-        appears in the featured
-        hero.
+        Choose which title appears
+        in the featured hero.
       </p>
 
-      {library.length ===
-      0 ? (
+      {library.length === 0 ? (
         <p className="muted">
           Add a movie or TV show
           to your library first.
         </p>
       ) : (
         <>
+
           <label>
             Hero title
 
             <select
               value={titleId}
-              onChange={(event) =>
+              onChange={event =>
                 setTitleId(
                   event.target.value
                 )
               }
             >
-              {library.map(
-                (title) => (
-                  <option
-                    key={title.id}
-                    value={title.id}
-                  >
-                    {title.name}
-                  </option>
-                )
-              )}
+              {library.map(title => (
+                <option
+                  key={title.id}
+                  value={title.id}
+                >
+                  {title.name}
+                </option>
+              ))}
             </select>
           </label>
 
@@ -2373,15 +2330,12 @@ function HeroModal({
                   "url(" +
                   selectedTitle.backdrop +
                   ")",
+
                 backgroundPosition:
-                  String(
-                    positionX
-                  ) +
+                  String(positionX) +
                   "% " +
-                  String(
-                    positionY
-                  ) +
-                  "%",
+                  String(positionY) +
+                  "%"
               }}
             >
               <div className="hero-preview-overlay">
@@ -2398,10 +2352,11 @@ function HeroModal({
               min="0"
               max="100"
               value={positionX}
-              onChange={(event) =>
+              onChange={event =>
                 setPositionX(
                   Number(
-                    event.target.value
+                    event.target
+                      .value
                   )
                 )
               }
@@ -2420,10 +2375,11 @@ function HeroModal({
               min="0"
               max="100"
               value={positionY}
-              onChange={(event) =>
+              onChange={event =>
                 setPositionY(
                   Number(
-                    event.target.value
+                    event.target
+                      .value
                   )
                 )
               }
@@ -2440,21 +2396,23 @@ function HeroModal({
               onSave({
                 titleId,
                 positionX,
-                positionY,
+                positionY
               })
             }
           >
             Save Hero
           </button>
+
         </>
       )}
+
     </Modal>
   );
 }
 
-/* ==================================================
+/* =========================================================
    START APP
-================================================== */
+========================================================= */
 
 const rootElement =
   document.getElementById(
@@ -2463,13 +2421,11 @@ const rootElement =
 
 if (!rootElement) {
   throw new Error(
-    "Root element not found"
+    "Root element was not found."
   );
 }
 
-createRoot(
-  rootElement
-).render(
+createRoot(rootElement).render(
   <React.StrictMode>
     <App />
   </React.StrictMode>
