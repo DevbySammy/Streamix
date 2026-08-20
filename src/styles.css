@@ -617,6 +617,36 @@ border-radius: 12px;
 margin-top: 0;
 }
 
+/* Profile Login */
+
+.profile-login {
+text-align: center;
+}
+
+.profile-login-avatar {
+font-size: 48px;
+margin: 8px 0 10px;
+}
+
+.profile-login h3 {
+margin: 0 0 5px;
+font-size: 18px;
+}
+
+.profile-login .muted {
+margin: 0 0 18px;
+}
+
+.profile-login label {
+text-align: left;
+}
+
+.login-error {
+color: #ff6b9f;
+font-size: 12px;
+margin: 8px 0;
+}
+
 /* Profiles */
 
 .profiles {
