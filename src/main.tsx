@@ -125,9 +125,17 @@ function useStored<T>(key: string, fallback: T) {
 async function searchTMDB(query: string): Promise<Title[]> {
   if (!query.trim()) return [];
 
-  const response = await fetch(
-    `/api/tmdb/search?query=${encodeURIComponent(query)}&type=multi`
-  );
+  /*
+   * Build the URL using string concatenation instead of
+   * a template literal. This avoids the syntax issue that
+   * was causing the Cloudflare/Vite build to fail.
+   */
+  const url =
+    '/api/tmdb/search?query=' +
+    encodeURIComponent(query) +
+    '&type=multi';
+
+  const response = await fetch(url);
 
   if (!response.ok) {
     throw new Error('TMDB search failed');
@@ -152,19 +160,28 @@ async function searchTMDB(query: string): Promise<Title[]> {
 
       return {
         id: `tmdb-${kind}-${item.id}`,
+
         name:
           kind === 'movie'
             ? item.title
             : item.name,
+
         kind,
-        year: date ? Number(date.slice(0, 4)) : 0,
+
+        year: date
+          ? Number(date.slice(0, 4))
+          : 0,
+
         poster: item.poster_path
           ? `https://image.tmdb.org/t/p/w500${item.poster_path}`
           : 'https://placehold.co/500x750/171717/ffffff?text=No+Poster',
+
         backdrop: item.backdrop_path
           ? `https://image.tmdb.org/t/p/w1280${item.backdrop_path}`
           : '',
+
         overview: item.overview || '',
+
         addedAt: new Date().toISOString()
       };
     });
@@ -208,24 +225,31 @@ function App() {
 
   const [profileId, setProfileId] = useState('admin');
 
-  const [tab, setTab] = useState<'library' | 'rewatch'>(
-    'library'
-  );
+  const [tab, setTab] = useState<
+    'library' | 'rewatch'
+  >('library');
 
   const [filter, setFilter] = useState<
     'all' | 'watchlist' | 'watched'
   >('all');
 
-  const [kind, setKind] = useState<'all' | Kind>('all');
+  const [kind, setKind] = useState<
+    'all' | Kind
+  >('all');
 
   const [sort, setSort] =
     useState<SortOption>('name-asc');
 
   const [q, setQ] = useState('');
 
-  const [showProfile, setShowProfile] = useState(false);
-  const [showAdd, setShowAdd] = useState(false);
-  const [showReco, setShowReco] = useState(false);
+  const [showProfile, setShowProfile] =
+    useState(false);
+
+  const [showAdd, setShowAdd] =
+    useState(false);
+
+  const [showReco, setShowReco] =
+    useState(false);
 
   const [showReminder, setShowReminder] =
     useState<Title | null>(null);
@@ -233,18 +257,21 @@ function App() {
   const [showSchedule, setShowSchedule] =
     useState<Title | null>(null);
 
-  const [showHero, setShowHero] = useState(false);
+  const [showHero, setShowHero] =
+    useState(false);
 
   const [editing, setEditing] =
     useState<Profile | null>(null);
 
-  const [menu, setMenu] = useState(false);
+  const [menu, setMenu] =
+    useState(false);
 
   const isAdmin = profileId === 'admin';
 
   const profile =
-    profiles.find(x => x.id === profileId) ||
-    profiles[0];
+    profiles.find(
+      item => item.id === profileId
+    ) || profiles[0];
 
   const state =
     states[profileId] || {
@@ -255,7 +282,8 @@ function App() {
 
   const hero = heroSettings.titleId
     ? library.find(
-        x => x.id === heroSettings.titleId
+        item =>
+          item.id === heroSettings.titleId
       ) || null
     : null;
 
@@ -264,20 +292,26 @@ function App() {
   -------------------------------------------------- */
 
   const recommendation = useMemo(() => {
-    const watchlistTitles = library.filter(
-      title =>
-        state.watchlist.includes(title.id) &&
-        !state.watched.includes(title.id)
-    );
+    const watchlistTitles =
+      library.filter(
+        title =>
+          state.watchlist.includes(title.id) &&
+          !state.watched.includes(title.id)
+      );
 
     return watchlistTitles[0] || null;
   }, [library, state]);
 
   useEffect(() => {
-    if (!profileId || !recommendation) return;
+    if (!profileId || !recommendation) {
+      return;
+    }
 
-    const key = `sx-reco-seen-${profileId}`;
-    const alreadySeen = localStorage.getItem(key);
+    const key =
+      `sx-reco-seen-${profileId}`;
+
+    const alreadySeen =
+      localStorage.getItem(key);
 
     if (!alreadySeen) {
       setShowReco(true);
@@ -304,18 +338,22 @@ function App() {
           .toLowerCase()
           .includes(q.toLowerCase())
       )
+
       .filter(
         title =>
           kind === 'all' ||
           title.kind === kind
       )
+
       .filter(title =>
         tab === 'rewatch'
           ? state.rewatch.includes(title.id)
           : filter === 'all' ||
-            (filter === 'watched'
-              ? state.watched.includes(title.id)
-              : state.watchlist.includes(title.id))
+            (
+              filter === 'watched'
+                ? state.watched.includes(title.id)
+                : state.watchlist.includes(title.id)
+            )
       );
 
     return [...filtered].sort((a, b) => {
@@ -364,7 +402,9 @@ function App() {
     updateState(s => ({
       ...s,
       [array]: s[array].includes(id)
-        ? s[array].filter(x => x !== id)
+        ? s[array].filter(
+            item => item !== id
+          )
         : [...s[array], id]
     }));
   };
@@ -375,43 +415,61 @@ function App() {
 
   const removeTitle = (id: string) => {
     setLibrary(
-      library.filter(title => title.id !== id)
+      library.filter(
+        title => title.id !== id
+      )
     );
 
-    const nextStates = { ...states };
+    const nextStates = {
+      ...states
+    };
 
-    Object.keys(nextStates).forEach(profileKey => {
-      nextStates[profileKey] = {
-        watched:
-          nextStates[profileKey].watched.filter(
-            x => x !== id
-          ),
-        watchlist:
-          nextStates[profileKey].watchlist.filter(
-            x => x !== id
-          ),
-        rewatch:
-          nextStates[profileKey].rewatch.filter(
-            x => x !== id
-          )
-      };
-    });
+    Object.keys(nextStates).forEach(
+      profileKey => {
+        nextStates[profileKey] = {
+          watched:
+            nextStates[
+              profileKey
+            ].watched.filter(
+              item => item !== id
+            ),
+
+          watchlist:
+            nextStates[
+              profileKey
+            ].watchlist.filter(
+              item => item !== id
+            ),
+
+          rewatch:
+            nextStates[
+              profileKey
+            ].rewatch.filter(
+              item => item !== id
+            )
+        };
+      }
+    );
 
     setStates(nextStates);
 
     setReminders(
       reminders.filter(
-        reminder => reminder.titleId !== id
+        reminder =>
+          reminder.titleId !== id
       )
     );
 
     setScheduled(
       scheduled.filter(
-        item => item.titleId !== id
+        item =>
+          item.titleId !== id
       )
     );
 
-    if (heroSettings.titleId === id) {
+    if (
+      heroSettings.titleId === id
+    ) {
       setHeroSettings({
         ...heroSettings,
         titleId: null
@@ -429,8 +487,11 @@ function App() {
   ) => {
     const newProfile: Profile = {
       id: uid(),
-      name: name.trim() || 'New Profile',
-      avatar: avatar || '🙂'
+      name:
+        name.trim() ||
+        'New Profile',
+      avatar:
+        avatar || '🙂'
     };
 
     setProfiles([
@@ -468,14 +529,19 @@ function App() {
       return;
     }
 
-    const next = [...profiles];
+    const next = [
+      ...profiles
+    ];
 
     const target =
       direction === 'up'
         ? index - 1
         : index + 1;
 
-    [next[index], next[target]] = [
+    [
+      next[index],
+      next[target]
+    ] = [
       next[target],
       next[index]
     ];
@@ -498,15 +564,22 @@ function App() {
         </div>
 
         <div className="header-right">
+
           <button
             className="profile-pill"
             onClick={() =>
               setShowProfile(true)
             }
           >
-            <span>{profile.avatar}</span>
+            <span>
+              {profile.avatar}
+            </span>
+
             {profile.name}
-            <ChevronDown size={16} />
+
+            <ChevronDown
+              size={16}
+            />
           </button>
 
           {isAdmin && (
@@ -522,6 +595,7 @@ function App() {
 
           {menu && isAdmin && (
             <div className="admin-menu">
+
               <button
                 onClick={() => {
                   setShowAdd(true);
@@ -541,8 +615,10 @@ function App() {
                 <Settings />
                 Edit hero
               </button>
+
             </div>
           )}
+
         </div>
       </header>
 
@@ -551,27 +627,32 @@ function App() {
       <section
         className="hero"
         style={{
-          backgroundImage: hero?.backdrop
-            ? `linear-gradient(
-                90deg,
-                rgba(0,0,0,.92),
-                rgba(0,0,0,.15)
-              ),
-              url(${hero.backdrop})`
-            : 'none',
+          backgroundImage:
+            hero?.backdrop
+              ? `linear-gradient(
+                  90deg,
+                  rgba(0,0,0,.92),
+                  rgba(0,0,0,.15)
+                ),
+                url(${hero.backdrop})`
+              : 'none',
 
           backgroundPosition:
             `${heroSettings.positionX}% ${heroSettings.positionY}%`
         }}
       >
+
         <div className="hero-content">
+
           <div className="eyebrow">
             FEATURED
           </div>
 
           {hero ? (
             <>
-              <h1>{hero.name}</h1>
+              <h1>
+                {hero.name}
+              </h1>
 
               <p>
                 {hero.year} ·{' '}
@@ -609,6 +690,7 @@ function App() {
               )}
             </>
           )}
+
         </div>
       </section>
 
@@ -619,6 +701,7 @@ function App() {
         {/* PRIMARY NAVIGATION */}
 
         <div className="switch">
+
           <button
             className={
               tab === 'library'
@@ -647,15 +730,18 @@ function App() {
               ↻ {profile.name}'s Re-watch
             </button>
           )}
+
         </div>
 
         {/* LIBRARY CONTROLS */}
 
         {tab === 'library' && (
           <>
+
             <div className="toolbar">
 
               <div className="filters">
+
                 <button
                   className={
                     filter === 'all'
@@ -676,7 +762,9 @@ function App() {
                       : ''
                   }
                   onClick={() =>
-                    setFilter('watchlist')
+                    setFilter(
+                      'watchlist'
+                    )
                   }
                 >
                   Watchlist
@@ -689,24 +777,32 @@ function App() {
                       : ''
                   }
                   onClick={() =>
-                    setFilter('watched')
+                    setFilter(
+                      'watched'
+                    )
                   }
                 >
                   Watched
                 </button>
+
               </div>
 
               <div className="search">
+
                 <Search size={18} />
 
                 <input
                   value={q}
                   onChange={e =>
-                    setQ(e.target.value)
+                    setQ(
+                      e.target.value
+                    )
                   }
                   placeholder="Search library"
                 />
+
               </div>
+
             </div>
 
             {/* FORMAT + SORT */}
@@ -780,13 +876,16 @@ function App() {
                   Oldest release
                 </option>
               </select>
+
             </div>
+
           </>
         )}
 
         {/* LIBRARY */}
 
         <div className="grid">
+
           {visible.map(title => (
             <Card
               key={title.id}
@@ -816,15 +915,21 @@ function App() {
               }
 
               onRemove={() =>
-                removeTitle(title.id)
+                removeTitle(
+                  title.id
+                )
               }
 
               onReminder={() =>
-                setShowReminder(title)
+                setShowReminder(
+                  title
+                )
               }
 
               onSchedule={() =>
-                setShowSchedule(title)
+                setShowSchedule(
+                  title
+                )
               }
             />
           ))}
@@ -836,7 +941,9 @@ function App() {
                 : 'Nothing here yet.'}
             </div>
           )}
+
         </div>
+
       </main>
 
       {/* TODAY'S RECOMMENDATION */}
@@ -849,13 +956,20 @@ function App() {
               closeRecommendation
             }
           >
+
             <div className="reco">
+
               <img
-                src={recommendation.poster}
-                alt={recommendation.name}
+                src={
+                  recommendation.poster
+                }
+                alt={
+                  recommendation.name
+                }
               />
 
               <div>
+
                 <div className="reco-label">
                   FROM YOUR WATCHLIST
                 </div>
@@ -877,8 +991,11 @@ function App() {
                     {recommendation.overview}
                   </p>
                 )}
+
               </div>
+
             </div>
+
           </Modal>
         )}
 
@@ -891,28 +1008,34 @@ function App() {
             setShowProfile(false)
           }
         >
+
           <div className="profiles">
+
             {profiles.map(
               (item, index) => (
                 <div
                   className="profile-row"
                   key={item.id}
                 >
+
                   <button
                     onClick={() => {
                       setProfileId(
                         item.id
                       );
+
                       setShowProfile(
                         false
                       );
                     }}
                     className={
-                      item.id === profileId
+                      item.id ===
+                      profileId
                         ? 'current'
                         : ''
                     }
                   >
+
                     <span className="avatar">
                       {item.avatar}
                     </span>
@@ -923,8 +1046,11 @@ function App() {
 
                     {item.id ===
                       profileId && (
-                      <Check size={18} />
+                      <Check
+                        size={18}
+                      />
                     )}
+
                   </button>
 
                   {isAdmin &&
@@ -933,7 +1059,10 @@ function App() {
                       <button
                         className="icon"
                         onClick={() => {
-                          setEditing(item);
+                          setEditing(
+                            item
+                          );
+
                           setShowProfile(
                             false
                           );
@@ -946,10 +1075,12 @@ function App() {
                   {isAdmin &&
                     profiles.length > 1 && (
                       <div className="profile-order">
+
                         <button
                           className="icon"
                           disabled={
-                            index === 0
+                            index ===
+                            0
                           }
                           onClick={() =>
                             moveProfile(
@@ -968,7 +1099,8 @@ function App() {
                           className="icon"
                           disabled={
                             index ===
-                            profiles.length - 1
+                            profiles.length -
+                              1
                           }
                           onClick={() =>
                             moveProfile(
@@ -982,8 +1114,10 @@ function App() {
                             size={16}
                           />
                         </button>
+
                       </div>
                     )}
+
                 </div>
               )
             )}
@@ -1007,7 +1141,9 @@ function App() {
                 Add Profile
               </button>
             )}
+
           </div>
+
         </Modal>
       )}
 
@@ -1025,7 +1161,10 @@ function App() {
             setEditing(null)
           }
 
-          onSave={(name, avatar) =>
+          onSave={(
+            name,
+            avatar
+          ) =>
             editing.id === 'new'
               ? addProfile(
                   name,
@@ -1105,7 +1244,10 @@ function App() {
           onClose={() =>
             setShowReminder(null)
           }
-          onSave={(date, time) => {
+          onSave={(
+            date,
+            time
+          ) => {
             setReminders([
               ...reminders,
               {
@@ -1171,6 +1313,7 @@ function App() {
       {/* FOOTER */}
 
       <footer>
+
         <span>
           <Clock size={14} />
 
@@ -1201,7 +1344,9 @@ function App() {
           <LogOut size={14} />
           Sign out
         </button>
+
       </footer>
+
     </div>
   );
 }
@@ -1233,7 +1378,9 @@ function Card({
 }) {
   return (
     <article className="card">
+
       <div className="poster-wrap">
+
         <img
           src={t.poster}
           alt={t.name}
@@ -1257,20 +1404,29 @@ function Card({
             className="remove"
             onClick={onRemove}
             title="Remove title"
+            aria-label={
+              `Remove ${t.name}`
+            }
           >
             <Trash2 size={16} />
           </button>
         )}
+
       </div>
 
       <div className="card-body">
+
         <h3>{t.name}</h3>
+
         <p>{t.year}</p>
 
         <div className="actions">
+
           <button
             className={
-              st.watchlist.includes(t.id)
+              st.watchlist.includes(
+                t.id
+              )
                 ? 'on'
                 : ''
             }
@@ -1281,23 +1437,31 @@ function Card({
 
           <button
             className={
-              st.watched.includes(t.id)
+              st.watched.includes(
+                t.id
+              )
                 ? 'on'
                 : ''
             }
             onClick={onWatch}
           >
-            {st.watched.includes(t.id)
+            {st.watched.includes(
+              t.id
+            )
               ? '✓ Watched'
               : 'Mark watched'}
           </button>
+
         </div>
 
         <div className="small-actions">
+
           {!isAdmin && (
             <button
               className={
-                st.rewatch.includes(t.id)
+                st.rewatch.includes(
+                  t.id
+                )
                   ? 'rewatch-action on'
                   : 'rewatch-action'
               }
@@ -1307,7 +1471,9 @@ function Card({
             </button>
           )}
 
-          <button onClick={onReminder}>
+          <button
+            onClick={onReminder}
+          >
             <Bell size={14} />
             Remind me
           </button>
@@ -1319,8 +1485,11 @@ function Card({
               Schedule reco
             </button>
           )}
+
         </div>
+
       </div>
+
     </article>
   );
 }
@@ -1343,26 +1512,34 @@ function Modal({
       className="overlay"
       onMouseDown={e => {
         if (
-          e.currentTarget === e.target
+          e.currentTarget ===
+          e.target
         ) {
           onClose();
         }
       }}
     >
+
       <div className="modal">
+
         <div className="modal-head">
+
           <h2>{title}</h2>
 
           <button
             className="icon"
             onClick={onClose}
+            aria-label="Close"
           >
             <X />
           </button>
+
         </div>
 
         {children}
+
       </div>
+
     </div>
   );
 }
@@ -1386,10 +1563,14 @@ function ProfileEditor({
   onDelete?: () => void;
 }) {
   const [name, setName] =
-    useState(profile?.name || '');
+    useState(
+      profile?.name || ''
+    );
 
   const [avatar, setAvatar] =
-    useState(profile?.avatar || '🙂');
+    useState(
+      profile?.avatar || '🙂'
+    );
 
   return (
     <Modal
@@ -1400,6 +1581,7 @@ function ProfileEditor({
       }
       onClose={onClose}
     >
+
       <label>
         Profile Name
 
@@ -1407,7 +1589,9 @@ function ProfileEditor({
           autoFocus
           value={name}
           onChange={e =>
-            setName(e.target.value)
+            setName(
+              e.target.value
+            )
           }
         />
       </label>
@@ -1416,6 +1600,7 @@ function ProfileEditor({
         Profile Photo
 
         <div className="emoji-grid">
+
           {[
             '🙂',
             '🌸',
@@ -1427,6 +1612,7 @@ function ProfileEditor({
             '🔥'
           ].map(item => (
             <button
+              type="button"
               className={
                 avatar === item
                   ? 'picked'
@@ -1440,7 +1626,9 @@ function ProfileEditor({
               {item}
             </button>
           ))}
+
         </div>
+
       </label>
 
       <label>
@@ -1480,6 +1668,7 @@ function ProfileEditor({
           Delete Profile
         </button>
       )}
+
     </Modal>
   );
 }
@@ -1495,7 +1684,9 @@ function AddTitle({
 }: {
   library: Title[];
   onClose: () => void;
-  onAdd: (title: Title) => void;
+  onAdd: (
+    title: Title
+  ) => void;
 }) {
   const [query, setQuery] =
     useState('');
@@ -1515,26 +1706,29 @@ function AddTitle({
       return;
     }
 
-    const timer = setTimeout(
-      async () => {
-        setLoading(true);
-        setError('');
+    const timer =
+      setTimeout(
+        async () => {
+          setLoading(true);
+          setError('');
 
-        try {
-          const data =
-            await searchTMDB(query);
+          try {
+            const data =
+              await searchTMDB(
+                query
+              );
 
-          setResults(data);
-        } catch {
-          setError(
-            'Unable to search TMDB right now.'
-          );
-        } finally {
-          setLoading(false);
-        }
-      },
-      400
-    );
+            setResults(data);
+          } catch {
+            setError(
+              'Unable to search TMDB right now.'
+            );
+          } finally {
+            setLoading(false);
+          }
+        },
+        400
+      );
 
     return () =>
       clearTimeout(timer);
@@ -1545,7 +1739,8 @@ function AddTitle({
       title =>
         !library.some(
           item =>
-            item.id === title.id
+            item.id ===
+            title.id
         )
     );
 
@@ -1554,12 +1749,14 @@ function AddTitle({
       title="Add Movie / TV Show"
       onClose={onClose}
     >
+
       <p className="muted">
         Search TMDB for movies
         and TV shows.
       </p>
 
       <div className="search wide">
+
         <Search size={18} />
 
         <input
@@ -1572,6 +1769,7 @@ function AddTitle({
           }
           placeholder="Search movies and TV shows"
         />
+
       </div>
 
       {loading && (
@@ -1587,25 +1785,30 @@ function AddTitle({
       )}
 
       <div className="result-list">
+
         {available.map(title => (
           <div
             className="result"
             key={title.id}
           >
+
             <img
               src={title.poster}
               alt={title.name}
             />
 
             <div>
+
               <b>{title.name}</b>
 
               <span>
                 {title.year} ·{' '}
-                {title.kind === 'movie'
+                {title.kind ===
+                'movie'
                   ? 'Movie'
                   : 'TV Show'}
               </span>
+
             </div>
 
             <button
@@ -1624,9 +1827,12 @@ function AddTitle({
             >
               + Add
             </button>
+
           </div>
         ))}
+
       </div>
+
     </Modal>
   );
 }
@@ -1658,6 +1864,7 @@ function ReminderModal({
       title="Remind Me"
       onClose={onClose}
     >
+
       <p>
         Set a reminder for{' '}
         <b>{title.name}</b>.
@@ -1710,6 +1917,7 @@ function ReminderModal({
         Streamix notification
         system.
       </p>
+
     </Modal>
   );
 }
@@ -1752,6 +1960,7 @@ function ScheduleModal({
       title="Schedule Personal Recommendation"
       onClose={onClose}
     >
+
       <label>
         Profile
 
@@ -1763,14 +1972,20 @@ function ScheduleModal({
             )
           }
         >
-          {profiles.map(profile => (
-            <option
-              value={profile.id}
-              key={profile.id}
-            >
-              {profile.name}
-            </option>
-          ))}
+          {profiles.map(
+            profile => (
+              <option
+                value={
+                  profile.id
+                }
+                key={
+                  profile.id
+                }
+              >
+                {profile.name}
+              </option>
+            )
+          )}
         </select>
       </label>
 
@@ -1835,6 +2050,7 @@ function ScheduleModal({
       >
         Schedule
       </button>
+
     </Modal>
   );
 }
@@ -1861,8 +2077,8 @@ function HeroModal({
   const [titleId, setTitleId] =
     useState<string>(
       settings.titleId ||
-        library[0]?.id ||
-        ''
+      library[0]?.id ||
+      ''
     );
 
   const [positionX, setPositionX] =
@@ -1886,6 +2102,7 @@ function HeroModal({
       title="Edit Hero"
       onClose={onClose}
     >
+
       <p>
         Choose which title
         appears in the featured
@@ -1899,6 +2116,7 @@ function HeroModal({
         </p>
       ) : (
         <>
+
           <label>
             Hero title
 
@@ -1910,14 +2128,16 @@ function HeroModal({
                 )
               }
             >
-              {library.map(title => (
-                <option
-                  key={title.id}
-                  value={title.id}
-                >
-                  {title.name}
-                </option>
-              ))}
+              {library.map(
+                title => (
+                  <option
+                    key={title.id}
+                    value={title.id}
+                  >
+                    {title.name}
+                  </option>
+                )
+              )}
             </select>
           </label>
 
@@ -1994,8 +2214,10 @@ function HeroModal({
           >
             Save Hero
           </button>
+
         </>
       )}
+
     </Modal>
   );
 }
@@ -2004,7 +2226,16 @@ function HeroModal({
    START APP
 -------------------------------------------------- */
 
-createRoot(
-  document.getElementById('root')!
-).render(<App />);
+const rootElement =
+  document.getElementById('root');
+
+if (!rootElement) {
+  throw new Error(
+    'Root element not found'
+  );
+}
+
+createRoot(rootElement).render(
+  <App />
+);
 ```
