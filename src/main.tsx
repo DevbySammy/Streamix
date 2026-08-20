@@ -130,7 +130,7 @@ try {
 const stored =
 localStorage.getItem(key);
 
-```
+
   if (!stored) {
     return fallback;
   }
