@@ -42,7 +42,6 @@ type Profile = {
 id: string;
 name: string;
 avatar: string;
-password?: string;
 };
 
 type State = {
@@ -2535,10 +2534,7 @@ useState(false);
 const [showPassword, setShowPassword] =
 useState(false);
 
-const hasPassword =
-  profile.id === "admin"
-    ? true
-    : Boolean(profile.password);
+const hasPassword = profile.id === "admin";
 
 async function handleLogin() {
   if (!password.trim()) {
@@ -3252,19 +3248,13 @@ return;
 }
 
 
-if (!profile.password) {
+if (!newPassword.trim()) {
   setPasswordError(
-    "This profile does not have a password yet."
+    "Please enter a new password."
   );
 
   return;
 }
-
-if (
-  !adminOverride &&
-  currentPassword !==
-    profile.password
-) {
   setPasswordError(
     "Current password is incorrect."
   );
