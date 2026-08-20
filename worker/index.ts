@@ -430,13 +430,12 @@ if (
       });
     }
 
-    // ==================================================
+      // ==================================================
     // AUTH - SET PASSWORD
     // ==================================================
 
     if (
-      url.pathname ===
-        "/api/auth/set-password" &&
+      url.pathname === "/api/auth/set-password" &&
       request.method === "POST"
     ) {
       const body =
@@ -471,31 +470,16 @@ if (
         );
       }
 
-      /*
-       * Admin password is controlled by the
-       * Cloudflare secret and cannot be changed
-       * through the profile UI.
-       */
       if (profileId === "admin") {
         return json(
           {
             error:
-              "The Admin password is managed securely by the server."
+              "The Admin password is managed securely by Cloudflare."
           },
           403
         );
       }
 
-      const session =
-        await getSession();
-
-      /*
-       * A profile can only set its own password
-       * if it already has a valid session.
-       *
-       * A brand-new profile has no password yet,
-       * so it may initialize its password.
-       */
       const profile =
         await env.DB
           .prepare(`
@@ -521,18 +505,40 @@ if (
         );
       }
 
-      if (
-        profile.password_hash &&
-        (!session ||
+      /*
+       * IMPORTANT:
+       *
+       * A profile may only initialize its password
+       * when it does not already have one.
+       *
+       * Once a password exists, the profile must
+       * authenticate before changing it.
+       */
+
+      if (profile.password_hash) {
+        const session =
+          await getSession();
+
+        if (
+          !session ||
           session.profile_id !==
-            profileId)
-      ) {
+            profileId
+        ) {
+          return json(
+            {
+              error:
+                "Unauthorized."
+            },
+            401
+          );
+        }
+
         return json(
           {
             error:
-              "Unauthorized."
+              "This profile already has a password. Use change-password."
           },
-          401
+          409
         );
       }
 
@@ -569,8 +575,7 @@ if (
     // ==================================================
 
     if (
-      url.pathname ===
-        "/api/auth/change-password" &&
+      url.pathname === "/api/auth/change-password" &&
       request.method === "POST"
     ) {
       const auth =
@@ -602,14 +607,11 @@ if (
         );
       }
 
-      if (
-        auth.profileId ===
-        "admin"
-      ) {
+      if (auth.profileId === "admin") {
         return json(
           {
             error:
-              "The Admin password is managed securely by the server."
+              "The Admin password is managed securely by Cloudflare."
           },
           403
         );
@@ -618,11 +620,14 @@ if (
       const profile =
         await env.DB
           .prepare(`
-            SELECT password_hash
+            SELECT
+              password_hash
             FROM profiles
             WHERE id = ?
           `)
-          .bind(auth.profileId)
+          .bind(
+            auth.profileId
+          )
           .first<{
             password_hash: string | null;
           }>();
@@ -679,6 +684,123 @@ if (
         .bind(
           newHash,
           auth.profileId
+        )
+        .run();
+
+      return json({
+        success: true
+      });
+    }
+
+    // ==================================================
+    // AUTH - ADMIN RESET PROFILE PASSWORD
+    // ==================================================
+
+    if (
+      url.pathname ===
+        "/api/auth/admin-reset-password" &&
+      request.method === "POST"
+    ) {
+      const admin =
+        await requireAdmin();
+
+      if (admin instanceof Response) {
+        return admin;
+      }
+
+      const body =
+        await request.json<{
+          profileId?: string;
+          newPassword?: string;
+        }>();
+
+      const profileId =
+        body.profileId?.trim();
+
+      const newPassword =
+        body.newPassword ?? "";
+
+      if (!profileId) {
+        return json(
+          {
+            error:
+              "Profile id is required."
+          },
+          400
+        );
+      }
+
+      if (!newPassword.trim()) {
+        return json(
+          {
+            error:
+              "New password is required."
+          },
+          400
+        );
+      }
+
+      if (profileId === "admin") {
+        return json(
+          {
+            error:
+              "The Admin password must be changed in Cloudflare."
+          },
+          403
+        );
+      }
+
+      const profile =
+        await env.DB
+          .prepare(`
+            SELECT
+              id
+            FROM profiles
+            WHERE id = ?
+          `)
+          .bind(profileId)
+          .first<{
+            id: string;
+          }>();
+
+      if (!profile) {
+        return json(
+          {
+            error:
+              "Profile not found."
+          },
+          404
+        );
+      }
+
+      const passwordHash =
+        await hashPassword(
+          newPassword
+        );
+
+      await env.DB
+        .prepare(`
+          UPDATE profiles
+          SET password_hash = ?
+          WHERE id = ?
+        `)
+        .bind(
+          passwordHash,
+          profileId
+        )
+        .run();
+
+      /*
+       * Invalidate all existing sessions for
+       * this profile after an Admin reset.
+       */
+      await env.DB
+        .prepare(`
+          DELETE FROM sessions
+          WHERE profile_id = ?
+        `)
+        .bind(
+          profileId
         )
         .run();
 
