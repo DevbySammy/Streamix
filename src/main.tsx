@@ -297,9 +297,11 @@ function App() {
       initialHero
     );
 
-  const [profileId, setProfileId] =
-    useState("admin");
+ const [profileId, setProfileId] =
+  useState("admin");
 
+const [viewingAs, setViewingAs] =
+  useState<string | null>(null);
   const [tab, setTab] =
     useState<"library" | "rewatch">(
       "library"
@@ -351,20 +353,32 @@ function App() {
   const [menu, setMenu] =
     useState(false);
 
-  const isAdmin = profileId === "admin";
+const isAdminUser = profileId === "admin";
 
-  const profile =
-    profiles.find(
-      item => item.id === profileId
-    ) || profiles[0];
+  const isViewingAs =
+    isAdminUser && viewingAs !== null;
 
-  const state =
-    states[profileId] || {
-      watched: [],
-      watchlist: [],
-      rewatch: []
-    };
+  const isAdmin =
+    isAdminUser && !isViewingAs;
 
+  const effectiveProfileId =
+  viewingAs || profileId;
+
+const effectiveProfile =
+  profiles.find(
+    item => item.id === effectiveProfileId
+  ) || profiles[0];
+
+ const profile =
+  effectiveProfile;
+  
+ const state =
+  states[effectiveProfileId] || {
+    watched: [],
+    watchlist: [],
+    rewatch: []
+  };
+  
   const hero = heroSettings.titleId
     ? library.find(
         item =>
@@ -503,24 +517,24 @@ function App() {
      STATE ACTIONS
   ======================================================= */
 
-  function updateState(
-    fn: (current: State) => State
-  ) {
-    setStates(currentStates => {
-      const currentState =
-        currentStates[profileId] || {
-          watched: [],
-          watchlist: [],
-          rewatch: []
-        };
-
-      return {
-        ...currentStates,
-        [profileId]:
-          fn(currentState)
+ function updateState(
+  fn: (current: State) => State
+) {
+  setStates(currentStates => {
+    const currentState =
+      currentStates[effectiveProfileId] || {
+        watched: [],
+        watchlist: [],
+        rewatch: []
       };
-    });
-  }
+
+    return {
+      ...currentStates,
+      [effectiveProfileId]:
+        fn(currentState)
+    };
+  });
+}
 
   function toggle(
     array: keyof State,
@@ -711,11 +725,13 @@ function App() {
             }
           >
             <span>
-              {profile.avatar}
+              {isViewingAs ? "👑" : profile.avatar}
             </span>
 
             <span>
-              {profile.name}
+              {isViewingAs
+                ? "Admin"
+                : profile.name}
             </span>
 
             <ChevronDown
@@ -723,7 +739,23 @@ function App() {
             />
           </button>
 
-          {isAdmin && (
+          {isViewingAs && (
+            <button
+              className="admin-badge"
+              onClick={() => {
+                setViewingAs(null);
+                setProfileId("admin");
+                setTab("library");
+                setFilter("all");
+                setMenu(false);
+              }}
+              aria-label="Back to Admin"
+            >
+              ← ADMIN
+            </button>
+          )}
+
+          {isAdmin && !isViewingAs && (
             <button
               className="admin-badge"
               onClick={() =>
@@ -797,7 +829,9 @@ function App() {
         <div className="hero-content">
 
           <div className="eyebrow">
-            FEATURED
+            {isViewingAs
+              ? "VIEWING AS " + profile.name.toUpperCase()
+              : "FEATURED"}
           </div>
 
           {hero ? (
@@ -1183,20 +1217,31 @@ function App() {
 
                   <button
                     onClick={() => {
-                      if (
-                        item.id ===
-                        profileId
-                      ) {
+                      if (item.id === effectiveProfileId) {
                         setShowProfile(false);
                         return;
                       }
 
+                      // Admin can view any profile without a password.
+                      if (isAdminUser) {
+                        if (item.id === "admin") {
+                          setViewingAs(null);
+                          setProfileId("admin");
+                        } else {
+                          setViewingAs(item.id);
+                          setProfileId("admin");
+                        }
+
+                        setShowProfile(false);
+                        return;
+                      }
+
+                      // Regular users must enter the selected profile's password.
                       setLoginProfile(item);
                       setShowProfile(false);
                     }}
                     className={
-                      item.id ===
-                      profileId
+                      item.id === effectiveProfileId
                         ? "current"
                         : ""
                     }
@@ -1211,7 +1256,7 @@ function App() {
                     </span>
 
                     {item.id ===
-                      profileId && (
+                      effectiveProfileId && (
                       <Check
                         size={18}
                       />
@@ -1223,15 +1268,9 @@ function App() {
 
                   <button
                     className="icon"
-                    disabled={
-                      item.id !==
-                      profileId
-                    }
+                    disabled={!isAdminUser && item.id !== profileId}
                     onClick={() => {
-                      if (
-                        item.id !==
-                        profileId
-                      ) {
+                      if (!isAdminUser && item.id !== profileId) {
                         return;
                       }
 
@@ -1239,14 +1278,12 @@ function App() {
                       setShowProfile(false);
                     }}
                     aria-label={
-                      item.id ===
-                      profileId
+                      item.id === effectiveProfileId || isAdminUser
                         ? "Profile settings"
                         : "Switch to this profile to edit settings"
                     }
                     title={
-                      item.id ===
-                      profileId
+                      item.id === effectiveProfileId || isAdminUser
                         ? "Profile settings"
                         : "Switch to this profile to edit settings"
                     }
@@ -1258,32 +1295,7 @@ function App() {
 
                   {/* ADMIN PROFILE MANAGEMENT */}
 
-                  {isAdmin &&
-                    item.id !==
-                      "admin" && (
-                      <button
-                        className="icon"
-                        onClick={() => {
-                          setEditing(
-                            item
-                          );
-
-                          setShowProfile(
-                            false
-                          );
-                        }}
-                        aria-label={
-                          "Edit " +
-                          item.name
-                        }
-                        title={
-                          "Edit " +
-                          item.name
-                        }
-                      >
-                        ✎
-                      </button>
-                    )}
+                  
 
                   {/* PROFILE ORDER */}
 
@@ -1435,6 +1447,7 @@ function App() {
 
             setEditing(null);
           }}
+          adminOverride={isAdminUser}
           onChangePassword={password => {
             if (
               editing.id === "new"
@@ -1482,6 +1495,7 @@ function App() {
                   );
 
                   setEditing(null);
+                  setViewingAs(null);
                   setProfileId("admin");
                 }
           }
@@ -1591,7 +1605,7 @@ function App() {
             reminders.filter(
               reminder =>
                 reminder.profileId ===
-                profileId
+                effectiveProfileId
             ).length
           }{" "}
           reminder(s)
@@ -2159,6 +2173,7 @@ function ProfileEditor({
   onClose,
   onSave,
   onDelete,
+  adminOverride = false,
   onChangePassword
 }: {
   profile: Profile | null;
@@ -2168,6 +2183,7 @@ function ProfileEditor({
     avatar: string
   ) => void;
   onDelete?: () => void;
+  adminOverride?: boolean;
   onChangePassword?: (
     password: string
   ) => void;
@@ -2224,6 +2240,7 @@ function ProfileEditor({
     }
 
     if (
+      !adminOverride &&
       currentPassword !==
       profile.password
     ) {
@@ -2343,10 +2360,11 @@ function ProfileEditor({
           {showPasswordSection && (
             <div className="password-settings">
 
-              <label>
-                Current Password
+              {!adminOverride && (
+                <label>
+                  Current Password
 
-                <div className="password-wrapper">
+                  <div className="password-wrapper">
 
                   <input
                     type={
@@ -2388,8 +2406,15 @@ function ProfileEditor({
                     )}
                   </button>
 
-                </div>
-              </label>
+                  </div>
+                </label>
+              )}
+
+              {adminOverride && (
+                <p className="muted">
+                  Admin can reset this profile's password without entering the current password.
+                </p>
+              )}
 
               <label>
                 New Password
@@ -2451,7 +2476,9 @@ function ProfileEditor({
                   handlePasswordChange
                 }
               >
-                Update Password
+                {adminOverride
+                  ? "Reset Password"
+                  : "Update Password"}
               </button>
 
             </div>
