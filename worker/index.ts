@@ -1,4 +1,3 @@
-typescript
 export interface Env {
   TMDB_READ_ACCESS_TOKEN: string;
   ADMIN_API_TOKEN: string;
