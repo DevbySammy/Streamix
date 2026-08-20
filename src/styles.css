@@ -968,3 +968,30 @@ gap: 5px;
 margin-top: 5px;
 }
 }
+
+/* Password eye toggle */
+
+.password-wrapper {
+  position: relative;
+}
+
+.password-wrapper input {
+  padding-right: 42px;
+}
+
+.password-toggle {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  color: #777;
+  padding: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.password-toggle:active {
+  color: #ff3d8d;
+}
