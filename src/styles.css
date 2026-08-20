@@ -677,20 +677,11 @@ main {
   gap: 7px;
 }
 
-/*
-  Profile row
-
-  The row itself stays visually simple.
-  The drag state is applied to the profile button below.
-*/
-
 .profile-row {
   display: flex;
   gap: 6px;
   transition: opacity 0.15s ease;
 }
-
-/* Profile button */
 
 .profile-row > button:first-child {
   flex: 1;
@@ -702,8 +693,6 @@ main {
   align-items: center;
   gap: 10px;
   text-align: left;
-
-  /* Smooth drag-state transition */
   transition:
     border-color 0.15s ease,
     background 0.15s ease,
@@ -715,14 +704,6 @@ main {
   border-color: #ff3d8d;
 }
 
-/*
-  DRAGGING PROFILE
-
-  This is the profile currently being picked up/reordered.
-  Pink outline makes it immediately obvious which profile
-  the admin is moving.
-*/
-
 .profile-row.dragging > button:first-child,
 .profile-row.is-dragging > button:first-child {
   border-color: #ff3d8d;
@@ -733,30 +714,15 @@ main {
   transform: scale(1.015);
 }
 
-/*
-  Slightly dim the rest of the row while dragging,
-  without changing its colour on hover.
-*/
-
 .profile-row.dragging,
 .profile-row.is-dragging {
   opacity: 0.96;
 }
 
-/*
-  If the drag implementation adds a "drag-over" class,
-  this gives the destination a subtle pink indicator.
-*/
-
 .profile-row.drag-over > button:first-child {
   border-color: rgba(255, 61, 141, 0.7);
   background: rgba(255, 61, 141, 0.05);
 }
-
-/*
-  Desktop only:
-  Make the drag interaction feel a little more physical.
-*/
 
 @media (hover: hover) and (pointer: fine) {
   .profile-row.dragging > button:first-child,
@@ -774,8 +740,6 @@ main {
     cursor: grabbing;
   }
 }
-
-/* Avatar */
 
 .avatar {
   font-size: 24px;
@@ -852,6 +816,28 @@ main {
 .add {
   padding: 8px 10px;
   font-size: 12px;
+}
+
+/* Add Media confirmation */
+
+.add-confirmation {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 14px 0;
+  padding: 11px 14px;
+  border: 1px solid #ff4f9a;
+  border-radius: 10px;
+  color: #ff4f9a;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* Add Media button after title has been added */
+
+.result .add.added {
+  opacity: 0.75;
+  cursor: default;
 }
 
 /* Footer */
@@ -1037,12 +1023,6 @@ footer button {
     right: 0;
     width: min(220px, calc(100vw - 28px));
   }
-
-  /*
-    On mobile we don't use the desktop "lift" effect.
-    The drag highlight still works if the drag system supports it,
-    but the profile stays visually stable for touch interaction.
-  */
 
   .profile-row.dragging > button:first-child,
   .profile-row.is-dragging > button:first-child {
