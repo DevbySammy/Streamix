@@ -1,4 +1,8 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, {
+  useEffect,
+  useMemo,
+  useState
+} from "react";
 import { createRoot } from "react-dom/client";
 import {
   Check,
@@ -8,7 +12,6 @@ import {
   Eye,
   EyeOff,
   Film,
-  LogOut,
   Plus,
   Search,
   Settings,
@@ -118,10 +121,14 @@ function uid(): string {
 function useStored<T>(
   key: string,
   fallback: T
-): [T, React.Dispatch<React.SetStateAction<T>>] {
+): [
+  T,
+  React.Dispatch<React.SetStateAction<T>>
+] {
   const [value, setValue] = useState<T>(() => {
     try {
-      const stored = localStorage.getItem(key);
+      const stored =
+        localStorage.getItem(key);
 
       if (!stored) {
         return fallback;
@@ -154,7 +161,10 @@ function getPosterUrl(
     return "https://placehold.co/500x750/171717/ffffff?text=No+Poster";
   }
 
-  return "https://image.tmdb.org/t/p/w500" + path;
+  return (
+    "https://image.tmdb.org/t/p/w500" +
+    path
+  );
 }
 
 function getBackdropUrl(
@@ -164,7 +174,10 @@ function getBackdropUrl(
     return "";
   }
 
-  return "https://image.tmdb.org/t/p/w1280" + path;
+  return (
+    "https://image.tmdb.org/t/p/w1280" +
+    path
+  );
 }
 
 /* =========================================================
@@ -218,7 +231,9 @@ async function searchTMDB(
       const year =
         releaseDate &&
         typeof releaseDate === "string"
-          ? Number(releaseDate.slice(0, 4))
+          ? Number(
+              releaseDate.slice(0, 4)
+            )
           : 0;
 
       const name =
@@ -245,7 +260,8 @@ async function searchTMDB(
           typeof item.overview === "string"
             ? item.overview
             : "",
-        addedAt: new Date().toISOString()
+        addedAt:
+          new Date().toISOString()
       };
     });
 }
@@ -358,8 +374,31 @@ function App() {
   const [menu, setMenu] =
     useState(false);
 
-  const [draggedProfileId, setDraggedProfileId] =
-    useState<string | null>(null);
+  /* =======================================================
+     PROFILE DRAGGING
+  ======================================================= */
+
+  const [
+    draggedProfileId,
+    setDraggedProfileId
+  ] = useState<string | null>(null);
+
+  const [
+    dragOverProfileId,
+    setDragOverProfileId
+  ] = useState<string | null>(null);
+
+  const [
+    dragPosition,
+    setDragPosition
+  ] = useState<"before" | "after">(
+    "after"
+  );
+
+  const [
+    dragPointerId,
+    setDragPointerId
+  ] = useState<number | null>(null);
 
   /* =======================================================
      PROFILE ORDER
@@ -367,17 +406,171 @@ function App() {
 
   const orderedProfiles = useMemo(() => {
     const adminProfile = profiles.find(
-      profile => profile.id === "admin"
+      profile =>
+        profile.id === "admin"
     );
 
-    const regularProfiles = profiles.filter(
-      profile => profile.id !== "admin"
-    );
+    const regularProfiles =
+      profiles.filter(
+        profile =>
+          profile.id !== "admin"
+      );
 
     return adminProfile
-      ? [adminProfile, ...regularProfiles]
+      ? [
+          adminProfile,
+          ...regularProfiles
+        ]
       : regularProfiles;
   }, [profiles]);
+
+  /* =======================================================
+     PROFILE DRAG POINTER TRACKING
+  ======================================================= */
+
+  useEffect(() => {
+    if (!draggedProfileId) {
+      return;
+    }
+
+    function handlePointerMove(
+      event: PointerEvent
+    ) {
+      if (
+        dragPointerId !== null &&
+        event.pointerId !== dragPointerId
+      ) {
+        return;
+      }
+
+      event.preventDefault();
+
+      const element =
+        document.elementFromPoint(
+          event.clientX,
+          event.clientY
+        ) as HTMLElement | null;
+
+      const row =
+        element?.closest(
+          "[data-profile-id]"
+        ) as HTMLElement | null;
+
+      if (!row) {
+        setDragOverProfileId(null);
+        return;
+      }
+
+      const targetId =
+        row.dataset.profileId;
+
+      if (
+        !targetId ||
+        targetId ===
+          draggedProfileId ||
+        targetId === "admin"
+      ) {
+        setDragOverProfileId(null);
+        return;
+      }
+
+      const rect =
+        row.getBoundingClientRect();
+
+      const middle =
+        rect.top + rect.height / 2;
+
+      const position =
+        event.clientY < middle
+          ? "before"
+          : "after";
+
+      setDragOverProfileId(
+        targetId
+      );
+
+      setDragPosition(position);
+    }
+
+    function handlePointerUp(
+      event: PointerEvent
+    ) {
+      if (
+        dragPointerId !== null &&
+        event.pointerId !== dragPointerId
+      ) {
+        return;
+      }
+
+      if (
+        draggedProfileId &&
+        dragOverProfileId
+      ) {
+        reorderProfiles(
+          draggedProfileId,
+          dragOverProfileId,
+          dragPosition
+        );
+      }
+
+      setDraggedProfileId(null);
+      setDragOverProfileId(null);
+      setDragPointerId(null);
+    }
+
+    function handlePointerCancel(
+      event: PointerEvent
+    ) {
+      if (
+        dragPointerId !== null &&
+        event.pointerId !== dragPointerId
+      ) {
+        return;
+      }
+
+      setDraggedProfileId(null);
+      setDragOverProfileId(null);
+      setDragPointerId(null);
+    }
+
+    window.addEventListener(
+      "pointermove",
+      handlePointerMove,
+      { passive: false }
+    );
+
+    window.addEventListener(
+      "pointerup",
+      handlePointerUp
+    );
+
+    window.addEventListener(
+      "pointercancel",
+      handlePointerCancel
+    );
+
+    return () => {
+      window.removeEventListener(
+        "pointermove",
+        handlePointerMove
+      );
+
+      window.removeEventListener(
+        "pointerup",
+        handlePointerUp
+      );
+
+      window.removeEventListener(
+        "pointercancel",
+        handlePointerCancel
+      );
+    };
+  }, [
+    draggedProfileId,
+    dragOverProfileId,
+    dragPosition,
+    dragPointerId
+  ]);
 
   /* =======================================================
      VALIDATE SESSION
@@ -409,30 +602,35 @@ function App() {
     profileId === "admin";
 
   const isViewingAs =
-    isAdminUser && viewingAs !== null;
+    isAdminUser &&
+    viewingAs !== null;
 
   const isAdmin =
-    isAdminUser && !isViewingAs;
+    isAdminUser &&
+    !isViewingAs;
 
-  let effectiveProfileId: string | null =
-    profileId;
+  let effectiveProfileId:
+    string | null = profileId;
 
   if (isViewingAs) {
-    effectiveProfileId = viewingAs;
+    effectiveProfileId =
+      viewingAs;
   }
 
-  let effectiveProfile: Profile | null =
-    null;
+  let effectiveProfile:
+    Profile | null = null;
 
   if (effectiveProfileId) {
     effectiveProfile =
       profiles.find(
         item =>
-          item.id === effectiveProfileId
+          item.id ===
+          effectiveProfileId
       ) || null;
   }
 
-  const profile = effectiveProfile;
+  const profile =
+    effectiveProfile;
 
   const state: State =
     effectiveProfileId &&
@@ -444,46 +642,56 @@ function App() {
           rewatch: []
         };
 
-  const hero = heroSettings.titleId
-    ? library.find(
-        item =>
-          item.id === heroSettings.titleId
-      ) || null
-    : null;
+  const hero =
+    heroSettings.titleId
+      ? library.find(
+          item =>
+            item.id ===
+            heroSettings.titleId
+        ) || null
+      : null;
 
   /* =======================================================
      RECOMMENDATION
   ======================================================= */
 
-  const recommendation = useMemo(() => {
-    const watchlistTitles =
-      library.filter(title => {
-        const inWatchlist =
-          state.watchlist.includes(
-            title.id
+  const recommendation =
+    useMemo(() => {
+      const watchlistTitles =
+        library.filter(title => {
+          const inWatchlist =
+            state.watchlist.includes(
+              title.id
+            );
+
+          const alreadyWatched =
+            state.watched.includes(
+              title.id
+            );
+
+          return (
+            inWatchlist &&
+            !alreadyWatched
           );
+        });
 
-        const alreadyWatched =
-          state.watched.includes(
-            title.id
-          );
-
-        return (
-          inWatchlist &&
-          !alreadyWatched
-        );
-      });
-
-    return watchlistTitles[0] || null;
-  }, [library, state]);
+      return (
+        watchlistTitles[0] ||
+        null
+      );
+    }, [library, state]);
 
   useEffect(() => {
-    if (!profileId || !recommendation) {
+    if (
+      !profileId ||
+      !recommendation
+    ) {
       return;
     }
 
     const key =
-      "sx-reco-seen-" + profileId;
+      "sx-reco-seen-" +
+      profileId;
 
     const alreadySeen =
       localStorage.getItem(key);
@@ -491,14 +699,13 @@ function App() {
     if (!alreadySeen) {
       setShowReco(true);
     }
-  }, [profileId, recommendation]);
+  }, [
+    profileId,
+    recommendation
+  ]);
 
   /* =======================================================
      FILTERING + SORTING
-
-     IMPORTANT:
-     This hook MUST be above the login-screen return.
-     React hooks cannot be called conditionally.
   ======================================================= */
 
   const visible = useMemo(() => {
@@ -516,7 +723,9 @@ function App() {
             return true;
           }
 
-          return title.kind === kind;
+          return (
+            title.kind === kind
+          );
         })
         .filter(title => {
           if (tab === "rewatch") {
@@ -529,7 +738,9 @@ function App() {
             return true;
           }
 
-          if (filter === "watched") {
+          if (
+            filter === "watched"
+          ) {
             return state.watched.includes(
               title.id
             );
@@ -549,10 +760,14 @@ function App() {
             );
 
           case "year-desc":
-            return b.year - a.year;
+            return (
+              b.year - a.year
+            );
 
           case "year-asc":
-            return a.year - b.year;
+            return (
+              a.year - b.year
+            );
 
           case "name-asc":
           default:
@@ -609,6 +824,10 @@ function App() {
     setFilter("all");
     setKind("all");
     setQ("");
+
+    setDraggedProfileId(null);
+    setDragOverProfileId(null);
+    setDragPointerId(null);
   }
 
   /* =======================================================
@@ -621,7 +840,8 @@ function App() {
     }
 
     localStorage.setItem(
-      "sx-reco-seen-" + profileId,
+      "sx-reco-seen-" +
+        profileId,
       "true"
     );
 
@@ -669,7 +889,8 @@ function App() {
         ...current,
         [array]: exists
           ? current[array].filter(
-              item => item !== id
+              item =>
+                item !== id
             )
           : [
               ...current[array],
@@ -683,11 +904,15 @@ function App() {
      REMOVE TITLE
   ======================================================= */
 
-  function removeTitle(id: string) {
-    setLibrary(currentLibrary =>
-      currentLibrary.filter(
-        title => title.id !== id
-      )
+  function removeTitle(
+    id: string
+  ) {
+    setLibrary(
+      currentLibrary =>
+        currentLibrary.filter(
+          title =>
+            title.id !== id
+        )
     );
 
     setStates(currentStates => {
@@ -695,25 +920,32 @@ function App() {
         ...currentStates
       };
 
-      Object.keys(nextStates).forEach(
+      Object.keys(
+        nextStates
+      ).forEach(
         profileKey => {
           const profileState =
             nextStates[
               profileKey
             ];
 
-          nextStates[profileKey] = {
+          nextStates[
+            profileKey
+          ] = {
             watched:
               profileState.watched.filter(
-                item => item !== id
+                item =>
+                  item !== id
               ),
             watchlist:
               profileState.watchlist.filter(
-                item => item !== id
+                item =>
+                  item !== id
               ),
             rewatch:
               profileState.rewatch.filter(
-                item => item !== id
+                item =>
+                  item !== id
               )
           };
         }
@@ -725,7 +957,8 @@ function App() {
     setReminders(current =>
       current.filter(
         reminder =>
-          reminder.titleId !== id
+          reminder.titleId !==
+          id
       )
     );
 
@@ -737,7 +970,9 @@ function App() {
     );
 
     setHeroSettings(current => {
-      if (current.titleId !== id) {
+      if (
+        current.titleId !== id
+      ) {
         return current;
       }
 
@@ -782,9 +1017,16 @@ function App() {
     setEditing(null);
   }
 
+  /* =======================================================
+     REORDER PROFILES
+  ======================================================= */
+
   function reorderProfiles(
     draggedId: string,
-    targetId: string
+    targetId: string,
+    position:
+      | "before"
+      | "after"
   ) {
     if (
       draggedId === targetId ||
@@ -796,35 +1038,48 @@ function App() {
     }
 
     setProfiles(current => {
-      const draggedIndex =
-        current.findIndex(
-          profile =>
-            profile.id === draggedId
-        );
+      const next = [...current];
 
-      const targetIndex =
-        current.findIndex(
+      const draggedIndex =
+        next.findIndex(
           profile =>
-            profile.id === targetId
+            profile.id ===
+            draggedId
         );
 
       if (
-        draggedIndex === -1 ||
+        draggedIndex === -1
+      ) {
+        return current;
+      }
+
+      const [
+        draggedProfile
+      ] = next.splice(
+        draggedIndex,
+        1
+      );
+
+      const targetIndex =
+        next.findIndex(
+          profile =>
+            profile.id ===
+            targetId
+        );
+
+      if (
         targetIndex === -1
       ) {
         return current;
       }
 
-      const next = [...current];
-
-      const [draggedProfile] =
-        next.splice(
-          draggedIndex,
-          1
-        );
+      const insertIndex =
+        position === "before"
+          ? targetIndex
+          : targetIndex + 1;
 
       next.splice(
-        targetIndex,
+        insertIndex,
         0,
         draggedProfile
       );
@@ -834,16 +1089,41 @@ function App() {
   }
 
   /* =======================================================
-     LOGIN SCREEN
+     START PROFILE DRAG
+  ======================================================= */
 
-     IMPORTANT:
-     There are NO hooks below this return.
+  function startProfileDrag(
+    event: React.PointerEvent,
+    profileIdToDrag: string
+  ) {
+    if (
+      !isAdmin ||
+      profileIdToDrag ===
+        "admin"
+    ) {
+      return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    setDraggedProfileId(
+      profileIdToDrag
+    );
+
+    setDragOverProfileId(null);
+    setDragPointerId(
+      event.pointerId
+    );
+  }
+
+  /* =======================================================
+     LOGIN SCREEN
   ======================================================= */
 
   if (profileId === null) {
     return (
       <div className="app">
-
         <main>
           <div
             style={{
@@ -852,7 +1132,8 @@ function App() {
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              padding: "40px 20px"
+              padding:
+                "40px 20px"
             }}
           >
             <div
@@ -861,25 +1142,29 @@ function App() {
                   "min(560px, 100%)"
               }}
             >
-           <div
-  style={{
-    textAlign: "center",
-    marginBottom: "28px"
-  }}
->
-  <div
-    className="logo"
-    style={{
-      justifyContent: "center",
-      marginBottom: "28px"
-    }}
-  >
-    STREAM<span>IX</span>
-  </div>
+              <div
+                style={{
+                  textAlign:
+                    "center",
+                  marginBottom:
+                    "28px"
+                }}
+              >
+                <img
+                  src="/streamix-logo.png"
+                  alt="Streamix"
+                  style={{
+                    display: "block",
+                    width: "220px",
+                    height: "auto",
+                    margin:
+                      "0 auto 28px"
+                  }}
+                />
 
-  <h1>
-    Who's watching?
-  </h1>
+                <h1>
+                  Who's watching?
+                </h1>
 
                 <p className="muted">
                   Choose a profile to
@@ -901,7 +1186,8 @@ function App() {
                           )
                         }
                         style={{
-                          width: "100%"
+                          width:
+                            "100%"
                         }}
                       >
                         <span className="avatar">
@@ -920,13 +1206,16 @@ function App() {
               <p
                 className="muted"
                 style={{
-                  textAlign: "center",
-                  marginTop: "24px",
-                  fontSize: "13px"
+                  textAlign:
+                    "center",
+                  marginTop:
+                    "24px",
+                  fontSize:
+                    "13px"
                 }}
               >
-                Select your profile to
-                sign in.
+                Select your profile
+                to sign in.
               </p>
             </div>
           </div>
@@ -934,16 +1223,22 @@ function App() {
 
         {loginProfile && (
           <ProfileLogin
-            profile={loginProfile}
+            profile={
+              loginProfile
+            }
             onClose={() =>
-              setLoginProfile(null)
+              setLoginProfile(
+                null
+              )
             }
             onSuccess={() => {
               handleLoginSuccess(
                 loginProfile.id
               );
 
-              setLoginProfile(null);
+              setLoginProfile(
+                null
+              );
             }}
             onSetPassword={password => {
               setProfiles(
@@ -962,7 +1257,6 @@ function App() {
             }}
           />
         )}
-
       </div>
     );
   }
@@ -978,7 +1272,15 @@ function App() {
 
       <header>
         <div className="logo">
-          STREAM<span>IX</span>
+          <img
+            src="/streamix-logo.png"
+            alt="Streamix"
+            style={{
+              display: "block",
+              width: "150px",
+              height: "auto"
+            }}
+          />
         </div>
 
         <div className="header-right">
@@ -1001,7 +1303,9 @@ function App() {
                 : profile?.name}
             </span>
 
-            <ChevronDown size={16} />
+            <ChevronDown
+              size={16}
+            />
           </button>
 
           {isViewingAs && (
@@ -1009,7 +1313,9 @@ function App() {
               className="admin-badge"
               onClick={() => {
                 setViewingAs(null);
-                setProfileId("admin");
+                setProfileId(
+                  "admin"
+                );
                 setTab("library");
                 setFilter("all");
                 setKind("all");
@@ -1021,50 +1327,56 @@ function App() {
             </button>
           )}
 
-          {isAdmin && !isViewingAs && (
-            <button
-              className="admin-badge"
-              onClick={() =>
-                setMenu(
-                  current => !current)
-              }
-            >
-              SETTINGS
-            </button>
-          )}
+          {isAdmin &&
+            !isViewingAs && (
+              <button
+                className="admin-badge"
+                onClick={() =>
+                  setMenu(
+                    current =>
+                      !current
+                  )
+                }
+              >
+                SETTINGS
+              </button>
+            )}
+
+          {/* PRIMARY LOGOUT LOCATION */}
 
           <button
-  className="admin-badge"
-  onClick={signOut}
->
-  LOG OUT
-</button>
-          
-          {menu && isAdmin && (
-            <div className="admin-menu">
+            className="admin-badge"
+            onClick={signOut}
+          >
+            LOG OUT
+          </button>
 
-              <button
-                onClick={() => {
-                  setShowAdd(true);
-                  setMenu(false);
-                }}
-              >
-                <Plus />
-                Add media
-              </button>
+          {menu &&
+            isAdmin && (
+              <div className="admin-menu">
 
-              <button
-                onClick={() => {
-                  setShowHero(true);
-                  setMenu(false);
-                }}
-              >
-                <Settings />
-                Edit hero
-              </button>
+                <button
+                  onClick={() => {
+                    setShowAdd(true);
+                    setMenu(false);
+                  }}
+                >
+                  <Plus />
+                  Add media
+                </button>
 
-            </div>
-          )}
+                <button
+                  onClick={() => {
+                    setShowHero(true);
+                    setMenu(false);
+                  }}
+                >
+                  <Settings />
+                  Edit hero
+                </button>
+
+              </div>
+            )}
 
         </div>
       </header>
@@ -1102,17 +1414,23 @@ function App() {
           <div className="eyebrow">
             {isViewingAs
               ? "VIEWING AS " +
-                (profile?.name || "").toUpperCase()
+                (
+                  profile?.name ||
+                  ""
+                ).toUpperCase()
               : "FEATURED"}
           </div>
 
           {hero ? (
             <>
-              <h1>{hero.name}</h1>
+              <h1>
+                {hero.name}
+              </h1>
 
               <p>
                 {hero.year} ·{" "}
-                {hero.kind === "movie"
+                {hero.kind ===
+                "movie"
                   ? "Movie"
                   : "TV Show"}
               </p>
@@ -1121,7 +1439,9 @@ function App() {
                 <button
                   className="ghost"
                   onClick={() =>
-                    setShowHero(true)
+                    setShowHero(
+                      true
+                    )
                   }
                 >
                   Edit Hero
@@ -1131,17 +1451,21 @@ function App() {
           ) : (
             <>
               <h1>
-                Your library is empty
+                Your library is
+                empty
               </h1>
 
               {isAdmin && (
                 <button
                   className="ghost"
                   onClick={() =>
-                    setShowAdd(true)
+                    setShowAdd(
+                      true
+                    )
                   }
                 >
-                  Add your first title
+                  Add your first
+                  title
                 </button>
               )}
             </>
@@ -1201,14 +1525,19 @@ function App() {
 
                   <button
                     className={
-                      filter === "all" &&
+                      filter ===
+                        "all" &&
                       filterClicked
                         ? "selected"
                         : ""
                     }
                     onClick={() => {
-                      setFilter("all");
-                      setFilterClicked(true);
+                      setFilter(
+                        "all"
+                      );
+                      setFilterClicked(
+                        true
+                      );
                     }}
                   >
                     All
@@ -1216,13 +1545,18 @@ function App() {
 
                   <button
                     className={
-                      filter === "watchlist"
+                      filter ===
+                      "watchlist"
                         ? "selected"
                         : ""
                     }
                     onClick={() => {
-                      setFilter("watchlist");
-                      setFilterClicked(true);
+                      setFilter(
+                        "watchlist"
+                      );
+                      setFilterClicked(
+                        true
+                      );
                     }}
                   >
                     Watchlist
@@ -1230,13 +1564,18 @@ function App() {
 
                   <button
                     className={
-                      filter === "watched"
+                      filter ===
+                      "watched"
                         ? "selected"
                         : ""
                     }
                     onClick={() => {
-                      setFilter("watched");
-                      setFilterClicked(true);
+                      setFilter(
+                        "watched"
+                      );
+                      setFilterClicked(
+                        true
+                      );
                     }}
                   >
                     Watched
@@ -1247,13 +1586,16 @@ function App() {
 
               <div className="search">
 
-                <Search size={18} />
+                <Search
+                  size={18}
+                />
 
                 <input
                   value={q}
                   onChange={event =>
                     setQ(
-                      event.target.value
+                      event.target
+                        .value
                     )
                   }
                   placeholder="Search library"
@@ -1276,7 +1618,9 @@ function App() {
                 }
                 onClick={() => {
                   setKind("all");
-                  setKindClicked(true);
+                  setKindClicked(
+                    true
+                  );
                 }}
               >
                 All
@@ -1290,7 +1634,9 @@ function App() {
                 }
                 onClick={() => {
                   setKind("movie");
-                  setKindClicked(true);
+                  setKindClicked(
+                    true
+                  );
                 }}
               >
                 <Film size={15} />
@@ -1305,7 +1651,9 @@ function App() {
                 }
                 onClick={() => {
                   setKind("tv");
-                  setKindClicked(true);
+                  setKindClicked(
+                    true
+                  );
                 }}
               >
                 <Tv size={15} />
@@ -1349,51 +1697,54 @@ function App() {
 
         <div className="grid">
 
-          {visible.map(title => (
-            <Card
-              key={title.id}
-              t={title}
-              st={state}
-              isAdmin={isAdmin}
-              onWatch={() =>
-                toggle(
-                  "watched",
-                  title.id
-                )
-              }
-              onList={() =>
-                toggle(
-                  "watchlist",
-                  title.id
-                )
-              }
-              onRewatch={() =>
-                toggle(
-                  "rewatch",
-                  title.id
-                )
-              }
-              onRemove={() =>
-                removeTitle(
-                  title.id
-                )
-              }
-              onReminder={() =>
-                setShowReminder(
-                  title
-                )
-              }
-              onSchedule={() =>
-                setShowSchedule(
-                  title
-                )
-              }
-            />
-          ))}
+          {visible.map(
+            title => (
+              <Card
+                key={title.id}
+                t={title}
+                st={state}
+                isAdmin={isAdmin}
+                onWatch={() =>
+                  toggle(
+                    "watched",
+                    title.id
+                  )
+                }
+                onList={() =>
+                  toggle(
+                    "watchlist",
+                    title.id
+                  )
+                }
+                onRewatch={() =>
+                  toggle(
+                    "rewatch",
+                    title.id
+                  )
+                }
+                onRemove={() =>
+                  removeTitle(
+                    title.id
+                  )
+                }
+                onReminder={() =>
+                  setShowReminder(
+                    title
+                  )
+                }
+                onSchedule={() =>
+                  setShowSchedule(
+                    title
+                  )
+                }
+              />
+            )
+          )}
 
           {!visible.length && (
             <div className="empty">
-              {library.length === 0
+              {library.length ===
+              0
                 ? "Your library is empty."
                 : "Nothing here yet."}
             </div>
@@ -1431,11 +1782,16 @@ function App() {
                 </div>
 
                 <h2>
-                  {recommendation.name}
+                  {
+                    recommendation.name
+                  }
                 </h2>
 
                 <p>
-                  {recommendation.year} ·{" "}
+                  {
+                    recommendation.year
+                  }{" "}
+                  ·{" "}
                   {recommendation.kind ===
                   "movie"
                     ? "Movie"
@@ -1456,260 +1812,356 @@ function App() {
           </Modal>
         )}
 
-   {/* PROFILES */}
+      {/* =====================================================
+          PROFILES
+      ===================================================== */}
 
-{showProfile && (
-  <Modal
-    title="Profiles"
-    compact
-    onClose={() =>
-      setShowProfile(false)
-    }
-  >
-
-    <div className="profiles">
-
-      {orderedProfiles.map(item => (
-        <div
-          className={
-            "profile-row" +
-            (draggedProfileId === item.id
-              ? " dragging"
-              : "")
+      {showProfile && (
+        <Modal
+          title="Profiles"
+          compact
+          onClose={() =>
+            setShowProfile(
+              false
+            )
           }
-          key={item.id}
-
-          onDragOver={event => {
-            if (
-              !isAdmin ||
-              !draggedProfileId ||
-              draggedProfileId === item.id ||
-              item.id === "admin"
-            ) {
-              return;
-            }
-
-            event.preventDefault();
-
-            event.dataTransfer.dropEffect =
-              "move";
-          }}
-
-          onDrop={event => {
-            if (
-              !isAdmin ||
-              !draggedProfileId ||
-              draggedProfileId === item.id ||
-              item.id === "admin"
-            ) {
-              return;
-            }
-
-            event.preventDefault();
-
-            reorderProfiles(
-              draggedProfileId,
-              item.id
-            );
-
-            setDraggedProfileId(null);
-          }}
         >
 
-          {/* PROFILE SELECT */}
+          <div className="profiles">
 
-          <button
-            onClick={() => {
-              if (
-                item.id ===
-                effectiveProfileId
-              ) {
-                setShowProfile(false);
-                return;
+            {orderedProfiles.map(
+              item => {
+
+                const isDragging =
+                  draggedProfileId ===
+                  item.id;
+
+                const isDropTarget =
+                  dragOverProfileId ===
+                  item.id;
+
+                const dropIndicator =
+                  isDropTarget
+                    ? dragPosition ===
+                      "before"
+                      ? {
+                          borderTop:
+                            "3px solid #ff4f9a",
+                          paddingTop:
+                            "5px"
+                        }
+                      : {
+                          borderBottom:
+                            "3px solid #ff4f9a",
+                          paddingBottom:
+                            "5px"
+                        }
+                    : {};
+
+                return (
+                  <div
+                    className={
+                      "profile-row" +
+                      (isDragging
+                        ? " dragging"
+                        : "")
+                    }
+                    key={item.id}
+                    data-profile-id={
+                      item.id
+                    }
+                    style={{
+                      ...dropIndicator,
+                      position:
+                        "relative",
+                      opacity:
+                        isDragging
+                          ? 0.45
+                          : 1,
+                      transition:
+                        "opacity .15s ease, border .1s ease"
+                    }}
+                  >
+
+                    {/* PROFILE SELECT */}
+
+                    <button
+                      onClick={() => {
+                        if (
+                          draggedProfileId
+                        ) {
+                          return;
+                        }
+
+                        if (
+                          item.id ===
+                          effectiveProfileId
+                        ) {
+                          setShowProfile(
+                            false
+                          );
+                          return;
+                        }
+
+                        if (
+                          isAdminUser
+                        ) {
+                          if (
+                            item.id ===
+                            "admin"
+                          ) {
+                            setViewingAs(
+                              null
+                            );
+
+                            setProfileId(
+                              "admin"
+                            );
+                          } else {
+                            setViewingAs(
+                              item.id
+                            );
+
+                            setProfileId(
+                              "admin"
+                            );
+                          }
+
+                          setShowProfile(
+                            false
+                          );
+
+                          return;
+                        }
+
+                        setLoginProfile(
+                          item
+                        );
+
+                        setShowProfile(
+                          false
+                        );
+                      }}
+                      className={
+                        item.id ===
+                        effectiveProfileId
+                          ? "current"
+                          : ""
+                      }
+                    >
+
+                      <span className="avatar">
+                        {
+                          item.avatar
+                        }
+                      </span>
+
+                      <span>
+                        {item.name}
+                      </span>
+
+                      {item.id ===
+                        effectiveProfileId && (
+                        <Check
+                          size={18}
+                        />
+                      )}
+
+                    </button>
+
+                    {/* PROFILE SETTINGS */}
+
+                    <button
+                      className="icon"
+                      disabled={
+                        !isAdminUser &&
+                        item.id !==
+                          profileId
+                      }
+                      onClick={() => {
+                        if (
+                          !isAdminUser &&
+                          item.id !==
+                            profileId
+                        ) {
+                          return;
+                        }
+
+                        setEditing(
+                          item
+                        );
+
+                        setShowProfile(
+                          false
+                        );
+                      }}
+                      aria-label={
+                        item.id ===
+                          effectiveProfileId ||
+                        isAdminUser
+                          ? "Profile settings"
+                          : "Switch to this profile to edit settings"
+                      }
+                      title={
+                        item.id ===
+                          effectiveProfileId ||
+                        isAdminUser
+                          ? "Profile settings"
+                          : "Switch to this profile to edit settings"
+                      }
+                    >
+                      <Settings
+                        size={17}
+                      />
+                    </button>
+
+                    {/* TOUCH-FRIENDLY DRAG HANDLE */}
+
+                    {isAdmin &&
+                      item.id !==
+                        "admin" && (
+                        <div
+                          className="profile-drag-handle"
+                          onPointerDown={event =>
+                            startProfileDrag(
+                              event,
+                              item.id
+                            )
+                          }
+                          role="button"
+                          tabIndex={0}
+                          aria-label={
+                            "Drag to reorder " +
+                            item.name
+                          }
+                          title="Drag to reorder"
+                          style={{
+                            touchAction:
+                              "none",
+                            cursor:
+                              "grab",
+                            userSelect:
+                              "none",
+                            WebkitUserSelect:
+                              "none"
+                          }}
+                        >
+                          <GripVertical
+                            size={20}
+                          />
+                        </div>
+                      )}
+
+                    {/* DROP LABEL */}
+
+                    {isDropTarget && (
+                      <div
+                        style={{
+                          position:
+                            "absolute",
+                          right:
+                            "12px",
+                          top:
+                            dragPosition ===
+                            "before"
+                              ? "-12px"
+                              : "auto",
+                          bottom:
+                            dragPosition ===
+                            "after"
+                              ? "-12px"
+                              : "auto",
+                          fontSize:
+                            "11px",
+                          fontWeight:
+                            600,
+                          color:
+                            "#ff4f9a",
+                          background:
+                            "#171717",
+                          padding:
+                            "2px 7px",
+                          borderRadius:
+                            "999px",
+                          pointerEvents:
+                            "none",
+                          zIndex: 5
+                        }}
+                      >
+                        {dragPosition ===
+                        "before"
+                          ? "Drop above"
+                          : "Drop below"}
+                      </div>
+                    )}
+
+                  </div>
+                );
               }
-
-              if (isAdminUser) {
-                if (item.id === "admin") {
-                  setViewingAs(null);
-                  setProfileId("admin");
-                } else {
-                  setViewingAs(item.id);
-                  setProfileId("admin");
-                }
-
-                setShowProfile(false);
-                return;
-              }
-
-              setLoginProfile(item);
-              setShowProfile(false);
-            }}
-
-            className={
-              item.id ===
-              effectiveProfileId
-                ? "current"
-                : ""
-            }
-          >
-
-            <span className="avatar">
-              {item.avatar}
-            </span>
-
-            <span>
-              {item.name}
-            </span>
-
-            {item.id ===
-              effectiveProfileId && (
-              <Check size={18} />
             )}
 
-          </button>
+            {/* ADD PROFILE */}
 
-          {/* PROFILE SETTINGS */}
+            {isAdmin && (
+              <button
+                className="add-profile"
+                onClick={() => {
+                  setEditing({
+                    id: "new",
+                    name: "",
+                    avatar:
+                      "🙂"
+                  });
 
-          <button
-            className="icon"
-            disabled={
-              !isAdminUser &&
-              item.id !== profileId
-            }
-
-            onClick={() => {
-              if (
-                !isAdminUser &&
-                item.id !== profileId
-              ) {
-                return;
-              }
-
-              setEditing(item);
-              setShowProfile(false);
-            }}
-
-            aria-label={
-              item.id ===
-                effectiveProfileId ||
-              isAdminUser
-                ? "Profile settings"
-                : "Switch to this profile to edit settings"
-            }
-
-            title={
-              item.id ===
-                effectiveProfileId ||
-              isAdminUser
-                ? "Profile settings"
-                : "Switch to this profile to edit settings"
-            }
-          >
-            <Settings size={17} />
-          </button>
-
-          {/* DRAG HANDLE */}
-
-          {isAdmin &&
-            item.id !== "admin" && (
-              <div
-                className="profile-drag-handle"
-                draggable
-
-                onDragStart={event => {
-                  event.dataTransfer.effectAllowed =
-                    "move";
-
-                  setDraggedProfileId(
-                    item.id
+                  setShowProfile(
+                    false
                   );
                 }}
-
-                onDragEnd={() =>
-                  setDraggedProfileId(null)
-                }
-
-                onDragOver={event => {
-                  if (
-                    !draggedProfileId ||
-                    draggedProfileId ===
-                      item.id
-                  ) {
-                    return;
-                  }
-
-                  event.preventDefault();
-                  event.stopPropagation();
-                }}
-
-                role="button"
-                tabIndex={0}
-
-                aria-label={
-                  "Drag to reorder " +
-                  item.name
-                }
-
-                title="Drag to reorder"
               >
-                <GripVertical size={20} />
-              </div>
+                <Plus />
+                Add Profile
+              </button>
             )}
 
-        </div>
-      ))}
+          </div>
 
-      {/* ADD PROFILE */}
-
-      {isAdmin && (
-        <button
-          className="add-profile"
-          onClick={() => {
-            setEditing({
-              id: "new",
-              name: "",
-              avatar: "🙂"
-            });
-
-            setShowProfile(false);
-          }}
-        >
-          <Plus />
-          Add Profile
-        </button>
+        </Modal>
       )}
-
-    </div>
-
-  </Modal>
-)}
 
       {/* PROFILE LOGIN */}
 
       {loginProfile && (
         <ProfileLogin
-          profile={loginProfile}
+          profile={
+            loginProfile
+          }
           onClose={() =>
-            setLoginProfile(null)
+            setLoginProfile(
+              null
+            )
           }
           onSuccess={() => {
             handleLoginSuccess(
               loginProfile.id
             );
 
-            setLoginProfile(null);
+            setLoginProfile(
+              null
+            );
           }}
           onSetPassword={password => {
-            setProfiles(current =>
-              current.map(item =>
-                item.id ===
-                loginProfile.id
-                  ? {
-                      ...item,
-                      password
-                    }
-                  : item
-              )
+            setProfiles(
+              current =>
+                current.map(
+                  item =>
+                    item.id ===
+                    loginProfile.id
+                      ? {
+                          ...item,
+                          password
+                        }
+                      : item
+                )
             );
           }}
         />
@@ -1720,16 +2172,21 @@ function App() {
       {editing && (
         <ProfileEditor
           profile={
-            editing.id === "new"
+            editing.id ===
+            "new"
               ? null
               : editing
           }
           onClose={() =>
             setEditing(null)
           }
-          onSave={(name, avatar) => {
+          onSave={(
+            name,
+            avatar
+          ) => {
             if (
-              editing.id === "new"
+              editing.id ===
+              "new"
             ) {
               addProfile(
                 name,
@@ -1756,28 +2213,36 @@ function App() {
 
             setEditing(null);
           }}
-          adminOverride={isAdminUser}
-          onChangePassword={password => {
-            if (
-              editing.id === "new"
-            ) {
-              return;
-            }
+          adminOverride={
+            isAdminUser
+          }
+          onChangePassword={
+            password => {
+              if (
+                editing.id ===
+                "new"
+              ) {
+                return;
+              }
 
-            setProfiles(current =>
-              current.map(item =>
-                item.id ===
-                editing.id
-                  ? {
-                      ...item,
-                      password
-                    }
-                  : item
-              )
-            );
-          }}
+              setProfiles(
+                current =>
+                  current.map(
+                    item =>
+                      item.id ===
+                      editing.id
+                        ? {
+                            ...item,
+                            password
+                          }
+                        : item
+                  )
+              );
+            }
+          }
           onDelete={
-            editing.id === "new"
+            editing.id ===
+            "new"
               ? undefined
               : () => {
                   const deletedProfileId =
@@ -1812,8 +2277,13 @@ function App() {
                   ) {
                     signOut();
                   } else {
-                    setViewingAs(null);
-                    setEditing(null);
+                    setViewingAs(
+                      null
+                    );
+
+                    setEditing(
+                      null
+                    );
                   }
                 }
           }
@@ -1829,10 +2299,12 @@ function App() {
             setShowAdd(false)
           }
           onAdd={title =>
-            setLibrary(current => [
-              ...current,
-              title
-            ])
+            setLibrary(
+              current => [
+                ...current,
+                title
+              ]
+            )
           }
         />
       )}
@@ -1841,28 +2313,39 @@ function App() {
 
       {showReminder && (
         <ReminderModal
-          title={showReminder}
-          onClose={() =>
-            setShowReminder(null)
+          title={
+            showReminder
           }
-          onSave={(date, time) => {
+          onClose={() =>
+            setShowReminder(
+              null
+            )
+          }
+          onSave={(
+            date,
+            time
+          ) => {
             if (!profileId) {
               return;
             }
 
-            setReminders(current => [
-              ...current,
-              {
-                id: uid(),
-                profileId,
-                titleId:
-                  showReminder.id,
-                date,
-                time
-              }
-            ]);
+            setReminders(
+              current => [
+                ...current,
+                {
+                  id: uid(),
+                  profileId,
+                  titleId:
+                    showReminder.id,
+                  date,
+                  time
+                }
+              ]
+            );
 
-            setShowReminder(null);
+            setShowReminder(
+              null
+            );
           }}
         />
       )}
@@ -1872,13 +2355,18 @@ function App() {
       {showSchedule &&
         isAdmin && (
           <ScheduleModal
-            title={showSchedule}
+            title={
+              showSchedule
+            }
             profiles={profiles.filter(
               item =>
-                item.id !== "admin"
+                item.id !==
+                "admin"
             )}
             onClose={() =>
-              setShowSchedule(null)
+              setShowSchedule(
+                null
+              )
             }
             onSave={item => {
               setScheduled(
@@ -1888,7 +2376,9 @@ function App() {
                 ]
               );
 
-              setShowSchedule(null);
+              setShowSchedule(
+                null
+              );
             }}
           />
         )}
@@ -1900,16 +2390,22 @@ function App() {
           <HeroModal
             hero={hero}
             library={library}
-            settings={heroSettings}
+            settings={
+              heroSettings
+            }
             onClose={() =>
-              setShowHero(false)
+              setShowHero(
+                false
+              )
             }
             onSave={settings => {
               setHeroSettings(
                 settings
               );
 
-              setShowHero(false);
+              setShowHero(
+                false
+              );
             }}
           />
         )}
@@ -1933,7 +2429,9 @@ function App() {
 
         {isAdmin && (
           <span>
-            {scheduled.length}{" "}
+            {
+              scheduled.length
+            }{" "}
             scheduled reco(s)
           </span>
         )}
@@ -1957,7 +2455,9 @@ function ProfileLogin({
   profile: Profile;
   onClose: () => void;
   onSuccess: () => void;
-  onSetPassword: (password: string) => void;
+  onSetPassword: (
+    password: string
+  ) => void;
 }) {
   const [password, setPassword] =
     useState("");
@@ -1972,12 +2472,15 @@ function ProfileLogin({
     useState(false);
 
   const hasPassword =
-    Boolean(profile.password);
+    Boolean(
+      profile.password
+    );
 
   function handleLogin() {
     if (
       profile.password &&
-      password === profile.password
+      password ===
+        profile.password
     ) {
       onSuccess();
       return;
@@ -1993,10 +2496,14 @@ function ProfileLogin({
       setError(
         "Please enter a password."
       );
+
       return;
     }
 
-    onSetPassword(password);
+    onSetPassword(
+      password
+    );
+
     onSuccess();
   }
 
@@ -2005,10 +2512,14 @@ function ProfileLogin({
       setError(
         "Please enter a new password."
       );
+
       return;
     }
 
-    onSetPassword(password);
+    onSetPassword(
+      password
+    );
+
     onSuccess();
   }
 
@@ -2027,11 +2538,14 @@ function ProfileLogin({
       <div className="profile-login">
 
         <div className="profile-login-avatar">
-          {profile.avatar}
+          {
+            profile.avatar
+          }
         </div>
 
         <h3>
-          {profile.name}'s Profile
+          {profile.name}'s
+          Profile
         </h3>
 
         {!hasPassword ? (
@@ -2053,16 +2567,21 @@ function ProfileLogin({
                       ? "text"
                       : "password"
                   }
-                  value={password}
+                  value={
+                    password
+                  }
                   onChange={event => {
                     setPassword(
-                      event.target.value
+                      event.target
+                        .value
                     );
+
                     setError("");
                   }}
                   onKeyDown={event => {
                     if (
-                      event.key === "Enter"
+                      event.key ===
+                      "Enter"
                     ) {
                       handleSetPassword();
                     }
@@ -2075,7 +2594,8 @@ function ProfileLogin({
                   className="password-toggle"
                   onClick={() =>
                     setShowPassword(
-                      current => !current
+                      current =>
+                        !current
                     )
                   }
                   aria-label={
@@ -2085,9 +2605,13 @@ function ProfileLogin({
                   }
                 >
                   {showPassword ? (
-                    <EyeOff size={18} />
+                    <EyeOff
+                      size={18}
+                    />
                   ) : (
-                    <Eye size={18} />
+                    <Eye
+                      size={18}
+                    />
                   )}
                 </button>
 
@@ -2102,7 +2626,9 @@ function ProfileLogin({
 
             <button
               className="pink full"
-              onClick={handleSetPassword}
+              onClick={
+                handleSetPassword
+              }
             >
               Set Password
             </button>
@@ -2126,16 +2652,21 @@ function ProfileLogin({
                       ? "text"
                       : "password"
                   }
-                  value={password}
+                  value={
+                    password
+                  }
                   onChange={event => {
                     setPassword(
-                      event.target.value
+                      event.target
+                        .value
                     );
+
                     setError("");
                   }}
                   onKeyDown={event => {
                     if (
-                      event.key === "Enter"
+                      event.key ===
+                      "Enter"
                     ) {
                       handleResetPassword();
                     }
@@ -2148,7 +2679,8 @@ function ProfileLogin({
                   className="password-toggle"
                   onClick={() =>
                     setShowPassword(
-                      current => !current
+                      current =>
+                        !current
                     )
                   }
                   aria-label={
@@ -2158,9 +2690,13 @@ function ProfileLogin({
                   }
                 >
                   {showPassword ? (
-                    <EyeOff size={18} />
+                    <EyeOff
+                      size={18}
+                    />
                   ) : (
-                    <Eye size={18} />
+                    <Eye
+                      size={18}
+                    />
                   )}
                 </button>
 
@@ -2185,10 +2721,15 @@ function ProfileLogin({
             <button
               className="ghost full"
               onClick={() => {
-                setResetting(false);
+                setResetting(
+                  false
+                );
+
                 setPassword("");
                 setError("");
-                setShowPassword(false);
+                setShowPassword(
+                  false
+                );
               }}
             >
               Back to Login
@@ -2212,16 +2753,21 @@ function ProfileLogin({
                       ? "text"
                       : "password"
                   }
-                  value={password}
+                  value={
+                    password
+                  }
                   onChange={event => {
                     setPassword(
-                      event.target.value
+                      event.target
+                        .value
                     );
+
                     setError("");
                   }}
                   onKeyDown={event => {
                     if (
-                      event.key === "Enter"
+                      event.key ===
+                      "Enter"
                     ) {
                       handleLogin();
                     }
@@ -2234,7 +2780,8 @@ function ProfileLogin({
                   className="password-toggle"
                   onClick={() =>
                     setShowPassword(
-                      current => !current
+                      current =>
+                        !current
                     )
                   }
                   aria-label={
@@ -2244,9 +2791,13 @@ function ProfileLogin({
                   }
                 >
                   {showPassword ? (
-                    <EyeOff size={18} />
+                    <EyeOff
+                      size={18}
+                    />
                   ) : (
-                    <Eye size={18} />
+                    <Eye
+                      size={18}
+                    />
                   )}
                 </button>
 
@@ -2261,7 +2812,9 @@ function ProfileLogin({
 
             <button
               className="pink full"
-              onClick={handleLogin}
+              onClick={
+                handleLogin
+              }
             >
               Log In
             </button>
@@ -2269,10 +2822,15 @@ function ProfileLogin({
             <button
               className="forgot-password"
               onClick={() => {
-                setResetting(true);
+                setResetting(
+                  true
+                );
+
                 setPassword("");
                 setError("");
-                setShowPassword(false);
+                setShowPassword(
+                  false
+                );
               }}
             >
               Forgot password?
@@ -2312,13 +2870,19 @@ function Card({
   onSchedule: () => void;
 }) {
   const isOnWatchlist =
-    st.watchlist.includes(t.id);
+    st.watchlist.includes(
+      t.id
+    );
 
   const isWatched =
-    st.watched.includes(t.id);
+    st.watched.includes(
+      t.id
+    );
 
   const isRewatch =
-    st.rewatch.includes(t.id);
+    st.rewatch.includes(
+      t.id
+    );
 
   return (
     <article className="card">
@@ -2331,7 +2895,9 @@ function Card({
           onError={event => {
             event.currentTarget.src =
               "https://placehold.co/500x750/171717/ffffff?text=" +
-              encodeURIComponent(t.name);
+              encodeURIComponent(
+                t.name
+              );
           }}
         />
 
@@ -2344,13 +2910,18 @@ function Card({
         {isAdmin && (
           <button
             className="remove"
-            onClick={onRemove}
+            onClick={
+              onRemove
+            }
             title="Remove title"
             aria-label={
-              "Remove " + t.name
+              "Remove " +
+              t.name
             }
           >
-            <Trash2 size={16} />
+            <Trash2
+              size={16}
+            />
           </button>
         )}
 
@@ -2372,7 +2943,9 @@ function Card({
                     ? "on"
                     : ""
                 }
-                onClick={onList}
+                onClick={
+                  onList
+                }
               >
                 {isOnWatchlist
                   ? "✓ Watchlist"
@@ -2385,7 +2958,9 @@ function Card({
                     ? "on"
                     : ""
                 }
-                onClick={onWatch}
+                onClick={
+                  onWatch
+                }
               >
                 {isWatched
                   ? "✓ Watched"
@@ -2402,13 +2977,17 @@ function Card({
                     ? "rewatch-action on"
                     : "rewatch-action"
                 }
-                onClick={onRewatch}
+                onClick={
+                  onRewatch
+                }
               >
                 ↻ Re-watch
               </button>
 
               <button
-                onClick={onReminder}
+                onClick={
+                  onReminder
+                }
               >
                 Remind me
               </button>
@@ -2458,7 +3037,8 @@ function Modal({
             ? {
                 width:
                   "min(560px, calc(100vw - 32px))",
-                maxWidth: "560px"
+                maxWidth:
+                  "560px"
               }
             : undefined
         }
@@ -2570,6 +3150,7 @@ function ProfileEditor({
       setPasswordError(
         "This profile does not have a password yet."
       );
+
       return;
     }
 
@@ -2581,6 +3162,7 @@ function ProfileEditor({
       setPasswordError(
         "Current password is incorrect."
       );
+
       return;
     }
 
@@ -2588,6 +3170,7 @@ function ProfileEditor({
       setPasswordError(
         "Please enter a new password."
       );
+
       return;
     }
 
@@ -2598,9 +3181,15 @@ function ProfileEditor({
     setCurrentPassword("");
     setNewPassword("");
     setPasswordError("");
-    setShowPasswordSection(false);
-    setShowCurrentPassword(false);
-    setShowNewPassword(false);
+    setShowPasswordSection(
+      false
+    );
+    setShowCurrentPassword(
+      false
+    );
+    setShowNewPassword(
+      false
+    );
 
     alert(
       "Password updated successfully."
@@ -2636,22 +3225,24 @@ function ProfileEditor({
 
         <div className="emoji-grid">
 
-          {avatars.map(item => (
-            <button
-              type="button"
-              className={
-                avatar === item
-                  ? "picked"
-                  : ""
-              }
-              onClick={() =>
-                setAvatar(item)
-              }
-              key={item}
-            >
-              {item}
-            </button>
-          ))}
+          {avatars.map(
+            item => (
+              <button
+                type="button"
+                className={
+                  avatar === item
+                    ? "picked"
+                    : ""
+                }
+                onClick={() =>
+                  setAvatar(item)
+                }
+                key={item}
+              >
+                {item}
+              </button>
+            )
+          )}
 
         </div>
       </label>
@@ -2674,14 +3265,25 @@ function ProfileEditor({
             className="ghost full"
             onClick={() => {
               setShowPasswordSection(
-                current => !current
+                current =>
+                  !current
               );
 
-              setPasswordError("");
-              setCurrentPassword("");
-              setNewPassword("");
-              setShowCurrentPassword(false);
-              setShowNewPassword(false);
+              setPasswordError(
+                ""
+              );
+              setCurrentPassword(
+                ""
+              );
+              setNewPassword(
+                ""
+              );
+              setShowCurrentPassword(
+                false
+              );
+              setShowNewPassword(
+                false
+              );
             }}
           >
             {showPasswordSection
@@ -2709,9 +3311,13 @@ function ProfileEditor({
                       }
                       onChange={event => {
                         setCurrentPassword(
-                          event.target.value
+                          event.target
+                            .value
                         );
-                        setPasswordError("");
+
+                        setPasswordError(
+                          ""
+                        );
                       }}
                       placeholder="Enter current password"
                     />
@@ -2732,9 +3338,13 @@ function ProfileEditor({
                       }
                     >
                       {showCurrentPassword ? (
-                        <EyeOff size={18} />
+                        <EyeOff
+                          size={18}
+                        />
                       ) : (
-                        <Eye size={18} />
+                        <Eye
+                          size={18}
+                        />
                       )}
                     </button>
 
@@ -2764,9 +3374,13 @@ function ProfileEditor({
                     }
                     onChange={event => {
                       setNewPassword(
-                        event.target.value
+                        event.target
+                          .value
                       );
-                      setPasswordError("");
+
+                      setPasswordError(
+                        ""
+                      );
                     }}
                     placeholder="Enter new password"
                   />
@@ -2787,9 +3401,13 @@ function ProfileEditor({
                     }
                   >
                     {showNewPassword ? (
-                      <EyeOff size={18} />
+                      <EyeOff
+                        size={18}
+                      />
                     ) : (
-                      <Eye size={18} />
+                      <Eye
+                        size={18}
+                      />
                     )}
                   </button>
 
@@ -2798,7 +3416,9 @@ function ProfileEditor({
 
               {passwordError && (
                 <p className="login-error">
-                  {passwordError}
+                  {
+                    passwordError
+                  }
                 </p>
               )}
 
@@ -2892,7 +3512,9 @@ function AddTitle({
               "Unable to search TMDB right now."
             );
           } finally {
-            setLoading(false);
+            setLoading(
+              false
+            );
           }
         },
         400
@@ -2956,52 +3578,55 @@ function AddTitle({
 
       <div className="result-list">
 
-        {available.map(title => (
-          <div
-            className="result"
-            key={title.id}
-          >
+        {available.map(
+          title => (
+            <div
+              className="result"
+              key={title.id}
+            >
 
-            <img
-              src={title.poster}
-              alt={title.name}
-            />
+              <img
+                src={title.poster}
+                alt={title.name}
+              />
 
-            <div>
+              <div>
 
-              <b>
-                {title.name}
-              </b>
+                <b>
+                  {title.name}
+                </b>
 
-              <span>
-                {title.year} ·{" "}
-                {title.kind === "movie"
-                  ? "Movie"
-                  : "TV Show"}
-              </span>
+                <span>
+                  {title.year} ·{" "}
+                  {title.kind ===
+                  "movie"
+                    ? "Movie"
+                    : "TV Show"}
+                </span>
+
+              </div>
+
+              <button
+                className="pink add"
+                onClick={() => {
+                  onAdd(title);
+
+                  setResults(
+                    current =>
+                      current.filter(
+                        item =>
+                          item.id !==
+                          title.id
+                      )
+                  );
+                }}
+              >
+                + Add
+              </button>
 
             </div>
-
-            <button
-              className="pink add"
-              onClick={() => {
-                onAdd(title);
-
-                setResults(
-                  current =>
-                    current.filter(
-                      item =>
-                        item.id !==
-                        title.id
-                    )
-                );
-              }}
-            >
-              + Add
-            </button>
-
-          </div>
-        ))}
+          )
+        )}
 
       </div>
 
@@ -3133,7 +3758,8 @@ function ScheduleModal({
       onClose={onClose}
     >
 
-      {profiles.length === 0 ? (
+      {profiles.length ===
+      0 ? (
         <p className="muted">
           Create a profile first.
         </p>
@@ -3147,7 +3773,8 @@ function ScheduleModal({
               value={profileId}
               onChange={event =>
                 setProfileId(
-                  event.target.value
+                  event.target
+                    .value
                 )
               }
             >
@@ -3161,7 +3788,9 @@ function ScheduleModal({
                       profile.id
                     }
                   >
-                    {profile.name}
+                    {
+                      profile.name
+                    }
                   </option>
                 )
               )}
@@ -3290,7 +3919,8 @@ function HeroModal({
         in the featured hero.
       </p>
 
-      {library.length === 0 ? (
+      {library.length ===
+      0 ? (
         <p className="muted">
           Add a movie or TV show
           to your library first.
@@ -3305,18 +3935,21 @@ function HeroModal({
               value={titleId}
               onChange={event =>
                 setTitleId(
-                  event.target.value
+                  event.target
+                    .value
                 )
               }
             >
-              {library.map(title => (
-                <option
-                  key={title.id}
-                  value={title.id}
-                >
-                  {title.name}
-                </option>
-              ))}
+              {library.map(
+                title => (
+                  <option
+                    key={title.id}
+                    value={title.id}
+                  >
+                    {title.name}
+                  </option>
+                )
+              )}
             </select>
           </label>
 
@@ -3329,9 +3962,13 @@ function HeroModal({
                   selectedTitle.backdrop +
                   ")",
                 backgroundPosition:
-                  String(positionX) +
+                  String(
+                    positionX
+                  ) +
                   "% " +
-                  String(positionY) +
+                  String(
+                    positionY
+                  ) +
                   "%"
               }}
             >
@@ -3422,7 +4059,9 @@ if (!rootElement) {
   );
 }
 
-createRoot(rootElement).render(
+createRoot(
+  rootElement
+).render(
   <React.StrictMode>
     <App />
   </React.StrictMode>
