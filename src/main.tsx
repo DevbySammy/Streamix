@@ -1528,19 +1528,13 @@ function Card({
   onSchedule: () => void;
 }) {
   const isOnWatchlist =
-    st.watchlist.includes(
-      t.id
-    );
+    st.watchlist.includes(t.id);
 
   const isWatched =
-    st.watched.includes(
-      t.id
-    );
+    st.watched.includes(t.id);
 
   const isRewatch =
-    st.rewatch.includes(
-      t.id
-    );
+    st.rewatch.includes(t.id);
 
   return (
     <article className="card">
@@ -1553,9 +1547,7 @@ function Card({
           onError={event => {
             event.currentTarget.src =
               "https://placehold.co/500x750/171717/ffffff?text=" +
-              encodeURIComponent(
-                t.name
-              );
+              encodeURIComponent(t.name);
           }}
         />
 
@@ -1570,13 +1562,9 @@ function Card({
             className="remove"
             onClick={onRemove}
             title="Remove title"
-            aria-label={
-              "Remove " + t.name
-            }
+            aria-label={"Remove " + t.name}
           >
-            <Trash2
-              size={16}
-            />
+            <Trash2 size={16} />
           </button>
         )}
 
@@ -1588,69 +1576,60 @@ function Card({
 
         <p>{t.year}</p>
 
-        <div className="actions">
+        {!isAdmin && (
+          <>
+            <div className="actions">
 
-          <button
-            className={
-              isOnWatchlist
-                ? "on"
-                : ""
-            }
-            onClick={onList}
-          >
-            + Watchlist
-          </button>
+              <button
+                className={
+                  isOnWatchlist
+                    ? "on"
+                    : ""
+                }
+                onClick={onList}
+              >
+                {isOnWatchlist
+                  ? "✓ Watchlist"
+                  : "+ Watchlist"}
+              </button>
 
-          <button
-            className={
-              isWatched
-                ? "on"
-                : ""
-            }
-            onClick={onWatch}
-          >
-            {isWatched
-              ? "✓ Watched"
-              : "Mark watched"}
-          </button>
+              <button
+                className={
+                  isWatched
+                    ? "on"
+                    : ""
+                }
+                onClick={onWatch}
+              >
+                {isWatched
+                  ? "✓ Watched"
+                  : "Mark watched"}
+              </button>
 
-        </div>
+            </div>
 
-        <div className="small-actions">
+            <div className="small-actions">
 
-          {!isAdmin && (
-            <button
-              className={
-                isRewatch
-                  ? "rewatch-action on"
-                  : "rewatch-action"
-              }
-              onClick={onRewatch}
-            >
-              ↻ Re-watch
-            </button>
-          )}
+              <button
+                className={
+                  isRewatch
+                    ? "rewatch-action on"
+                    : "rewatch-action"
+                }
+                onClick={onRewatch}
+              >
+                ↻ Re-watch
+              </button>
 
-          <button
-            onClick={onReminder}
-          >
-            <Bell
-              size={14}
-            />
-            Remind me
-          </button>
+              <button
+                onClick={onReminder}
+              >
+                Remind me
+              </button>
 
-          {isAdmin && (
-            <button
-              onClick={
-                onSchedule
-              }
-            >
-              Schedule reco
-            </button>
-          )}
-
-        </div>
+            </div>
+          </>
+        )}
 
       </div>
 
