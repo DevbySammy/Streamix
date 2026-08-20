@@ -139,7 +139,7 @@ localStorage.getItem(key);
 } catch {
   return fallback;
 }
-```
+
 
 });
 
@@ -226,7 +226,7 @@ item.media_type === "tv"
 ? "tv"
 : "movie";
 
-```
+
   const releaseDate =
     kind === "movie"
       ? item.release_date
@@ -268,7 +268,7 @@ item.media_type === "tv"
       new Date().toISOString()
   };
 });
-```
+
 
 }
 
@@ -416,7 +416,7 @@ profile =>
 profile.id === "admin"
 );
 
-```
+
 const regularProfiles =
   profiles.filter(
     profile =>
@@ -429,7 +429,7 @@ return adminProfile
       ...regularProfiles
     ]
   : regularProfiles;
-```
+
 
 }, [profiles]);
 
@@ -442,7 +442,7 @@ if (!draggedProfileId) {
 return;
 }
 
-```
+
 function handlePointerMove(
   event: PointerEvent
 ) {
@@ -577,7 +577,7 @@ return () => {
     cancelDrag
   );
 };
-```
+
 
 }, [
 draggedProfileId,
@@ -678,7 +678,7 @@ state.watchlist.includes(
 title.id
 );
 
-```
+
       const alreadyWatched =
         state.watched.includes(
           title.id
@@ -695,7 +695,7 @@ title.id
     null
   );
 }, [library, state]);
-```
+
 
 useEffect(() => {
 if (
@@ -705,7 +705,7 @@ if (
 return;
 }
 
-```
+
 const key =
   "sx-reco-seen-" +
   profileId;
@@ -716,7 +716,7 @@ const alreadySeen =
 if (!alreadySeen) {
   setShowReco(true);
 }
-```
+
 
 }, [
 profileId,
@@ -742,7 +742,7 @@ if (kind === "all") {
 return true;
 }
 
-```
+
       return (
         title.kind === kind
       );
@@ -797,7 +797,7 @@ return [...filtered].sort(
     }
   }
 );
-```
+
 
 }, [
 library,
@@ -820,14 +820,14 @@ setProfileId(
 loggedInProfileId
 );
 
-```
+
 setViewingAs(null);
 setTab("library");
 setFilter("all");
 setKind("all");
 setQ("");
 setMenu(false);
-```
+
 
 }
 
@@ -835,7 +835,7 @@ function signOut() {
 setProfileId(null);
 setViewingAs(null);
 
-```
+
 setShowProfile(false);
 setLoginProfile(null);
 setEditing(null);
@@ -854,7 +854,7 @@ setQ("");
 setDraggedProfileId(null);
 setDragOverProfileId(null);
 setDragPointerId(null);
-```
+
 
 }
 
@@ -867,7 +867,7 @@ if (!profileId) {
 return;
 }
 
-```
+
 localStorage.setItem(
   "sx-reco-seen-" +
     profileId,
@@ -875,7 +875,7 @@ localStorage.setItem(
 );
 
 setShowReco(false);
-```
+
 
 }
 
@@ -890,7 +890,7 @@ if (!effectiveProfileId) {
 return;
 }
 
-```
+
 setStates(currentStates => {
   const currentState =
     currentStates[
@@ -907,7 +907,7 @@ setStates(currentStates => {
       fn(currentState)
   };
 });
-```
+
 
 }
 
@@ -919,7 +919,7 @@ updateState(current => {
 const exists =
 current[array].includes(id);
 
-```
+
   return {
     ...current,
     [array]: exists
@@ -933,7 +933,7 @@ current[array].includes(id);
         ]
   };
 });
-```
+
 
 }
 
@@ -952,7 +952,7 @@ title.id !== id
 )
 );
 
-```
+
 setStates(currentStates => {
   const nextStates = {
     ...currentStates
@@ -1020,7 +1020,7 @@ setHeroSettings(current => {
     titleId: null
   };
 });
-```
+
 
 }
 
@@ -1041,7 +1041,7 @@ avatar:
 avatar || "🙂"
 };
 
-```
+
 setProfiles(current => [
   ...current,
   newProfile
@@ -1057,7 +1057,7 @@ setStates(current => ({
 }));
 
 setEditing(null);
-```
+
 
 }
 
@@ -1081,7 +1081,7 @@ targetId === "admin"
 return;
 }
 
-```
+
 setProfiles(current => {
   const next = [...current];
 
@@ -1131,7 +1131,7 @@ setProfiles(current => {
 
   return next;
 });
-```
+
 
 }
 
@@ -1150,7 +1150,7 @@ profileIdToDrag === "admin"
 return;
 }
 
-```
+
 event.preventDefault();
 event.stopPropagation();
 
@@ -1165,7 +1165,7 @@ setDragPosition("after");
 setDragPointerId(
   event.pointerId
 );
-```
+
 
 }
 
@@ -1176,7 +1176,7 @@ LOGIN SCREEN
 if (profileId === null) {
 return ( <div className="app"> <main> <div className="login-screen"> <div className="login-container">
 
-```
+
           <div className="login-heading">
 
             <img
@@ -1281,7 +1281,7 @@ return ( <div className="app"> <main> <div className="login-screen"> <div classN
 
   </div>
 );
-```
+
 
 }
 
@@ -1291,7 +1291,7 @@ MAIN APP
 
 return ( <div className="app">
 
-```
+
   {/* HEADER */}
 
   <header>
@@ -2399,7 +2399,7 @@ return ( <div className="app">
   </footer>
 
 </div>
-```
+
 
 );
 }
@@ -2448,11 +2448,11 @@ onSuccess();
 return;
 }
 
-```
+
 setError(
   "Incorrect password. Please try again."
 );
-```
+
 
 }
 
@@ -2462,7 +2462,7 @@ setError(
 "Please enter a password."
 );
 
-```
+
   return;
 }
 
@@ -2471,7 +2471,7 @@ onSetPassword(
 );
 
 onSuccess();
-```
+
 
 }
 
@@ -2481,7 +2481,7 @@ setError(
 "Please enter a new password."
 );
 
-```
+
   return;
 }
 
@@ -2490,7 +2490,7 @@ onSetPassword(
 );
 
 onSuccess();
-```
+
 
 }
 
@@ -2506,7 +2506,7 @@ title={
 onClose={onClose}
 >
 
-```
+
   <div className="profile-login">
 
     <div className="profile-login-avatar">
@@ -2813,7 +2813,7 @@ onClose={onClose}
   </div>
 
 </Modal>
-```
+
 
 );
 }
@@ -2860,7 +2860,7 @@ t.id
 
 return ( <article className="card">
 
-```
+
   <div className="poster-wrap">
 
     <img
@@ -2973,7 +2973,7 @@ return ( <article className="card">
   </div>
 
 </article>
-```
+
 
 );
 }
@@ -3006,7 +3006,7 @@ onClose();
 }}
 >
 
-```
+
   <div
     className={
       compact
@@ -3034,7 +3034,7 @@ onClose();
   </div>
 
 </div>
-```
+
 
 );
 }
@@ -3119,7 +3119,7 @@ if (!profile) {
 return;
 }
 
-```
+
 if (!profile.password) {
   setPasswordError(
     "This profile does not have a password yet."
@@ -3168,7 +3168,7 @@ setShowNewPassword(
 alert(
   "Password updated successfully."
 );
-```
+
 
 }
 
@@ -3182,7 +3182,7 @@ profile
 onClose={onClose}
 >
 
-```
+
   <label>
     Profile Name
 
@@ -3433,7 +3433,7 @@ onClose={onClose}
   )}
 
 </Modal>
-```
+
 
 );
 }
@@ -3473,7 +3473,7 @@ useEffect(() => {
 const cleanQuery =
 query.trim();
 
-```
+
 if (!cleanQuery) {
   setResults([]);
   setError("");
@@ -3510,7 +3510,7 @@ return () =>
   window.clearTimeout(
     timer
   );
-```
+
 
 }, [query]);
 
@@ -3519,7 +3519,7 @@ if (!confirmation) {
 return;
 }
 
-```
+
 const timer =
   window.setTimeout(() => {
     setConfirmation("");
@@ -3529,7 +3529,7 @@ return () =>
   window.clearTimeout(
     timer
   );
-```
+
 
 }, [confirmation]);
 
@@ -3542,7 +3542,7 @@ item =>
 item.id === title.id
 );
 
-```
+
 if (alreadyAdded) {
   setAddedTitleId(
     title.id
@@ -3564,7 +3564,7 @@ setAddedTitleId(
 setConfirmation(
   "Added to your library"
 );
-```
+
 
 }
 
@@ -3573,7 +3573,7 @@ return ( <Modal
    onClose={onClose}
  >
 
-```
+
   <p className="muted">
     Search TMDB for movies
     and TV shows.
@@ -3688,7 +3688,7 @@ return ( <Modal
   </div>
 
 </Modal>
-```
+
 
 );
 }
@@ -3720,7 +3720,7 @@ return ( <Modal
    onClose={onClose}
  >
 
-```
+
   <p>
     Set a reminder for{" "}
     <b>{title.name}</b>.
@@ -3775,7 +3775,7 @@ return ( <Modal
   </p>
 
 </Modal>
-```
+
 
 );
 }
@@ -3818,7 +3818,7 @@ return ( <Modal
    onClose={onClose}
  >
 
-```
+
   {profiles.length ===
   0 ? (
     <p className="muted">
@@ -3925,7 +3925,7 @@ return ( <Modal
   )}
 
 </Modal>
-```
+
 
 );
 }
@@ -3977,7 +3977,7 @@ return ( <Modal
    onClose={onClose}
  >
 
-```
+
   <p>
     Choose which title appears
     in the featured hero.
@@ -4105,7 +4105,7 @@ return ( <Modal
   )}
 
 </Modal>
-```
+
 
 );
 }
