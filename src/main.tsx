@@ -196,10 +196,13 @@ if (!cleanQuery) {
 return [];
 }
 
+const API_BASE_URL = "https://streamix.gaintrainstrong.workers.dev";
+
 const url =
-"/api/tmdb/search?query=" +
-encodeURIComponent(cleanQuery) +
-"&type=multi";
+  API_BASE_URL +
+  "/api/tmdb/search?query=" +
+  encodeURIComponent(cleanQuery) +
+  "&type=multi";
 
 const response = await fetch(url);
 
