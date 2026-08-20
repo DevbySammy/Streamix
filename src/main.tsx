@@ -3,8 +3,7 @@ import { createRoot } from "react-dom/client";
 import {
   Check,
   ChevronDown,
-  ChevronLeft,
-  ChevronRight,
+  GripVertical,
   Clock,
   Eye,
   EyeOff,
@@ -353,6 +352,9 @@ const [viewingAs, setViewingAs] =
   const [menu, setMenu] =
     useState(false);
 
+  const [draggedProfileId, setDraggedProfileId] =
+    useState<string | null>(null);
+
 const isAdminUser = profileId === "admin";
 
   const isViewingAs =
@@ -663,40 +665,46 @@ const effectiveProfile =
     setEditing(null);
   }
 
-  function moveProfile(
-    index: number,
-    direction: "up" | "down"
+  function reorderProfiles(
+    draggedId: string,
+    targetId: string
   ) {
     if (
-      direction === "up" &&
-      index === 0
-    ) {
-      return;
-    }
-
-    if (
-      direction === "down" &&
-      index === profiles.length - 1
+      draggedId === targetId ||
+      !isAdmin
     ) {
       return;
     }
 
     setProfiles(current => {
+      const draggedIndex =
+        current.findIndex(
+          profile =>
+            profile.id === draggedId
+        );
+
+      const targetIndex =
+        current.findIndex(
+          profile =>
+            profile.id === targetId
+        );
+
+      if (
+        draggedIndex === -1 ||
+        targetIndex === -1
+      ) {
+        return current;
+      }
+
       const next = [...current];
+      const [draggedProfile] =
+        next.splice(draggedIndex, 1);
 
-      const target =
-        direction === "up"
-          ? index - 1
-          : index + 1;
-
-      const temp =
-        next[index];
-
-      next[index] =
-        next[target];
-
-      next[target] =
-        temp;
+      next.splice(
+        targetIndex,
+        0,
+        draggedProfile
+      );
 
       return next;
     });
@@ -767,21 +775,6 @@ const effectiveProfile =
               SETTINGS
             </button>
           )}
-
-          {/* SIGN OUT */}
-          <button
-            className="admin-badge"
-            onClick={() =>
-              alert(
-                "Sign out will be connected to your real authentication system."
-              )
-            }
-            aria-label="Sign out"
-            title="Sign out"
-          >
-            <LogOut size={14} />
-            SIGN OUT
-          </button>
 
           {menu && isAdmin && (
             <div className="admin-menu">
@@ -1214,6 +1207,7 @@ const effectiveProfile =
       {showProfile && (
         <Modal
           title="Profiles"
+          compact
           onClose={() =>
             setShowProfile(false)
           }
@@ -1222,10 +1216,35 @@ const effectiveProfile =
           <div className="profiles">
 
             {profiles.map(
-              (item, index) => (
+              item => (
                 <div
-                  className="profile-row"
+                  className={
+                    "profile-row" +
+                    (draggedProfileId === item.id
+                      ? " dragging"
+                      : "")
+                  }
                   key={item.id}
+                  onDragOver={event => {
+                    if (!isAdmin || !draggedProfileId) {
+                      return;
+                    }
+
+                    event.preventDefault();
+                    event.dataTransfer.dropEffect = "move";
+                  }}
+                  onDrop={event => {
+                    if (!isAdmin || !draggedProfileId) {
+                      return;
+                    }
+
+                    event.preventDefault();
+                    reorderProfiles(
+                      draggedProfileId,
+                      item.id
+                    );
+                    setDraggedProfileId(null);
+                  }}
                 >
 
                   {/* PROFILE SELECT */}
@@ -1308,58 +1327,30 @@ const effectiveProfile =
                     />
                   </button>
 
-                  {/* ADMIN PROFILE MANAGEMENT */}
+                  {/* ADMIN PROFILE REORDER */}
 
-                  
-
-                  {/* PROFILE ORDER */}
-
-                  {isAdmin &&
-                    profiles.length >
-                      1 && (
-                      <div className="profile-order">
-
-                        <button
-                          className="icon"
-                          disabled={
-                            index ===
-                            0
-                          }
-                          onClick={() =>
-                            moveProfile(
-                              index,
-                              "up"
-                            )
-                          }
-                          aria-label="Move profile up"
-                        >
-                          <ChevronLeft
-                            size={16}
-                          />
-                        </button>
-
-                        <button
-                          className="icon"
-                          disabled={
-                            index ===
-                            profiles.length -
-                              1
-                          }
-                          onClick={() =>
-                            moveProfile(
-                              index,
-                              "down"
-                            )
-                          }
-                          aria-label="Move profile down"
-                        >
-                          <ChevronRight
-                            size={16}
-                          />
-                        </button>
-
-                      </div>
-                    )}
+                  {isAdmin && (
+                    <div
+                      className="profile-drag-handle"
+                      draggable
+                      onDragStart={event => {
+                        event.dataTransfer.effectAllowed = "move";
+                        setDraggedProfileId(item.id);
+                      }}
+                      onDragEnd={() =>
+                        setDraggedProfileId(null)
+                      }
+                      role="button"
+                      tabIndex={0}
+                      aria-label={
+                        "Drag to reorder " +
+                        item.name
+                      }
+                      title="Drag to reorder"
+                    >
+                      <GripVertical size={20} />
+                    </div>
+                  )}
 
                 </div>
               )
@@ -1633,6 +1624,18 @@ const effectiveProfile =
           </span>
         )}
 
+        <button
+          onClick={() =>
+            alert(
+              "Sign out will be connected to your real authentication system."
+            )
+          }
+        >
+          <LogOut
+            size={14}
+          />
+          Sign out
+        </button>
 
       </footer>
 
@@ -2124,11 +2127,13 @@ function Card({
 function Modal({
   title,
   onClose,
-  children
+  children,
+  compact = false
 }: {
   title: string;
   onClose: () => void;
   children: React.ReactNode;
+  compact?: boolean;
 }) {
   return (
     <div
@@ -2143,7 +2148,17 @@ function Modal({
       }}
     >
 
-      <div className="modal">
+      <div
+        className="modal"
+        style={
+          compact
+            ? {
+                width: "min(560px, calc(100vw - 32px))",
+                maxWidth: "560px"
+              }
+            : undefined
+        }
+      >
 
         <div className="modal-head">
 
