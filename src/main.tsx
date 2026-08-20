@@ -1,3 +1,4 @@
+```tsx
 import React, { useEffect, useMemo, useState } from "react";
 import { createRoot } from "react-dom/client";
 import {
@@ -147,7 +148,9 @@ function useStored<T>(
   return [value, setValue];
 }
 
-function getPosterUrl(path: string | null | undefined): string {
+function getPosterUrl(
+  path: string | null | undefined
+): string {
   if (!path) {
     return "https://placehold.co/500x750/171717/ffffff?text=No+Poster";
   }
@@ -232,9 +235,7 @@ async function searchTMDB(
           String(item.id),
 
         name,
-
         kind,
-
         year,
 
         poster: getPosterUrl(
@@ -304,33 +305,33 @@ function App() {
       "library"
     );
 
-const [filter, setFilter] =
-  useState<
-    "all" | "watchlist" | "watched"
-  >("all");
+  const [filter, setFilter] =
+    useState<
+      "all" | "watchlist" | "watched"
+    >("all");
 
-const [filterClicked, setFilterClicked] =
-  useState(false);
+  const [filterClicked, setFilterClicked] =
+    useState(false);
 
-const [kind, setKind] =
-  useState<"all" | Kind>("all");
+  const [kind, setKind] =
+    useState<"all" | Kind>("all");
 
-const [kindClicked, setKindClicked] =
-  useState(false);
+  const [kindClicked, setKindClicked] =
+    useState(false);
 
   const [sort, setSort] =
     useState<SortOption>("name-asc");
 
   const [q, setQ] = useState("");
 
-const [showProfile, setShowProfile] =
-  useState(false);
+  const [showProfile, setShowProfile] =
+    useState(false);
 
-const [loginProfile, setLoginProfile] =
-  useState<Profile | null>(null);
+  const [loginProfile, setLoginProfile] =
+    useState<Profile | null>(null);
 
-const [showAdd, setShowAdd] =
-  useState(false);
+  const [showAdd, setShowAdd] =
+    useState(false);
 
   const [showReco, setShowReco] =
     useState(false);
@@ -703,24 +704,24 @@ const [showAdd, setShowAdd] =
 
         <div className="header-right">
 
-   <button
-  className="profile-pill"
-  onClick={() =>
-    setShowProfile(true)
-  }
->
-  <span>
-    {profile.avatar}
-  </span>
+          <button
+            className="profile-pill"
+            onClick={() =>
+              setShowProfile(true)
+            }
+          >
+            <span>
+              {profile.avatar}
+            </span>
 
-  <span>
-    {profile.name}
-  </span>
+            <span>
+              {profile.name}
+            </span>
 
-  <ChevronDown
-    size={16}
-  />
-</button>
+            <ChevronDown
+              size={16}
+            />
+          </button>
 
           {isAdmin && (
             <button
@@ -879,7 +880,6 @@ const [showAdd, setShowAdd] =
                 setTab("rewatch")
               }
             >
-        
               Re-watch
             </button>
           )}
@@ -891,127 +891,129 @@ const [showAdd, setShowAdd] =
         {tab === "library" && (
           <>
 
-        <div className="toolbar">
+            <div className="toolbar">
 
-  {!isAdmin && (
-  <div className="filters">
+              {!isAdmin && (
+                <div className="filters">
 
-  <button
-    className={
-      filter === "all" && filterClicked
-        ? "selected"
-        : ""
-    }
-    onClick={() => {
-      setFilter("all");
-      setFilterClicked(true);
-    }}
-  >
-    All
-  </button>
+                  <button
+                    className={
+                      filter === "all" &&
+                      filterClicked
+                        ? "selected"
+                        : ""
+                    }
+                    onClick={() => {
+                      setFilter("all");
+                      setFilterClicked(true);
+                    }}
+                  >
+                    All
+                  </button>
 
-  <button
-    className={
-      filter === "watchlist"
-        ? "selected"
-        : ""
-    }
-    onClick={() => {
-      setFilter("watchlist");
-      setFilterClicked(true);
-    }}
-  >
-    Watchlist
-  </button>
+                  <button
+                    className={
+                      filter === "watchlist"
+                        ? "selected"
+                        : ""
+                    }
+                    onClick={() => {
+                      setFilter("watchlist");
+                      setFilterClicked(true);
+                    }}
+                  >
+                    Watchlist
+                  </button>
 
-  <button
-    className={
-      filter === "watched"
-        ? "selected"
-        : ""
-    }
-    onClick={() => {
-      setFilter("watched");
-      setFilterClicked(true);
-    }}
-  >
-    Watched
-  </button>
+                  <button
+                    className={
+                      filter === "watched"
+                        ? "selected"
+                        : ""
+                    }
+                    onClick={() => {
+                      setFilter("watched");
+                      setFilterClicked(true);
+                    }}
+                  >
+                    Watched
+                  </button>
 
-</div>
-  )}
+                </div>
+              )}
 
-  <div className="search">
+              <div className="search">
 
-    <Search
-      size={18}
-    />
+                <Search
+                  size={18}
+                />
 
-    <input
-      value={q}
-      onChange={event =>
-        setQ(
-          event.target.value
-        )
-      }
-      placeholder="Search library"
-    />
+                <input
+                  value={q}
+                  onChange={event =>
+                    setQ(
+                      event.target.value
+                    )
+                  }
+                  placeholder="Search library"
+                />
 
-  </div>
+              </div>
 
-</div>
+            </div>
 
             {/* FORMAT + SORT */}
 
-       <div className="format">
+            <div className="format">
 
-  <button
-    className={
-      kind === "all" && kindClicked
-        ? "selected"
-        : ""
-    }
-    onClick={() => {
-      setKind("all");
-      setKindClicked(true);
-    }}
-  >
-    All
-  </button>
+              <button
+                className={
+                  kind === "all" &&
+                  kindClicked
+                    ? "selected"
+                    : ""
+                }
+                onClick={() => {
+                  setKind("all");
+                  setKindClicked(true);
+                }}
+              >
+                All
+              </button>
 
-  <button
-    className={
-      kind === "movie"
-        ? "selected"
-        : ""
-    }
-    onClick={() => {
-      setKind("movie");
-      setKindClicked(true);
-    }}
-  >
-    <Film
-      size={15}
-    />
-    Movies
-  </button>
+              <button
+                className={
+                  kind === "movie"
+                    ? "selected"
+                    : ""
+                }
+                onClick={() => {
+                  setKind("movie");
+                  setKindClicked(true);
+                }}
+              >
+                <Film
+                  size={15}
+                />
+                Movies
+              </button>
 
-  <button
-    className={
-      kind === "tv"
-        ? "selected"
-        : ""
-    }
-    onClick={() => {
-      setKind("tv");
-      setKindClicked(true);
-    }}
-  >
-    <Tv
-      size={15}
-    />
-    TV
-  </button>
+              <button
+                className={
+                  kind === "tv"
+                    ? "selected"
+                    : ""
+                }
+                onClick={() => {
+                  setKind("tv");
+                  setKindClicked(true);
+                }}
+              >
+                <Tv
+                  size={15}
+                />
+                TV
+              </button>
 
               <select
                 className="sort-select"
@@ -1178,15 +1180,18 @@ const [showAdd, setShowAdd] =
                 >
 
                   <button
-                onClick={() => {
-  if (item.id === profileId) {
-    setShowProfile(false);
-    return;
-  }
+                    onClick={() => {
+                      if (
+                        item.id ===
+                        profileId
+                      ) {
+                        setShowProfile(false);
+                        return;
+                      }
 
-  setLoginProfile(item);
-  setShowProfile(false);
-}}
+                      setLoginProfile(item);
+                      setShowProfile(false);
+                    }}
                     className={
                       item.id ===
                       profileId
@@ -1307,126 +1312,36 @@ const [showAdd, setShowAdd] =
         </Modal>
       )}
 
-  {/* PROFILE LOGIN */}
+      {/* PROFILE LOGIN */}
 
-{loginProfile && (
-  <ProfileLogin
-    profile={loginProfile}
-    onClose={() =>
-      setLoginProfile(null)
-    }
-    onSuccess={() => {
-      setProfileId(
-        loginProfile.id
-      );
+      {loginProfile && (
+        <ProfileLogin
+          profile={loginProfile}
+          onClose={() =>
+            setLoginProfile(null)
+          }
+          onSuccess={() => {
+            setProfileId(
+              loginProfile.id
+            );
 
-      setLoginProfile(null);
-    }}
-  />
-)}
+            setLoginProfile(null);
+          }}
+          onSetPassword={(password) => {
+            setProfiles(current =>
+              current.map(item =>
+                item.id === loginProfile.id
+                  ? {
+                      ...item,
+                      password
+                    }
+                  : item
+              )
+            );
+          }}
+        />
+      )}
 
-      /* =========================================================
-   PROFILE LOGIN
-========================================================= */
-
-function ProfileLogin({
-  profile,
-  onClose,
-  onSuccess
-}: {
-  profile: Profile;
-  onClose: () => void;
-  onSuccess: () => void;
-}) {
-  const [password, setPassword] =
-    useState("");
-
-  const [error, setError] =
-    useState("");
-
-  function handleLogin() {
-    /*
-      Temporary local profile lock.
-
-      If no password has been set yet,
-      allow access so you don't get
-      locked out of the app.
-    */
-
-    if (
-      !profile.password ||
-      password === profile.password
-    ) {
-      onSuccess();
-      return;
-    }
-
-    setError(
-      "Incorrect password. Please try again."
-    );
-  }
-
-  return (
-    <Modal
-      title="Profile Login"
-      onClose={onClose}
-    >
-      <div className="profile-login">
-
-        <div className="profile-login-avatar">
-          {profile.avatar}
-        </div>
-
-        <h3>
-          {profile.name}'s Profile
-        </h3>
-
-        <p className="muted">
-          Enter your password to continue.
-        </p>
-
-        <label>
-          Password
-
-          <input
-            autoFocus
-            type="password"
-            value={password}
-            onChange={event => {
-              setPassword(
-                event.target.value
-              );
-              setError("");
-            }}
-            onKeyDown={event => {
-              if (
-                event.key === "Enter"
-              ) {
-                handleLogin();
-              }
-            }}
-            placeholder="Enter password"
-          />
-        </label>
-
-        {error && (
-          <p className="login-error">
-            {error}
-          </p>
-        )}
-
-        <button
-          className="pink full"
-          onClick={handleLogin}
-        >
-          Continue
-        </button>
-
-      </div>
-    </Modal>
-  );
-}
-      
       {/* PROFILE EDITOR */}
 
       {editing && (
@@ -1634,6 +1549,256 @@ function ProfileLogin({
       </footer>
 
     </div>
+  );
+}
+
+/* =========================================================
+   PROFILE LOGIN
+========================================================= */
+
+function ProfileLogin({
+  profile,
+  onClose,
+  onSuccess,
+  onSetPassword
+}: {
+  profile: Profile;
+  onClose: () => void;
+  onSuccess: () => void;
+  onSetPassword: (password: string) => void;
+}) {
+  const [password, setPassword] =
+    useState("");
+
+  const [error, setError] =
+    useState("");
+
+  const [resetting, setResetting] =
+    useState(false);
+
+  const hasPassword =
+    Boolean(profile.password);
+
+  function handleLogin() {
+    if (
+      profile.password &&
+      password === profile.password
+    ) {
+      onSuccess();
+      return;
+    }
+
+    setError(
+      "Incorrect password. Please try again."
+    );
+  }
+
+  function handleSetPassword() {
+    if (!password.trim()) {
+      setError(
+        "Please enter a password."
+      );
+      return;
+    }
+
+    onSetPassword(password);
+    onSuccess();
+  }
+
+  function handleResetPassword() {
+    if (!password.trim()) {
+      setError(
+        "Please enter a new password."
+      );
+      return;
+    }
+
+    onSetPassword(password);
+    onSuccess();
+  }
+
+  return (
+    <Modal
+      title={
+        !hasPassword
+          ? "Set Your Password"
+          : resetting
+          ? "Create a New Password"
+          : "Profile Login"
+      }
+      onClose={onClose}
+    >
+
+      <div className="profile-login">
+
+        <div className="profile-login-avatar">
+          {profile.avatar}
+        </div>
+
+        <h3>
+          {profile.name}'s Profile
+        </h3>
+
+        {!hasPassword ? (
+          <>
+            <p className="muted">
+              Create a password for your profile.
+              You'll use it whenever you log in.
+            </p>
+
+            <label>
+              Password
+
+              <input
+                autoFocus
+                type="password"
+                value={password}
+                onChange={event => {
+                  setPassword(
+                    event.target.value
+                  );
+                  setError("");
+                }}
+                onKeyDown={event => {
+                  if (
+                    event.key === "Enter"
+                  ) {
+                    handleSetPassword();
+                  }
+                }}
+                placeholder="Create a password"
+              />
+            </label>
+
+            {error && (
+              <p className="login-error">
+                {error}
+              </p>
+            )}
+
+            <button
+              className="pink full"
+              onClick={handleSetPassword}
+            >
+              Set Password
+            </button>
+          </>
+        ) : resetting ? (
+          <>
+            <p className="muted">
+              Create a new password for your
+              profile.
+            </p>
+
+            <label>
+              New Password
+
+              <input
+                autoFocus
+                type="password"
+                value={password}
+                onChange={event => {
+                  setPassword(
+                    event.target.value
+                  );
+                  setError("");
+                }}
+                onKeyDown={event => {
+                  if (
+                    event.key === "Enter"
+                  ) {
+                    handleResetPassword();
+                  }
+                }}
+                placeholder="Create a new password"
+              />
+            </label>
+
+            {error && (
+              <p className="login-error">
+                {error}
+              </p>
+            )}
+
+            <button
+              className="pink full"
+              onClick={
+                handleResetPassword
+              }
+            >
+              Reset Password
+            </button>
+
+            <button
+              className="ghost full"
+              onClick={() => {
+                setResetting(false);
+                setPassword("");
+                setError("");
+              }}
+            >
+              Back to Login
+            </button>
+          </>
+        ) : (
+          <>
+            <p className="muted">
+              Enter your password to continue.
+            </p>
+
+            <label>
+              Password
+
+              <input
+                autoFocus
+                type="password"
+                value={password}
+                onChange={event => {
+                  setPassword(
+                    event.target.value
+                  );
+                  setError("");
+                }}
+                onKeyDown={event => {
+                  if (
+                    event.key === "Enter"
+                  ) {
+                    handleLogin();
+                  }
+                }}
+                placeholder="Enter password"
+              />
+            </label>
+
+            {error && (
+              <p className="login-error">
+                {error}
+              </p>
+            )}
+
+            <button
+              className="pink full"
+              onClick={handleLogin}
+            >
+              Log In
+            </button>
+
+            <button
+              className="forgot-password"
+              onClick={() => {
+                setResetting(true);
+                setPassword("");
+                setError("");
+              }}
+            >
+              Forgot password?
+            </button>
+          </>
+        )}
+
+      </div>
+
+    </Modal>
   );
 }
 
@@ -2544,3 +2709,4 @@ createRoot(rootElement).render(
     <App />
   </React.StrictMode>
 );
+```
