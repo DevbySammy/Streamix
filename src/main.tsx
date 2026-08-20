@@ -2032,9 +2032,6 @@ function ScheduleModal({
    HERO EDITOR
 -------------------------------------------------- */
 
-/* --------------------------------------------------
-   HERO EDITOR
--------------------------------------------------- */
 
 function HeroModal({
   hero,
@@ -2063,22 +2060,13 @@ function HeroModal({
     ) || initialTitle;
 
   /*
-    IMAGE SETTINGS
-
-    100% = automatic fit
-    Width / Height can then be
+    100% = automatic starting fit.
+    Width and height can then be
     adjusted independently.
   */
 
-  const [width, setWidth] =
-    useState(
-      hero?.width || 100
-    );
-
-  const [height, setHeight] =
-    useState(
-      hero?.height || 100
-    );
+const [zoom, setZoom] =
+  useState(hero?.width || 100);
 
   const [positionX, setPositionX] =
     useState(
@@ -2097,8 +2085,8 @@ function HeroModal({
         onClose={onClose}
       >
         <p className="muted">
-          Add a movie or TV show first
-          to create a hero.
+          Add a movie or TV show
+          first to create a hero.
         </p>
 
         <button
@@ -2112,13 +2100,13 @@ function HeroModal({
   }
 
   /*
-    IMPORTANT:
+    HERO PREVIEW
 
-    The preview uses the exact same
-    aspect ratio as the main hero.
+    The preview uses the same
+    wide shape as the actual hero.
 
-    The image starts at 100% / 100%
-    and is contained inside the preview.
+    The image starts at 100%,
+    meaning it fills the preview.
   */
 
   return (
@@ -2128,10 +2116,10 @@ function HeroModal({
     >
 
       <p className="muted">
-        Your image automatically fits
-        the hero first. Adjust the size
-        if you want, then fine-tune the
-        crop and position.
+        The image starts fitted to the
+        hero automatically. Adjust the
+        size first, then use crop and
+        position for fine-tuning.
       </p>
 
       {/* --------------------------------------------
@@ -2148,12 +2136,12 @@ function HeroModal({
           position: 'relative',
           background: '#111',
           marginBottom: '26px',
-          border: '1px solid rgba(255,255,255,.08)'
+          border:
+            '1px solid rgba(255,255,255,.08)'
         }}
       >
 
         {selectedTitle.backdrop ? (
-
           <img
             src={
               selectedTitle.backdrop
@@ -2161,64 +2149,33 @@ function HeroModal({
             alt={
               selectedTitle.name
             }
-            style={{
-              position: 'absolute',
-
-              /*
-                At 100% the image fills
-                the preview nicely.
-              */
-              width: `${width}%`,
-              height: `${height}%`,
-
-              /*
-                Prevent the browser from
-                shrinking the image.
-              */
-              maxWidth: 'none',
-              maxHeight: 'none',
-
-              /*
-                Cover keeps the movie image
-                looking natural when its
-                proportions differ from
-                the hero.
-              */
-              objectFit: 'cover',
-
-              /*
-                Position controls become
-                the crop controls.
-              */
-              left: `${positionX}%`,
-              top: `${positionY}%`,
-
-              transform:
-                'translate(-50%, -50%)',
-
-              transition:
-                'width .15s ease, height .15s ease, left .15s ease, top .15s ease'
-            }}
+        style={{
+  position: 'absolute',
+  width: '100%',
+  height: '100%',
+  objectFit: 'cover',
+  transform: `translate(-${positionX}%, -${positionY}%) scale(${zoom / 100})`,
+  transformOrigin: 'center',
+  transition: 'transform .15s ease'
+}}
           />
-
         ) : (
-
           <div
             style={{
               width: '100%',
               height: '100%',
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'center',
+              justifyContent:
+                'center',
               color: '#888'
             }}
           >
             No backdrop available
           </div>
-
         )}
 
-        {/* HERO OVERLAY */}
+        {/* HERO GRADIENT */}
 
         <div
           style={{
@@ -2270,7 +2227,7 @@ function HeroModal({
       </div>
 
       {/* --------------------------------------------
-         SELECT TITLE
+         TITLE
       -------------------------------------------- */}
 
       <label>
@@ -2279,21 +2236,19 @@ function HeroModal({
         <select
           value={id}
           onChange={e => {
-
             setId(
               e.target.value
             );
 
             /*
-              Whenever a new title is
-              selected, start fresh with
-              the automatic fit.
+              Selecting another title
+              returns everything to the
+              automatic starting position.
             */
             setWidth(100);
             setHeight(100);
             setPositionX(50);
             setPositionY(50);
-
           }}
         >
 
@@ -2324,11 +2279,11 @@ function HeroModal({
         </strong>
 
         <p className="muted">
-          Start with the automatic fit.
-          Increase or decrease the width
-          and height if you want to change
-          how much of the image fills the
-          hero.
+          Start at 100% for the default
+          fit. Increase or decrease the
+          width and height if you want
+          more control over how the image
+          fills the hero.
         </p>
 
         {/* WIDTH */}
@@ -2402,10 +2357,10 @@ function HeroModal({
         </strong>
 
         <p className="muted">
-          Once the size looks right,
-          use these controls to move
-          the image and choose which
-          part is visible.
+          Once the image size looks
+          right, use these controls to
+          move the image and choose
+          which part is visible.
         </p>
 
         {/* HORIZONTAL */}
@@ -2471,12 +2426,10 @@ function HeroModal({
       <button
         className="ghost full"
         onClick={() => {
-
           setWidth(100);
           setHeight(100);
           setPositionX(50);
           setPositionY(50);
-
         }}
       >
         Reset image
