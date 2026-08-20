@@ -2540,22 +2540,55 @@ const hasPassword =
     ? true
     : Boolean(profile.password);
 
-function handleLogin() {
-if (
-profile.password &&
-password ===
-profile.password
-) {
-onSuccess();
-return;
-}
+async function handleLogin() {
+  if (!password.trim()) {
+    setError(
+      "Please enter your password."
+    );
+    return;
+  }
 
+  try {
+    const response = await fetch(
+      "/api/auth/login",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type":
+            "application/json"
+        },
+        body: JSON.stringify({
+          profileId: profile.id,
+          password
+        })
+      }
+    );
 
-setError(
-  "Incorrect password. Please try again."
-);
+    const data =
+      await response.json();
 
+    if (!response.ok) {
+      throw new Error(
+        data?.error ||
+          "Incorrect password. Please try again."
+      );
+    }
 
+    if (data.sessionId) {
+      localStorage.setItem(
+        "sx-session-token",
+        data.sessionId
+      );
+    }
+
+    onSuccess();
+  } catch (error) {
+    setError(
+      error instanceof Error
+        ? error.message
+        : "Incorrect password. Please try again."
+    );
+  }
 }
 
 function handleSetPassword() {
@@ -2893,22 +2926,19 @@ onClose={onClose}
           Log In
         </button>
 
-        <button
-          className="forgot-password"
-          onClick={() => {
-            setResetting(
-              true
-            );
-
-            setPassword("");
-            setError("");
-            setShowPassword(
-              false
-            );
-          }}
-        >
-          Forgot password?
-        </button>
+     {profile.id !== "admin" && (
+  <button
+    className="forgot-password"
+    onClick={() => {
+      setResetting(true);
+      setPassword("");
+      setError("");
+      setShowPassword(false);
+    }}
+  >
+    Forgot password?
+  </button>
+)}
       </>
     )}
 
