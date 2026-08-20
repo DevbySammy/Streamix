@@ -7,6 +7,8 @@ import {
   ChevronLeft,
   ChevronRight,
   Clock,
+  Eye,
+  EyeOff,
   Film,
   LogOut,
   Plus,
@@ -371,6 +373,8 @@ function App() {
           heroSettings.titleId
       ) || null
     : null;
+
+  const [showPassword, setShowPassword] = useState(false);
 
   /* =======================================================
      RECOMMENDATION
