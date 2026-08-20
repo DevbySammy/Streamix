@@ -2,7 +2,24 @@ export interface Env {
   TMDB_READ_ACCESS_TOKEN: string;
   ADMIN_API_TOKEN: string;
   DB: D1Database;
-} 
+}
+
+type SessionRow = {
+  id: string;
+  profile_id: string;
+  expires_at: string;
+};
+
+type ProfileRow = {
+  id: string;
+  name: string;
+  avatar: string | null;
+  sort_order: number;
+  created_at: string;
+};
+
+const SESSION_DURATION_MS =
+  1000 * 60 * 60 * 24 * 30; // 30 days
 
 export default {
   async fetch(
@@ -41,110 +58,643 @@ export default {
     };
 
     // ==================================================
-    // ADMIN AUTHENTICATION
+    // HELPERS
     // ==================================================
 
-    const requireAdmin = (): Response | null => {
+    const getAuthorizationToken = (): string | null => {
       const authorization =
         request.headers.get("Authorization");
 
       if (
-        !env.ADMIN_API_TOKEN ||
-        authorization !==
-          `Bearer ${env.ADMIN_API_TOKEN}`
+        !authorization ||
+        !authorization.startsWith("Bearer ")
       ) {
-        return json(
-          {
-            error:
-              "Unauthorized. Admin access required."
-          },
-          401
-        );
+        return null;
       }
 
-      return null;
+      return authorization.slice(7).trim() || null;
+    };
+
+    const getSession = async (): Promise<SessionRow | null> => {
+      const token =
+        getAuthorizationToken();
+
+      if (!token) {
+        return null;
+      }
+
+      const session =
+        await env.DB
+          .prepare(`
+            SELECT
+              id,
+              profile_id,
+              expires_at
+            FROM sessions
+            WHERE id = ?
+          `)
+          .bind(token)
+          .first<SessionRow>();
+
+      if (!session) {
+        return null;
+      }
+
+      const expiresAt =
+        new Date(
+          session.expires_at
+        ).getTime();
+
+      if (
+        !Number.isFinite(expiresAt) ||
+        expiresAt <= Date.now()
+      ) {
+        await env.DB
+          .prepare(`
+            DELETE FROM sessions
+            WHERE id = ?
+          `)
+          .bind(token)
+          .run();
+
+        return null;
+      }
+
+      return session;
+    };
+
+    const requireSession =
+      async (): Promise<
+        | {
+            session: SessionRow;
+            profileId: string;
+          }
+        | Response
+      > => {
+        const session =
+          await getSession();
+
+        if (!session) {
+          return json(
+            {
+              error:
+                "Unauthorized. Please log in."
+            },
+            401
+          );
+        }
+
+        return {
+          session,
+          profileId:
+            session.profile_id
+        };
+      };
+
+    const requireAdmin =
+      async (): Promise<
+        | {
+            session: SessionRow;
+          }
+        | Response
+      > => {
+        const session =
+          await getSession();
+
+        if (!session) {
+          return json(
+            {
+              error:
+                "Unauthorized. Please log in."
+            },
+            401
+          );
+        }
+
+        if (
+          session.profile_id !==
+          "admin"
+        ) {
+          return json(
+            {
+              error:
+                "Forbidden. Admin access required."
+            },
+            403
+          );
+        }
+
+        return {
+          session
+        };
+      };
+
+    const hashPassword = async (
+      password: string
+    ): Promise<string> => {
+      const data =
+        new TextEncoder().encode(
+          password
+        );
+
+      const hash =
+        await crypto.subtle.digest(
+          "SHA-256",
+          data
+        );
+
+      return Array.from(
+        new Uint8Array(hash)
+      )
+        .map(byte =>
+          byte
+            .toString(16)
+            .padStart(2, "0")
+        )
+        .join("");
+    };
+
+    const createSession =
+      async (
+        profileId: string
+      ): Promise<string> => {
+        const sessionId =
+          crypto.randomUUID();
+
+        const expiresAt =
+          new Date(
+            Date.now() +
+              SESSION_DURATION_MS
+          ).toISOString();
+
+        await env.DB
+          .prepare(`
+            INSERT INTO sessions (
+              id,
+              profile_id,
+              expires_at
+            )
+            VALUES (?, ?, ?)
+          `)
+          .bind(
+            sessionId,
+            profileId,
+            expiresAt
+          )
+          .run();
+
+        return sessionId;
+      };
+
+    const getProfile = async (
+      profileId: string
+    ): Promise<ProfileRow | null> => {
+      return env.DB
+        .prepare(`
+          SELECT
+            id,
+            name,
+            avatar,
+            sort_order,
+            created_at
+          FROM profiles
+          WHERE id = ?
+        `)
+        .bind(profileId)
+        .first<ProfileRow>();
     };
 
     // ==================================================
     // HEALTH CHECK
     // ==================================================
 
-    if (url.pathname === "/api/health") {
+    if (
+      url.pathname === "/api/health"
+    ) {
       return json({
         status: "ok",
         service: "Streamix API",
         tmdbConfigured:
-          Boolean(env.TMDB_READ_ACCESS_TOKEN),
+          Boolean(
+            env.TMDB_READ_ACCESS_TOKEN
+          ),
         databaseConfigured:
           Boolean(env.DB)
       });
     }
 
     // ==================================================
-    // TMDB SEARCH
+    // AUTH - LOGIN
     // ==================================================
 
     if (
-      url.pathname === "/api/tmdb/search" &&
-      request.method === "GET"
+      url.pathname === "/api/auth/login" &&
+      request.method === "POST"
     ) {
-      const query =
-        url.searchParams.get("query")?.trim() || "";
+      const body =
+        await request.json<{
+          profileId?: string;
+          password?: string;
+        }>();
 
-      const type =
-        url.searchParams.get("type") || "multi";
+      const profileId =
+        body.profileId?.trim();
 
-      if (!query) {
+      const password =
+        body.password ?? "";
+
+      if (!profileId) {
         return json(
           {
-            results: []
+            error:
+              "Profile id is required."
           },
           400
         );
       }
 
-      if (!env.TMDB_READ_ACCESS_TOKEN) {
+      const profile =
+        await env.DB
+          .prepare(`
+            SELECT
+              id,
+              name,
+              avatar,
+              password_hash,
+              sort_order,
+              created_at
+            FROM profiles
+            WHERE id = ?
+          `)
+          .bind(profileId)
+          .first<{
+            id: string;
+            name: string;
+            avatar: string | null;
+            password_hash: string | null;
+            sort_order: number;
+            created_at: string;
+          }>();
+
+      if (!profile) {
         return json(
           {
             error:
-              "TMDB_READ_ACCESS_TOKEN is not configured."
+              "Profile not found."
           },
-          500
+          404
         );
       }
 
-      const tmdbUrl =
-        "https://api.themoviedb.org/3/search/" +
-        encodeURIComponent(type) +
-        "?query=" +
-        encodeURIComponent(query) +
-        "&include_adult=false";
+      /*
+       * The Admin profile is protected by the
+       * server-side ADMIN_API_TOKEN.
+       *
+       * The browser never receives this secret.
+       */
+      if (profile.id === "admin") {
+        if (
+          !env.ADMIN_API_TOKEN ||
+          password !==
+            env.ADMIN_API_TOKEN
+        ) {
+          return json(
+            {
+              error:
+                "Incorrect password."
+            },
+            401
+          );
+        }
+      } else {
+        if (!profile.password_hash) {
+          return json({
+            requiresPasswordSetup: true,
+            profile: {
+              id: profile.id,
+              name: profile.name,
+              avatar:
+                profile.avatar
+            }
+          });
+        }
 
-      const tmdbResponse =
-        await fetch(tmdbUrl, {
-          headers: {
-            Authorization:
-              "Bearer " +
-              env.TMDB_READ_ACCESS_TOKEN,
-            Accept: "application/json"
-          }
-        });
+        const passwordHash =
+          await hashPassword(
+            password
+          );
 
-      const data =
-        await tmdbResponse.json();
+        if (
+          passwordHash !==
+          profile.password_hash
+        ) {
+          return json(
+            {
+              error:
+                "Incorrect password."
+            },
+            401
+          );
+        }
+      }
 
-      if (!tmdbResponse.ok) {
+      const sessionId =
+        await createSession(
+          profile.id
+        );
+
+      return json({
+        success: true,
+        sessionId,
+        profile: {
+          id: profile.id,
+          name: profile.name,
+          avatar: profile.avatar
+        }
+      });
+    }
+
+    // ==================================================
+    // AUTH - SET PASSWORD
+    // ==================================================
+
+    if (
+      url.pathname ===
+        "/api/auth/set-password" &&
+      request.method === "POST"
+    ) {
+      const body =
+        await request.json<{
+          profileId?: string;
+          password?: string;
+        }>();
+
+      const profileId =
+        body.profileId?.trim();
+
+      const password =
+        body.password ?? "";
+
+      if (!profileId) {
         return json(
           {
             error:
-              "TMDB search failed.",
-            details: data
+              "Profile id is required."
           },
-          tmdbResponse.status
+          400
         );
       }
 
-      return json(data);
+      if (!password.trim()) {
+        return json(
+          {
+            error:
+              "Password is required."
+          },
+          400
+        );
+      }
+
+      /*
+       * Admin password is controlled by the
+       * Cloudflare secret and cannot be changed
+       * through the profile UI.
+       */
+      if (profileId === "admin") {
+        return json(
+          {
+            error:
+              "The Admin password is managed securely by the server."
+          },
+          403
+        );
+      }
+
+      const session =
+        await getSession();
+
+      /*
+       * A profile can only set its own password
+       * if it already has a valid session.
+       *
+       * A brand-new profile has no password yet,
+       * so it may initialize its password.
+       */
+      const profile =
+        await env.DB
+          .prepare(`
+            SELECT
+              id,
+              password_hash
+            FROM profiles
+            WHERE id = ?
+          `)
+          .bind(profileId)
+          .first<{
+            id: string;
+            password_hash: string | null;
+          }>();
+
+      if (!profile) {
+        return json(
+          {
+            error:
+              "Profile not found."
+          },
+          404
+        );
+      }
+
+      if (
+        profile.password_hash &&
+        (!session ||
+          session.profile_id !==
+            profileId)
+      ) {
+        return json(
+          {
+            error:
+              "Unauthorized."
+          },
+          401
+        );
+      }
+
+      const passwordHash =
+        await hashPassword(
+          password
+        );
+
+      await env.DB
+        .prepare(`
+          UPDATE profiles
+          SET password_hash = ?
+          WHERE id = ?
+        `)
+        .bind(
+          passwordHash,
+          profileId
+        )
+        .run();
+
+      const sessionId =
+        await createSession(
+          profileId
+        );
+
+      return json({
+        success: true,
+        sessionId
+      });
+    }
+
+    // ==================================================
+    // AUTH - CHANGE PASSWORD
+    // ==================================================
+
+    if (
+      url.pathname ===
+        "/api/auth/change-password" &&
+      request.method === "POST"
+    ) {
+      const auth =
+        await requireSession();
+
+      if (auth instanceof Response) {
+        return auth;
+      }
+
+      const body =
+        await request.json<{
+          currentPassword?: string;
+          newPassword?: string;
+        }>();
+
+      const currentPassword =
+        body.currentPassword ?? "";
+
+      const newPassword =
+        body.newPassword ?? "";
+
+      if (!newPassword.trim()) {
+        return json(
+          {
+            error:
+              "New password is required."
+          },
+          400
+        );
+      }
+
+      if (
+        auth.profileId ===
+        "admin"
+      ) {
+        return json(
+          {
+            error:
+              "The Admin password is managed securely by the server."
+          },
+          403
+        );
+      }
+
+      const profile =
+        await env.DB
+          .prepare(`
+            SELECT password_hash
+            FROM profiles
+            WHERE id = ?
+          `)
+          .bind(auth.profileId)
+          .first<{
+            password_hash: string | null;
+          }>();
+
+      if (!profile) {
+        return json(
+          {
+            error:
+              "Profile not found."
+          },
+          404
+        );
+      }
+
+      if (!profile.password_hash) {
+        return json(
+          {
+            error:
+              "This profile does not have a password yet."
+          },
+          400
+        );
+      }
+
+      const currentHash =
+        await hashPassword(
+          currentPassword
+        );
+
+      if (
+        currentHash !==
+        profile.password_hash
+      ) {
+        return json(
+          {
+            error:
+              "Current password is incorrect."
+          },
+          401
+        );
+      }
+
+      const newHash =
+        await hashPassword(
+          newPassword
+        );
+
+      await env.DB
+        .prepare(`
+          UPDATE profiles
+          SET password_hash = ?
+          WHERE id = ?
+        `)
+        .bind(
+          newHash,
+          auth.profileId
+        )
+        .run();
+
+      return json({
+        success: true
+      });
+    }
+
+    // ==================================================
+    // AUTH - LOGOUT
+    // ==================================================
+
+    if (
+      url.pathname === "/api/auth/logout" &&
+      request.method === "POST"
+    ) {
+      const token =
+        getAuthorizationToken();
+
+      if (token) {
+        await env.DB
+          .prepare(`
+            DELETE FROM sessions
+            WHERE id = ?
+          `)
+          .bind(token)
+          .run();
+      }
+
+      return json({
+        success: true
+      });
     }
 
     // ==================================================
@@ -171,7 +721,9 @@ export default {
           `)
           .all();
 
-      return json(result.results);
+      return json(
+        result.results
+      );
     }
 
     // ==================================================
@@ -182,6 +734,13 @@ export default {
       url.pathname === "/api/profiles" &&
       request.method === "POST"
     ) {
+      const admin =
+        await requireAdmin();
+
+      if (admin instanceof Response) {
+        return admin;
+      }
+
       const body =
         await request.json<{
           id?: string;
@@ -227,19 +786,7 @@ export default {
         .run();
 
       const result =
-        await env.DB
-          .prepare(`
-            SELECT
-              id,
-              name,
-              avatar,
-              sort_order,
-              created_at
-            FROM profiles
-            WHERE id = ?
-          `)
-          .bind(id)
-          .first();
+        await getProfile(id);
 
       return json(
         result,
@@ -255,6 +802,13 @@ export default {
       url.pathname === "/api/profiles" &&
       request.method === "PUT"
     ) {
+      const auth =
+        await requireSession();
+
+      if (auth instanceof Response) {
+        return auth;
+      }
+
       const body =
         await request.json<{
           id: string;
@@ -273,10 +827,32 @@ export default {
         );
       }
 
+      const isAdmin =
+        auth.profileId ===
+        "admin";
+
+      if (
+        !isAdmin &&
+        body.id !==
+          auth.profileId
+      ) {
+        return json(
+          {
+            error:
+              "You can only edit your own profile."
+          },
+          403
+        );
+      }
+
       const existing =
         await env.DB
           .prepare(`
-            SELECT *
+            SELECT
+              id,
+              name,
+              avatar,
+              sort_order
             FROM profiles
             WHERE id = ?
           `)
@@ -308,8 +884,13 @@ export default {
           ? body.avatar
           : existing.avatar;
 
+      /*
+       * Only Admin can change profile order.
+       */
       const sortOrder =
-        body.sort_order !== undefined
+        isAdmin &&
+        body.sort_order !==
+          undefined
           ? body.sort_order
           : existing.sort_order;
 
@@ -331,19 +912,9 @@ export default {
         .run();
 
       const result =
-        await env.DB
-          .prepare(`
-            SELECT
-              id,
-              name,
-              avatar,
-              sort_order,
-              created_at
-            FROM profiles
-            WHERE id = ?
-          `)
-          .bind(body.id)
-          .first();
+        await getProfile(
+          body.id
+        );
 
       return json(result);
     }
@@ -356,6 +927,13 @@ export default {
       url.pathname === "/api/profiles" &&
       request.method === "DELETE"
     ) {
+      const admin =
+        await requireAdmin();
+
+      if (admin instanceof Response) {
+        return admin;
+      }
+
       const id =
         url.searchParams.get("id");
 
@@ -378,22 +956,6 @@ export default {
           400
         );
       }
-
-      await env.DB
-        .prepare(`
-          DELETE FROM watch_history
-          WHERE profile_id = ?
-        `)
-        .bind(id)
-        .run();
-
-      await env.DB
-        .prepare(`
-          DELETE FROM watchlist
-          WHERE profile_id = ?
-        `)
-        .bind(id)
-        .run();
 
       await env.DB
         .prepare(`
@@ -436,7 +998,9 @@ export default {
           `)
           .all();
 
-      return json(result.results);
+      return json(
+        result.results
+      );
     }
 
     // ==================================================
@@ -447,12 +1011,11 @@ export default {
       url.pathname === "/api/library" &&
       request.method === "POST"
     ) {
-      // NEW: Only the admin can add movies.
-      const unauthorized =
-        requireAdmin();
+      const admin =
+        await requireAdmin();
 
-      if (unauthorized) {
-        return unauthorized;
+      if (admin instanceof Response) {
+        return admin;
       }
 
       const body =
@@ -469,7 +1032,8 @@ export default {
         }>();
 
       if (
-        body.tmdb_id === undefined ||
+        body.tmdb_id ===
+          undefined ||
         !body.media_type ||
         !body.title
       ) {
@@ -487,7 +1051,9 @@ export default {
         "tmdb-" +
           body.media_type +
           "-" +
-          String(body.tmdb_id);
+          String(
+            body.tmdb_id
+          );
 
       await env.DB
         .prepare(`
@@ -519,11 +1085,15 @@ export default {
           body.tmdb_id,
           body.media_type,
           body.title,
-          body.poster_path ?? null,
-          body.backdrop_path ?? null,
+          body.poster_path ??
+            null,
+          body.backdrop_path ??
+            null,
           body.overview ?? null,
-          body.release_date ?? null,
-          body.vote_average ?? null
+          body.release_date ??
+            null,
+          body.vote_average ??
+            null
         )
         .run();
 
@@ -551,12 +1121,11 @@ export default {
       url.pathname === "/api/library" &&
       request.method === "DELETE"
     ) {
-      // NEW: Only the admin can remove movies.
-      const unauthorized =
-        requireAdmin();
+      const admin =
+        await requireAdmin();
 
-      if (unauthorized) {
-        return unauthorized;
+      if (admin instanceof Response) {
+        return admin;
       }
 
       const id =
@@ -574,22 +1143,6 @@ export default {
 
       await env.DB
         .prepare(`
-          DELETE FROM watch_history
-          WHERE library_item_id = ?
-        `)
-        .bind(id)
-        .run();
-
-      await env.DB
-        .prepare(`
-          DELETE FROM watchlist
-          WHERE library_item_id = ?
-        `)
-        .bind(id)
-        .run();
-
-      await env.DB
-        .prepare(`
           DELETE FROM library_items
           WHERE id = ?
         `)
@@ -602,25 +1155,43 @@ export default {
     }
 
     // ==================================================
-    // WATCHED - GET
+    // WATCH HISTORY - GET
     // ==================================================
 
     if (
-      url.pathname === "/api/watch-history" &&
+      url.pathname ===
+        "/api/watch-history" &&
       request.method === "GET"
     ) {
-      const profileId =
+      const auth =
+        await requireSession();
+
+      if (auth instanceof Response) {
+        return auth;
+      }
+
+      const requestedProfileId =
         url.searchParams.get(
           "profileId"
         );
 
-      if (!profileId) {
+      const profileId =
+        auth.profileId === "admin" &&
+        requestedProfileId
+          ? requestedProfileId
+          : auth.profileId;
+
+      if (
+        auth.profileId !== "admin" &&
+        profileId !==
+          auth.profileId
+      ) {
         return json(
           {
             error:
-              "profileId is required."
+              "Forbidden."
           },
-          400
+          403
         );
       }
 
@@ -636,11 +1207,13 @@ export default {
           .bind(profileId)
           .all();
 
-      return json(result.results);
+      return json(
+        result.results
+      );
     }
 
     // ==================================================
-    // WATCHED - POST
+    // WATCH HISTORY - POST
     // ==================================================
 
     if (
@@ -648,6 +1221,13 @@ export default {
         "/api/watch-history" &&
       request.method === "POST"
     ) {
+      const auth =
+        await requireSession();
+
+      if (auth instanceof Response) {
+        return auth;
+      }
+
       const body =
         await request.json<{
           profileId: string;
@@ -667,8 +1247,20 @@ export default {
         );
       }
 
-      const id =
-        crypto.randomUUID();
+      if (
+        auth.profileId !==
+          "admin" &&
+        auth.profileId !==
+          body.profileId
+      ) {
+        return json(
+          {
+            error:
+              "Forbidden."
+          },
+          403
+        );
+      }
 
       await env.DB
         .prepare(`
@@ -680,7 +1272,7 @@ export default {
           VALUES (?, ?, ?)
         `)
         .bind(
-          id,
+          crypto.randomUUID(),
           body.profileId,
           body.libraryItemId
         )
@@ -692,7 +1284,7 @@ export default {
     }
 
     // ==================================================
-    // WATCHED - DELETE
+    // WATCH HISTORY - DELETE
     // ==================================================
 
     if (
@@ -700,6 +1292,13 @@ export default {
         "/api/watch-history" &&
       request.method === "DELETE"
     ) {
+      const auth =
+        await requireSession();
+
+      if (auth instanceof Response) {
+        return auth;
+      }
+
       const profileId =
         url.searchParams.get(
           "profileId"
@@ -720,6 +1319,21 @@ export default {
               "profileId and libraryItemId are required."
           },
           400
+        );
+      }
+
+      if (
+        auth.profileId !==
+          "admin" &&
+        auth.profileId !==
+          profileId
+      ) {
+        return json(
+          {
+            error:
+              "Forbidden."
+          },
+          403
         );
       }
 
@@ -748,20 +1362,23 @@ export default {
       url.pathname === "/api/watchlist" &&
       request.method === "GET"
     ) {
-      const profileId =
+      const auth =
+        await requireSession();
+
+      if (auth instanceof Response) {
+        return auth;
+      }
+
+      const requestedProfileId =
         url.searchParams.get(
           "profileId"
         );
 
-      if (!profileId) {
-        return json(
-          {
-            error:
-              "profileId is required."
-          },
-          400
-        );
-      }
+      const profileId =
+        auth.profileId === "admin" &&
+        requestedProfileId
+          ? requestedProfileId
+          : auth.profileId;
 
       const result =
         await env.DB
@@ -776,7 +1393,9 @@ export default {
           .bind(profileId)
           .all();
 
-      return json(result.results);
+      return json(
+        result.results
+      );
     }
 
     // ==================================================
@@ -787,6 +1406,13 @@ export default {
       url.pathname === "/api/watchlist" &&
       request.method === "POST"
     ) {
+      const auth =
+        await requireSession();
+
+      if (auth instanceof Response) {
+        return auth;
+      }
+
       const body =
         await request.json<{
           profileId: string;
@@ -806,8 +1432,20 @@ export default {
         );
       }
 
-      const id =
-        crypto.randomUUID();
+      if (
+        auth.profileId !==
+          "admin" &&
+        auth.profileId !==
+          body.profileId
+      ) {
+        return json(
+          {
+            error:
+              "Forbidden."
+          },
+          403
+        );
+      }
 
       await env.DB
         .prepare(`
@@ -820,7 +1458,7 @@ export default {
           VALUES (?, ?, ?, 'watchlist')
         `)
         .bind(
-          id,
+          crypto.randomUUID(),
           body.profileId,
           body.libraryItemId
         )
@@ -839,6 +1477,13 @@ export default {
       url.pathname === "/api/watchlist" &&
       request.method === "DELETE"
     ) {
+      const auth =
+        await requireSession();
+
+      if (auth instanceof Response) {
+        return auth;
+      }
+
       const profileId =
         url.searchParams.get(
           "profileId"
@@ -862,6 +1507,21 @@ export default {
         );
       }
 
+      if (
+        auth.profileId !==
+          "admin" &&
+        auth.profileId !==
+          profileId
+      ) {
+        return json(
+          {
+            error:
+              "Forbidden."
+          },
+          403
+        );
+      }
+
       await env.DB
         .prepare(`
           DELETE FROM watchlist
@@ -880,6 +1540,740 @@ export default {
     }
 
     // ==================================================
+    // REWATCH - GET
+    // ==================================================
+
+    if (
+      url.pathname === "/api/rewatch" &&
+      request.method === "GET"
+    ) {
+      const auth =
+        await requireSession();
+
+      if (auth instanceof Response) {
+        return auth;
+      }
+
+      const requestedProfileId =
+        url.searchParams.get(
+          "profileId"
+        );
+
+      const profileId =
+        auth.profileId === "admin" &&
+        requestedProfileId
+          ? requestedProfileId
+          : auth.profileId;
+
+      const result =
+        await env.DB
+          .prepare(`
+            SELECT
+              library_item_id,
+              created_at
+            FROM rewatch
+            WHERE profile_id = ?
+          `)
+          .bind(profileId)
+          .all();
+
+      return json(
+        result.results
+      );
+    }
+
+    // ==================================================
+    // REWATCH - POST
+    // ==================================================
+
+    if (
+      url.pathname === "/api/rewatch" &&
+      request.method === "POST"
+    ) {
+      const auth =
+        await requireSession();
+
+      if (auth instanceof Response) {
+        return auth;
+      }
+
+      const body =
+        await request.json<{
+          profileId: string;
+          libraryItemId: string;
+        }>();
+
+      if (
+        auth.profileId !==
+          "admin" &&
+        auth.profileId !==
+          body.profileId
+      ) {
+        return json(
+          {
+            error:
+              "Forbidden."
+          },
+          403
+        );
+      }
+
+      await env.DB
+        .prepare(`
+          INSERT OR IGNORE INTO rewatch (
+            id,
+            profile_id,
+            library_item_id
+          )
+          VALUES (?, ?, ?)
+        `)
+        .bind(
+          crypto.randomUUID(),
+          body.profileId,
+          body.libraryItemId
+        )
+        .run();
+
+      return json({
+        success: true
+      });
+    }
+
+    // ==================================================
+    // REWATCH - DELETE
+    // ==================================================
+
+    if (
+      url.pathname === "/api/rewatch" &&
+      request.method === "DELETE"
+    ) {
+      const auth =
+        await requireSession();
+
+      if (auth instanceof Response) {
+        return auth;
+      }
+
+      const profileId =
+        url.searchParams.get(
+          "profileId"
+        );
+
+      const libraryItemId =
+        url.searchParams.get(
+          "libraryItemId"
+        );
+
+      if (
+        !profileId ||
+        !libraryItemId
+      ) {
+        return json(
+          {
+            error:
+              "profileId and libraryItemId are required."
+          },
+          400
+        );
+      }
+
+      if (
+        auth.profileId !==
+          "admin" &&
+        auth.profileId !==
+          profileId
+      ) {
+        return json(
+          {
+            error:
+              "Forbidden."
+          },
+          403
+        );
+      }
+
+      await env.DB
+        .prepare(`
+          DELETE FROM rewatch
+          WHERE profile_id = ?
+          AND library_item_id = ?
+        `)
+        .bind(
+          profileId,
+          libraryItemId
+        )
+        .run();
+
+      return json({
+        success: true
+      });
+    }
+
+    // ==================================================
+    // REMINDERS - GET
+    // ==================================================
+
+    if (
+      url.pathname === "/api/reminders" &&
+      request.method === "GET"
+    ) {
+      const auth =
+        await requireSession();
+
+      if (auth instanceof Response) {
+        return auth;
+      }
+
+      const result =
+        await env.DB
+          .prepare(`
+            SELECT
+              id,
+              profile_id,
+              library_item_id,
+              reminder_date,
+              reminder_time,
+              created_at
+            FROM reminders
+            WHERE profile_id = ?
+            ORDER BY
+              reminder_date ASC,
+              reminder_time ASC
+          `)
+          .bind(
+            auth.profileId
+          )
+          .all();
+
+      return json(
+        result.results
+      );
+    }
+
+    // ==================================================
+    // REMINDERS - POST
+    // ==================================================
+
+    if (
+      url.pathname === "/api/reminders" &&
+      request.method === "POST"
+    ) {
+      const auth =
+        await requireSession();
+
+      if (auth instanceof Response) {
+        return auth;
+      }
+
+      const body =
+        await request.json<{
+          libraryItemId: string;
+          reminderDate: string;
+          reminderTime: string;
+        }>();
+
+      if (
+        !body.libraryItemId ||
+        !body.reminderDate ||
+        !body.reminderTime
+      ) {
+        return json(
+          {
+            error:
+              "libraryItemId, reminderDate and reminderTime are required."
+          },
+          400
+        );
+      }
+
+      await env.DB
+        .prepare(`
+          INSERT INTO reminders (
+            id,
+            profile_id,
+            library_item_id,
+            reminder_date,
+            reminder_time
+          )
+          VALUES (?, ?, ?, ?, ?)
+        `)
+        .bind(
+          crypto.randomUUID(),
+          auth.profileId,
+          body.libraryItemId,
+          body.reminderDate,
+          body.reminderTime
+        )
+        .run();
+
+      return json({
+        success: true
+      }, 201);
+    }
+
+    // ==================================================
+    // REMINDERS - DELETE
+    // ==================================================
+
+    if (
+      url.pathname === "/api/reminders" &&
+      request.method === "DELETE"
+    ) {
+      const auth =
+        await requireSession();
+
+      if (auth instanceof Response) {
+        return auth;
+      }
+
+      const id =
+        url.searchParams.get("id");
+
+      if (!id) {
+        return json(
+          {
+            error:
+              "Reminder id is required."
+          },
+          400
+        );
+      }
+
+      await env.DB
+        .prepare(`
+          DELETE FROM reminders
+          WHERE id = ?
+          AND profile_id = ?
+        `)
+        .bind(
+          id,
+          auth.profileId
+        )
+        .run();
+
+      return json({
+        success: true
+      });
+    }
+
+    // ==================================================
+    // SCHEDULED RECOMMENDATIONS - GET
+    // ==================================================
+
+    if (
+      url.pathname ===
+        "/api/scheduled-recommendations" &&
+      request.method === "GET"
+    ) {
+      const admin =
+        await requireAdmin();
+
+      if (admin instanceof Response) {
+        return admin;
+      }
+
+      const result =
+        await env.DB
+          .prepare(`
+            SELECT
+              id,
+              profile_id,
+              library_item_id,
+              scheduled_date,
+              scheduled_time,
+              message,
+              created_at
+            FROM scheduled_recommendations
+            ORDER BY
+              scheduled_date ASC,
+              scheduled_time ASC
+          `)
+          .all();
+
+      return json(
+        result.results
+      );
+    }
+
+    // ==================================================
+    // SCHEDULED RECOMMENDATIONS - POST
+    // ==================================================
+
+    if (
+      url.pathname ===
+        "/api/scheduled-recommendations" &&
+      request.method === "POST"
+    ) {
+      const admin =
+        await requireAdmin();
+
+      if (admin instanceof Response) {
+        return admin;
+      }
+
+      const body =
+        await request.json<{
+          profileId: string;
+          libraryItemId: string;
+          scheduledDate: string;
+          scheduledTime: string;
+          message?: string;
+        }>();
+
+      if (
+        !body.profileId ||
+        !body.libraryItemId ||
+        !body.scheduledDate ||
+        !body.scheduledTime
+      ) {
+        return json(
+          {
+            error:
+              "profileId, libraryItemId, scheduledDate and scheduledTime are required."
+          },
+          400
+        );
+      }
+
+      await env.DB
+        .prepare(`
+          INSERT INTO scheduled_recommendations (
+            id,
+            profile_id,
+            library_item_id,
+            scheduled_date,
+            scheduled_time,
+            message
+          )
+          VALUES (?, ?, ?, ?, ?, ?)
+        `)
+        .bind(
+          crypto.randomUUID(),
+          body.profileId,
+          body.libraryItemId,
+          body.scheduledDate,
+          body.scheduledTime,
+          body.message ||
+            "How about this one?"
+        )
+        .run();
+
+      return json({
+        success: true
+      }, 201);
+    }
+
+    // ==================================================
+    // SCHEDULED RECOMMENDATIONS - DELETE
+    // ==================================================
+
+    if (
+      url.pathname ===
+        "/api/scheduled-recommendations" &&
+      request.method === "DELETE"
+    ) {
+      const admin =
+        await requireAdmin();
+
+      if (admin instanceof Response) {
+        return admin;
+      }
+
+      const id =
+        url.searchParams.get("id");
+
+      if (!id) {
+        return json(
+          {
+            error:
+              "Scheduled recommendation id is required."
+          },
+          400
+        );
+      }
+
+      await env.DB
+        .prepare(`
+          DELETE FROM scheduled_recommendations
+          WHERE id = ?
+        `)
+        .bind(id)
+        .run();
+
+      return json({
+        success: true
+      });
+    }
+
+    // ==================================================
+    // HERO SETTINGS - GET
+    // ==================================================
+
+    if (
+      url.pathname ===
+        "/api/hero-settings" &&
+      request.method === "GET"
+    ) {
+      const result =
+        await env.DB
+          .prepare(`
+            SELECT
+              id,
+              library_item_id,
+              position_x,
+              position_y,
+              updated_at
+            FROM hero_settings
+            WHERE id = 1
+          `)
+          .first();
+
+      return json(
+        result || {
+          id: 1,
+          library_item_id: null,
+          position_x: 50,
+          position_y: 50
+        }
+      );
+    }
+
+    // ==================================================
+    // HERO SETTINGS - PUT
+    // ==================================================
+
+    if (
+      url.pathname ===
+        "/api/hero-settings" &&
+      request.method === "PUT"
+    ) {
+      const admin =
+        await requireAdmin();
+
+      if (admin instanceof Response) {
+        return admin;
+      }
+
+      const body =
+        await request.json<{
+          libraryItemId:
+            | string
+            | null;
+          positionX: number;
+          positionY: number;
+        }>();
+
+      await env.DB
+        .prepare(`
+          INSERT INTO hero_settings (
+            id,
+            library_item_id,
+            position_x,
+            position_y
+          )
+          VALUES (1, ?, ?, ?)
+          ON CONFLICT(id)
+          DO UPDATE SET
+            library_item_id =
+              excluded.library_item_id,
+            position_x =
+              excluded.position_x,
+            position_y =
+              excluded.position_y,
+            updated_at =
+              CURRENT_TIMESTAMP
+        `)
+        .bind(
+          body.libraryItemId ??
+            null,
+          body.positionX ?? 50,
+          body.positionY ?? 50
+        )
+        .run();
+
+      return json({
+        success: true
+      });
+    }
+
+    // ==================================================
+    // RECOMMENDATION STATUS
+    // ==================================================
+
+    if (
+      url.pathname ===
+        "/api/recommendation-status" &&
+      request.method === "GET"
+    ) {
+      const auth =
+        await requireSession();
+
+      if (auth instanceof Response) {
+        return auth;
+      }
+
+      const result =
+        await env.DB
+          .prepare(`
+            SELECT
+              profile_id,
+              seen_at
+            FROM recommendation_status
+            WHERE profile_id = ?
+          `)
+          .bind(
+            auth.profileId
+          )
+          .first();
+
+      return json(
+        result || {
+          profile_id:
+            auth.profileId,
+          seen_at: null
+        }
+      );
+    }
+
+    if (
+      url.pathname ===
+        "/api/recommendation-status" &&
+      request.method === "POST"
+    ) {
+      const auth =
+        await requireSession();
+
+      if (auth instanceof Response) {
+        return auth;
+      }
+
+      await env.DB
+        .prepare(`
+          INSERT INTO recommendation_status (
+            profile_id,
+            seen_at
+          )
+          VALUES (?, CURRENT_TIMESTAMP)
+          ON CONFLICT(profile_id)
+          DO UPDATE SET
+            seen_at =
+              CURRENT_TIMESTAMP
+        `)
+        .bind(
+          auth.profileId
+        )
+        .run();
+
+      return json({
+        success: true
+      });
+    }
+
+    // ==================================================
+    // TMDB SEARCH
+    // ==================================================
+
+    if (
+      url.pathname ===
+        "/api/tmdb/search" &&
+      request.method === "GET"
+    ) {
+      const auth =
+        await requireSession();
+
+      if (auth instanceof Response) {
+        return auth;
+      }
+
+      const query =
+        url.searchParams
+          .get("query")
+          ?.trim() || "";
+
+      const type =
+        url.searchParams.get(
+          "type"
+        ) || "multi";
+
+      if (!query) {
+        return json(
+          {
+            results: []
+          },
+          400
+        );
+      }
+
+      if (
+        !env.TMDB_READ_ACCESS_TOKEN
+      ) {
+        return json(
+          {
+            error:
+              "TMDB_READ_ACCESS_TOKEN is not configured."
+          },
+          500
+        );
+      }
+
+      const allowedTypes = [
+        "multi",
+        "movie",
+        "tv"
+      ];
+
+      if (
+        !allowedTypes.includes(
+          type
+        )
+      ) {
+        return json(
+          {
+            error:
+              "Invalid TMDB search type."
+          },
+          400
+        );
+      }
+
+      const tmdbUrl =
+        "https://api.themoviedb.org/3/search/" +
+        encodeURIComponent(type) +
+        "?query=" +
+        encodeURIComponent(query) +
+        "&include_adult=false";
+
+      const tmdbResponse =
+        await fetch(
+          tmdbUrl,
+          {
+            headers: {
+              Authorization:
+                "Bearer " +
+                env.TMDB_READ_ACCESS_TOKEN,
+              Accept:
+                "application/json"
+            }
+          }
+        );
+
+      const data =
+        await tmdbResponse.json();
+
+      if (!tmdbResponse.ok) {
+        return json(
+          {
+            error:
+              "TMDB search failed."
+          },
+          tmdbResponse.status
+        );
+      }
+
+      return json(data);
+    }
+
+    // ==================================================
     // NOT FOUND
     // ==================================================
 
@@ -892,4 +2286,3 @@ export default {
     );
   }
 };
-
