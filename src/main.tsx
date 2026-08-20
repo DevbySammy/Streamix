@@ -471,18 +471,18 @@ const effectiveProfile =
 const profile =
   effectiveProfile;
 
-  const state =
-    effectiveProfileId
-      ? states[effectiveProfileId] || {
-          watched: [],
-          watchlist: [],
-          rewatch: []
-        }
-      : {
-          watched: [],
-          watchlist: [],
-          rewatch: []
-        };
+const state =
+  effectiveProfileId
+    ? states[effectiveProfileId] || {
+        watched: [],
+        watchlist: [],
+        rewatch: []
+      }
+    : {
+        watched: [],
+        watchlist: [],
+        rewatch: []
+      };
 
   const hero = heroSettings.titleId
     ? library.find(
