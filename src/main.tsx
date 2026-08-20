@@ -768,6 +768,21 @@ const effectiveProfile =
             </button>
           )}
 
+          {/* SIGN OUT */}
+          <button
+            className="admin-badge"
+            onClick={() =>
+              alert(
+                "Sign out will be connected to your real authentication system."
+              )
+            }
+            aria-label="Sign out"
+            title="Sign out"
+          >
+            <LogOut size={14} />
+            SIGN OUT
+          </button>
+
           {menu && isAdmin && (
             <div className="admin-menu">
 
@@ -1618,18 +1633,6 @@ const effectiveProfile =
           </span>
         )}
 
-        <button
-          onClick={() =>
-            alert(
-              "Sign out will be connected to your real authentication system."
-            )
-          }
-        >
-          <LogOut
-            size={14}
-          />
-          Sign out
-        </button>
 
       </footer>
 
