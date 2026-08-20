@@ -1,5 +1,7 @@
+```typescript
 export interface Env {
   TMDB_READ_ACCESS_TOKEN: string;
+  ADMIN_API_TOKEN: string;
   DB: D1Database;
 }
 
@@ -19,7 +21,7 @@ export default {
       "Access-Control-Allow-Methods":
         "GET, POST, PUT, DELETE, OPTIONS",
       "Access-Control-Allow-Headers":
-        "Content-Type"
+        "Content-Type, Authorization"
     };
 
     if (request.method === "OPTIONS") {
@@ -37,6 +39,31 @@ export default {
         status,
         headers: corsHeaders
       });
+    };
+
+    // ==================================================
+    // ADMIN AUTHENTICATION
+    // ==================================================
+
+    const requireAdmin = (): Response | null => {
+      const authorization =
+        request.headers.get("Authorization");
+
+      if (
+        !env.ADMIN_API_TOKEN ||
+        authorization !==
+          `Bearer ${env.ADMIN_API_TOKEN}`
+      ) {
+        return json(
+          {
+            error:
+              "Unauthorized. Admin access required."
+          },
+          401
+        );
+      }
+
+      return null;
     };
 
     // ==================================================
@@ -421,6 +448,14 @@ export default {
       url.pathname === "/api/library" &&
       request.method === "POST"
     ) {
+      // NEW: Only the admin can add movies.
+      const unauthorized =
+        requireAdmin();
+
+      if (unauthorized) {
+        return unauthorized;
+      }
+
       const body =
         await request.json<{
           id?: string;
@@ -517,6 +552,14 @@ export default {
       url.pathname === "/api/library" &&
       request.method === "DELETE"
     ) {
+      // NEW: Only the admin can remove movies.
+      const unauthorized =
+        requireAdmin();
+
+      if (unauthorized) {
+        return unauthorized;
+      }
+
       const id =
         url.searchParams.get("id");
 
@@ -850,3 +893,4 @@ export default {
     );
   }
 };
+```
