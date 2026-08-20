@@ -965,7 +965,8 @@ function App() {
     setScheduled(current =>
       current.filter(
         item =>
-          item.titleId !== id
+          item.titleId !==
+          id
       )
     );
 
@@ -1341,8 +1342,6 @@ function App() {
                 SETTINGS
               </button>
             )}
-
-          {/* PRIMARY LOGOUT LOCATION */}
 
           <button
             className="admin-badge"
@@ -1812,9 +1811,7 @@ function App() {
           </Modal>
         )}
 
-      {/* =====================================================
-          PROFILES
-      ===================================================== */}
+      {/* PROFILES */}
 
       {showProfile && (
         <Modal
@@ -1882,8 +1879,6 @@ function App() {
                         "opacity .15s ease, border .1s ease"
                     }}
                   >
-
-                    {/* PROFILE SELECT */}
 
                     <button
                       onClick={() => {
@@ -1969,8 +1964,6 @@ function App() {
 
                     </button>
 
-                    {/* PROFILE SETTINGS */}
-
                     <button
                       className="icon"
                       disabled={
@@ -2015,8 +2008,6 @@ function App() {
                       />
                     </button>
 
-                    {/* TOUCH-FRIENDLY DRAG HANDLE */}
-
                     {isAdmin &&
                       item.id !==
                         "admin" && (
@@ -2051,8 +2042,6 @@ function App() {
                           />
                         </div>
                       )}
-
-                    {/* DROP LABEL */}
 
                     {isDropTarget && (
                       <div
@@ -2099,8 +2088,6 @@ function App() {
                 );
               }
             )}
-
-            {/* ADD PROFILE */}
 
             {isAdmin && (
               <button
@@ -3484,6 +3471,12 @@ function AddTitle({
   const [error, setError] =
     useState("");
 
+  const [addedTitleId, setAddedTitleId] =
+    useState<string | null>(null);
+
+  const [confirmation, setConfirmation] =
+    useState("");
+
   useEffect(() => {
     const cleanQuery =
       query.trim();
@@ -3526,15 +3519,53 @@ function AddTitle({
       );
   }, [query]);
 
-  const available =
-    results.filter(
-      title =>
-        !library.some(
-          item =>
-            item.id ===
-            title.id
-        )
+  useEffect(() => {
+    if (!confirmation) {
+      return;
+    }
+
+    const timer =
+      window.setTimeout(() => {
+        setConfirmation("");
+      }, 2500);
+
+    return () =>
+      window.clearTimeout(
+        timer
+      );
+  }, [confirmation]);
+
+  function handleAdd(
+    title: Title
+  ) {
+    const alreadyAdded =
+      library.some(
+        item =>
+          item.id === title.id
+      );
+
+    if (alreadyAdded) {
+      setAddedTitleId(
+        title.id
+      );
+
+      setConfirmation(
+        "Already in your library"
+      );
+
+      return;
+    }
+
+    onAdd(title);
+
+    setAddedTitleId(
+      title.id
     );
+
+    setConfirmation(
+      "Added to your library"
+    );
+  }
 
   return (
     <Modal
@@ -3564,6 +3595,19 @@ function AddTitle({
 
       </div>
 
+      {confirmation && (
+        <div
+          className="add-confirmation"
+          role="status"
+          aria-live="polite"
+        >
+          <Check size={17} />
+          <span>
+            {confirmation}
+          </span>
+        </div>
+      )}
+
       {loading && (
         <p className="muted">
           Searching TMDB...
@@ -3578,54 +3622,69 @@ function AddTitle({
 
       <div className="result-list">
 
-        {available.map(
-          title => (
-            <div
-              className="result"
-              key={title.id}
-            >
+        {results.map(
+          title => {
+            const isAdded =
+              library.some(
+                item =>
+                  item.id ===
+                  title.id
+              );
 
-              <img
-                src={title.poster}
-                alt={title.name}
-              />
+            const wasJustAdded =
+              addedTitleId ===
+              title.id;
 
-              <div>
+            return (
+              <div
+                className="result"
+                key={title.id}
+              >
 
-                <b>
-                  {title.name}
-                </b>
+                <img
+                  src={title.poster}
+                  alt={title.name}
+                />
 
-                <span>
-                  {title.year} ·{" "}
-                  {title.kind ===
-                  "movie"
-                    ? "Movie"
-                    : "TV Show"}
-                </span>
+                <div>
+
+                  <b>
+                    {title.name}
+                  </b>
+
+                  <span>
+                    {title.year} ·{" "}
+                    {title.kind ===
+                    "movie"
+                      ? "Movie"
+                      : "TV Show"}
+                  </span>
+
+                </div>
+
+                <button
+                  className={
+                    isAdded
+                      ? "pink add added"
+                      : "pink add"
+                  }
+                  disabled={
+                    isAdded
+                  }
+                  onClick={() =>
+                    handleAdd(
+                      title
+                    )
+                  }
+                >
+                  {isAdded
+                    ? "✓ Added"
+                    : "+ Add"}
+                </button>
 
               </div>
-
-              <button
-                className="pink add"
-                onClick={() => {
-                  onAdd(title);
-
-                  setResults(
-                    current =>
-                      current.filter(
-                        item =>
-                          item.id !==
-                          title.id
-                      )
-                  );
-                }}
-              >
-                + Add
-              </button>
-
-            </div>
-          )
+            );
+          }
         )}
 
       </div>
