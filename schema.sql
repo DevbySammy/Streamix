@@ -1,64 +1,64 @@
--- Production-ready relational shape. One titles table for movies AND TV shows.
-create type media_kind as enum ('movie','tv');
-create type watch_status as enum ('watchlist','watched');
-
-create table profiles (
-  id uuid primary key references auth.users(id) on delete cascade,
-  name text not null,
-  avatar_url text,
-  is_admin boolean not null default false,
-  created_at timestamptz not null default now()
+CREATE TABLE IF NOT EXISTS profiles (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  avatar TEXT,
+  sort_order INTEGER NOT NULL DEFAULT 9999,
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
-create table titles (
-  id uuid primary key default gen_random_uuid(),
-  provider text,
-  provider_id text,
-  kind media_kind not null,
-  title text not null,
-  release_date date,
-  overview text,
-  poster_url text,
-  backdrop_url text,
-  metadata jsonb not null default '{}'::jsonb,
-  created_at timestamptz not null default now(),
-  unique(provider, provider_id)
+CREATE TABLE IF NOT EXISTS library_items (
+  id TEXT PRIMARY KEY,
+  tmdb_id INTEGER NOT NULL,
+  media_type TEXT NOT NULL,
+  title TEXT NOT NULL,
+  poster_path TEXT,
+  backdrop_path TEXT,
+  overview TEXT,
+  release_date TEXT,
+  vote_average REAL,
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
-create table profile_title_status (
-  profile_id uuid not null references profiles(id) on delete cascade,
-  title_id uuid not null references titles(id) on delete cascade,
-  status watch_status not null,
-  created_at timestamptz not null default now(),
-  primary key(profile_id,title_id,status)
+CREATE TABLE IF NOT EXISTS watch_history (
+  id TEXT PRIMARY KEY,
+  profile_id TEXT NOT NULL,
+  library_item_id TEXT NOT NULL,
+  watched_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+  UNIQUE(profile_id, library_item_id),
+
+  FOREIGN KEY (profile_id)
+    REFERENCES profiles(id)
+    ON DELETE CASCADE,
+
+  FOREIGN KEY (library_item_id)
+    REFERENCES library_items(id)
+    ON DELETE CASCADE
 );
 
-create table profile_rewatch (
-  profile_id uuid not null references profiles(id) on delete cascade,
-  title_id uuid not null references titles(id) on delete cascade,
-  created_at timestamptz not null default now(),
-  primary key(profile_id,title_id)
+CREATE TABLE IF NOT EXISTS watchlist (
+  id TEXT PRIMARY KEY,
+  profile_id TEXT NOT NULL,
+  library_item_id TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'watchlist',
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+  UNIQUE(profile_id, library_item_id),
+
+  FOREIGN KEY (profile_id)
+    REFERENCES profiles(id)
+    ON DELETE CASCADE,
+
+  FOREIGN KEY (library_item_id)
+    REFERENCES library_items(id)
+    ON DELETE CASCADE
 );
 
-create table reminders (
-  id uuid primary key default gen_random_uuid(), profile_id uuid not null references profiles(id) on delete cascade,
-  title_id uuid not null references titles(id) on delete cascade, remind_at timestamptz not null,
-  calendar_event_id text, push_sent_at timestamptz, created_at timestamptz not null default now()
-);
+CREATE INDEX IF NOT EXISTS idx_profiles_sort_order
+  ON profiles(sort_order);
 
-create table scheduled_recommendations (
-  id uuid primary key default gen_random_uuid(), admin_profile_id uuid not null references profiles(id) on delete cascade,
-  profile_id uuid not null references profiles(id) on delete cascade, title_id uuid not null references titles(id) on delete cascade,
-  scheduled_for timestamptz not null, message text, sent_at timestamptz, created_at timestamptz not null default now()
-);
+CREATE INDEX IF NOT EXISTS idx_watch_history_profile
+  ON watch_history(profile_id);
 
-create table hero_banner (
-  id uuid primary key default gen_random_uuid(), title_id uuid references titles(id) on delete set null,
-  image_url text, active boolean not null default true, updated_by uuid references profiles(id), updated_at timestamptz not null default now()
-);
-
--- Critical rule: title deletion cascades to every profile's statuses, rewatch entries,
--- reminders and scheduled recommendations. No orphaned per-profile title rows remain.
--- Enable RLS in production and write policies so only is_admin=true can INSERT/DELETE titles,
--- edit hero_banner, edit profiles, and create scheduled recommendations. Profiles may only
--- SELECT the master library and INSERT/UPDATE/DELETE their own status/rewatch/reminders.
+CREATE INDEX IF NOT EXISTS idx_watchlist_profile
+  ON watchlist(profile_id);
