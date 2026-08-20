@@ -374,8 +374,6 @@ function App() {
       ) || null
     : null;
 
-  const [showPassword, setShowPassword] = useState(false);
-
   /* =======================================================
      RECOMMENDATION
   ======================================================= */
@@ -698,8 +696,6 @@ function App() {
   return (
     <div className="app">
 
-      {/* HEADER */}
-
       <header>
         <div className="logo">
           STREAM<span>IX</span>
@@ -767,8 +763,6 @@ function App() {
 
         </div>
       </header>
-
-      {/* HERO */}
 
       <section
         className="hero"
@@ -850,11 +844,7 @@ function App() {
         </div>
       </section>
 
-      {/* MAIN */}
-
       <main>
-
-        {/* PRIMARY NAVIGATION */}
 
         <div className="switch">
 
@@ -888,8 +878,6 @@ function App() {
           )}
 
         </div>
-
-        {/* LIBRARY CONTROLS */}
 
         {tab === "library" && (
           <>
@@ -964,8 +952,6 @@ function App() {
               </div>
 
             </div>
-
-            {/* FORMAT + SORT */}
 
             <div className="format">
 
@@ -1051,8 +1037,6 @@ function App() {
           </>
         )}
 
-        {/* LIBRARY */}
-
         <div className="grid">
 
           {visible.map(title => (
@@ -1109,8 +1093,6 @@ function App() {
 
       </main>
 
-      {/* TODAY'S RECOMMENDATION */}
-
       {showReco &&
         recommendation && (
           <Modal
@@ -1162,8 +1144,6 @@ function App() {
             </div>
           </Modal>
         )}
-
-      {/* PROFILES */}
 
       {showProfile && (
         <Modal
@@ -1315,8 +1295,6 @@ function App() {
         </Modal>
       )}
 
-      {/* PROFILE LOGIN */}
-
       {loginProfile && (
         <ProfileLogin
           profile={loginProfile}
@@ -1344,8 +1322,6 @@ function App() {
           }}
         />
       )}
-
-      {/* PROFILE EDITOR */}
 
       {editing && (
         <ProfileEditor
@@ -1420,8 +1396,6 @@ function App() {
         />
       )}
 
-      {/* ADD TITLE */}
-
       {showAdd && (
         <AddTitle
           library={library}
@@ -1436,8 +1410,6 @@ function App() {
           }
         />
       )}
-
-      {/* REMINDER */}
 
       {showReminder && (
         <ReminderModal
@@ -1463,8 +1435,6 @@ function App() {
         />
       )}
 
-      {/* SCHEDULE */}
-
       {showSchedule &&
         isAdmin && (
           <ScheduleModal
@@ -1489,8 +1459,6 @@ function App() {
           />
         )}
 
-      {/* HERO EDITOR */}
-
       {showHero &&
         isAdmin && (
           <HeroModal
@@ -1509,8 +1477,6 @@ function App() {
             }}
           />
         )}
-
-      {/* FOOTER */}
 
       <footer>
 
@@ -1579,6 +1545,9 @@ function ProfileLogin({
   const [resetting, setResetting] =
     useState(false);
 
+  const [showPassword, setShowPassword] =
+    useState(false);
+
   const hasPassword =
     Boolean(profile.password);
 
@@ -1620,6 +1589,10 @@ function ProfileLogin({
     onSuccess();
   }
 
+  function togglePasswordVisibility() {
+    setShowPassword(current => !current);
+  }
+
   return (
     <Modal
       title={
@@ -1652,25 +1625,52 @@ function ProfileLogin({
             <label>
               Password
 
-              <input
-                autoFocus
-                type="password"
-                value={password}
-                onChange={event => {
-                  setPassword(
-                    event.target.value
-                  );
-                  setError("");
-                }}
-                onKeyDown={event => {
-                  if (
-                    event.key === "Enter"
-                  ) {
-                    handleSetPassword();
+              <div className="password-wrapper">
+
+                <input
+                  autoFocus
+                  type={
+                    showPassword
+                      ? "text"
+                      : "password"
                   }
-                }}
-                placeholder="Create a password"
-              />
+                  value={password}
+                  onChange={event => {
+                    setPassword(
+                      event.target.value
+                    );
+                    setError("");
+                  }}
+                  onKeyDown={event => {
+                    if (
+                      event.key === "Enter"
+                    ) {
+                      handleSetPassword();
+                    }
+                  }}
+                  placeholder="Create a password"
+                />
+
+                <button
+                  type="button"
+                  className="password-toggle"
+                  onClick={
+                    togglePasswordVisibility
+                  }
+                  aria-label={
+                    showPassword
+                      ? "Hide password"
+                      : "Show password"
+                  }
+                >
+                  {showPassword ? (
+                    <EyeOff size={18} />
+                  ) : (
+                    <Eye size={18} />
+                  )}
+                </button>
+
+              </div>
             </label>
 
             {error && (
@@ -1696,25 +1696,52 @@ function ProfileLogin({
             <label>
               New Password
 
-              <input
-                autoFocus
-                type="password"
-                value={password}
-                onChange={event => {
-                  setPassword(
-                    event.target.value
-                  );
-                  setError("");
-                }}
-                onKeyDown={event => {
-                  if (
-                    event.key === "Enter"
-                  ) {
-                    handleResetPassword();
+              <div className="password-wrapper">
+
+                <input
+                  autoFocus
+                  type={
+                    showPassword
+                      ? "text"
+                      : "password"
                   }
-                }}
-                placeholder="Create a new password"
-              />
+                  value={password}
+                  onChange={event => {
+                    setPassword(
+                      event.target.value
+                    );
+                    setError("");
+                  }}
+                  onKeyDown={event => {
+                    if (
+                      event.key === "Enter"
+                    ) {
+                      handleResetPassword();
+                    }
+                  }}
+                  placeholder="Create a new password"
+                />
+
+                <button
+                  type="button"
+                  className="password-toggle"
+                  onClick={
+                    togglePasswordVisibility
+                  }
+                  aria-label={
+                    showPassword
+                      ? "Hide password"
+                      : "Show password"
+                  }
+                >
+                  {showPassword ? (
+                    <EyeOff size={18} />
+                  ) : (
+                    <Eye size={18} />
+                  )}
+                </button>
+
+              </div>
             </label>
 
             {error && (
@@ -1738,6 +1765,7 @@ function ProfileLogin({
                 setResetting(false);
                 setPassword("");
                 setError("");
+                setShowPassword(false);
               }}
             >
               Back to Login
@@ -1752,25 +1780,52 @@ function ProfileLogin({
             <label>
               Password
 
-              <input
-                autoFocus
-                type="password"
-                value={password}
-                onChange={event => {
-                  setPassword(
-                    event.target.value
-                  );
-                  setError("");
-                }}
-                onKeyDown={event => {
-                  if (
-                    event.key === "Enter"
-                  ) {
-                    handleLogin();
+              <div className="password-wrapper">
+
+                <input
+                  autoFocus
+                  type={
+                    showPassword
+                      ? "text"
+                      : "password"
                   }
-                }}
-                placeholder="Enter password"
-              />
+                  value={password}
+                  onChange={event => {
+                    setPassword(
+                      event.target.value
+                    );
+                    setError("");
+                  }}
+                  onKeyDown={event => {
+                    if (
+                      event.key === "Enter"
+                    ) {
+                      handleLogin();
+                    }
+                  }}
+                  placeholder="Enter password"
+                />
+
+                <button
+                  type="button"
+                  className="password-toggle"
+                  onClick={
+                    togglePasswordVisibility
+                  }
+                  aria-label={
+                    showPassword
+                      ? "Hide password"
+                      : "Show password"
+                  }
+                >
+                  {showPassword ? (
+                    <EyeOff size={18} />
+                  ) : (
+                    <Eye size={18} />
+                  )}
+                </button>
+
+              </div>
             </label>
 
             {error && (
@@ -1792,6 +1847,7 @@ function ProfileLogin({
                 setResetting(true);
                 setPassword("");
                 setError("");
+                setShowPassword(false);
               }}
             >
               Forgot password?
