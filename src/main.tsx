@@ -443,52 +443,47 @@ const [viewingAs, setViewingAs] =
      CURRENT USER / PERMISSIONS
   ======================================================= */
 
-const isAdminUser =
-  profileId === "admin";
+  const isAdminUser = profileId === "admin";
 
-const isViewingAs =
-  isAdminUser &&
-  viewingAs !== null;
+  const isViewingAs =
+    isAdminUser && viewingAs !== null;
 
-const isAdmin =
-  isAdminUser &&
-  !isViewingAs;
+  const isAdmin =
+    isAdminUser && !isViewingAs;
 
-const effectiveProfileId =
-  isViewingAs
-    ? viewingAs
-    : profileId;
+  let effectiveProfileId: string | null =
+    profileId;
 
-const effectiveProfile =
-  effectiveProfileId
-    ? profiles.find(
+  if (isViewingAs) {
+    effectiveProfileId = viewingAs;
+  }
+
+  let effectiveProfile: Profile | null = null;
+
+  if (effectiveProfileId) {
+    effectiveProfile =
+      profiles.find(
         item =>
-          item.id ===
-          effectiveProfileId
-      ) || null
-    : null;
+          item.id === effectiveProfileId
+      ) || null;
+  }
 
-const profile =
-  effectiveProfile;
+  const profile = effectiveProfile;
 
-const state =
-  effectiveProfileId
-    ? states[effectiveProfileId] || {
-        watched: [],
-        watchlist: [],
-        rewatch: []
-      }
-    : {
-        watched: [],
-        watchlist: [],
-        rewatch: []
-      };
+  const state: State =
+    effectiveProfileId &&
+    states[effectiveProfileId]
+      ? states[effectiveProfileId]
+      : {
+          watched: [],
+          watchlist: [],
+          rewatch: []
+        };
 
   const hero = heroSettings.titleId
     ? library.find(
         item =>
-          item.id ===
-          heroSettings.titleId
+          item.id === heroSettings.titleId
       ) || null
     : null;
 
