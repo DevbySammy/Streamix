@@ -1,5 +1,8 @@
-import React, {useEffect, useMemo, useState} from 'react';
-import {createRoot} from 'react-dom/client';
+# Complete `main.tsx`
+
+```tsx
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { createRoot } from 'react-dom/client';
 import {
   Bell,
   Check,
@@ -17,6 +20,10 @@ import {
   X
 } from 'lucide-react';
 import './styles.css';
+
+/* =========================================================
+   TYPES
+========================================================= */
 
 type Kind = 'movie' | 'tv';
 
@@ -64,13 +71,18 @@ type SortOption =
   | 'name-asc'
   | 'name-desc'
   | 'year-desc'
-  | 'year-asc';
+  | 'year-asc'
+  | 'year-filter';
 
 type HeroSettings = {
   titleId: string | null;
   positionX: number;
   positionY: number;
 };
+
+/* =========================================================
+   DEFAULT DATA
+========================================================= */
 
 const initialProfiles: Profile[] = [
   {
@@ -94,59 +106,100 @@ const initialHero: HeroSettings = {
   positionY: 50
 };
 
+/* =========================================================
+   HELPERS
+========================================================= */
+
 const uid = () =>
   Math.random().toString(36).slice(2) +
   Date.now().toString(36);
 
-function useStored<T>(key: string, fallback: T) {
-  const [value, setValue] = useState<T>(() => {
-    try {
-      return (
-        JSON.parse(
-          localStorage.getItem(key) || 'null'
-        ) ?? fallback
-      );
-    } catch {
+const emptyState = (): State => ({
+  watched: [],
+  watchlist: [],
+  rewatch: []
+});
+
+/* =========================================================
+   SAFE LOCAL STORAGE
+========================================================= */
+
+function readStored<T>(
+  key: string,
+  fallback: T
+): T {
+  try {
+    const stored = localStorage.getItem(key);
+
+    if (!stored) {
       return fallback;
     }
-  });
+
+    const parsed = JSON.parse(stored);
+
+    return parsed ?? fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+function useStored<T>(
+  key: string,
+  fallback: T
+) {
+  const [value, setValue] = useState<T>(() =>
+    readStored(key, fallback)
+  );
 
   useEffect(() => {
-    localStorage.setItem(
-      key,
-      JSON.stringify(value)
-    );
+    try {
+      localStorage.setItem(
+        key,
+        JSON.stringify(value)
+      );
+    } catch {
+      // Ignore storage errors so they cannot crash the app.
+    }
   }, [key, value]);
 
   return [value, setValue] as const;
 }
 
-/* --------------------------------------------------
+/* =========================================================
    TMDB SERVICE
--------------------------------------------------- */
+========================================================= */
 
 async function searchTMDB(
   query: string
 ): Promise<Title[]> {
-  if (!query.trim()) return [];
+  if (!query.trim()) {
+    return [];
+  }
 
   const response = await fetch(
     `/api/tmdb/search?query=${encodeURIComponent(
-      query
+      query.trim()
     )}&type=multi`
   );
 
   if (!response.ok) {
-    throw new Error('TMDB search failed');
+    throw new Error(
+      `TMDB search failed: ${response.status}`
+    );
   }
 
   const data = await response.json();
 
-  return (data.results || [])
+  if (!data || !Array.isArray(data.results)) {
+    return [];
+  }
+
+  return data.results
     .filter(
       (item: any) =>
-        item.media_type === 'movie' ||
-        item.media_type === 'tv'
+        item &&
+        (item.media_type === 'movie' ||
+          item.media_type === 'tv')
     )
     .map((item: any): Title => {
       const kind: Kind =
@@ -159,33 +212,42 @@ async function searchTMDB(
           ? item.release_date
           : item.first_air_date;
 
+      const name =
+        kind === 'movie'
+          ? item.title
+          : item.name;
+
       return {
         id: `tmdb-${kind}-${item.id}`,
-        name:
-          kind === 'movie'
-            ? item.title
-            : item.name,
+        name: name || 'Untitled',
         kind,
         year: date
-          ? Number(date.slice(0, 4))
+          ? Number(String(date).slice(0, 4))
           : 0,
         poster: item.poster_path
           ? `https://image.tmdb.org/t/p/w500${item.poster_path}`
-          : 'https://placehold.co/500x750/171717/ffffff?text=No+Poster',
+          : `https://placehold.co/500x750/171717/ffffff?text=${encodeURIComponent(
+              name || 'No Poster'
+            )}`,
         backdrop: item.backdrop_path
           ? `https://image.tmdb.org/t/p/w1280${item.backdrop_path}`
           : '',
         overview: item.overview || '',
-        addedAt: new Date().toISOString()
+        addedAt:
+          new Date().toISOString()
       };
     });
 }
 
-/* --------------------------------------------------
+/* =========================================================
    APP
--------------------------------------------------- */
+========================================================= */
 
 function App() {
+  /* -------------------------------------------------------
+     STORED DATA
+  ------------------------------------------------------- */
+
   const [library, setLibrary] =
     useStored<Title[]>(
       'sx-library',
@@ -222,6 +284,10 @@ function App() {
       initialHero
     );
 
+  /* -------------------------------------------------------
+     UI STATE
+  ------------------------------------------------------- */
+
   const [profileId, setProfileId] =
     useState('admin');
 
@@ -242,6 +308,12 @@ function App() {
     useState<SortOption>(
       'name-asc'
     );
+
+  const [filterYear, setFilterYear] =
+    useState('');
+
+  const [showFilter, setShowFilter] =
+    useState(false);
 
   const [q, setQ] = useState('');
 
@@ -269,89 +341,167 @@ function App() {
   const [menu, setMenu] =
     useState(false);
 
+  const filterRef =
+    useRef<HTMLDivElement | null>(null);
+
+  /* -------------------------------------------------------
+     CLOSE FILTER WHEN CLICKING OUTSIDE
+  ------------------------------------------------------- */
+
+  useEffect(() => {
+    const handlePointerDown = (
+      event: PointerEvent
+    ) => {
+      if (
+        filterRef.current &&
+        !filterRef.current.contains(
+          event.target as Node
+        )
+      ) {
+        setShowFilter(false);
+      }
+    };
+
+    document.addEventListener(
+      'pointerdown',
+      handlePointerDown
+    );
+
+    return () => {
+      document.removeEventListener(
+        'pointerdown',
+        handlePointerDown
+      );
+    };
+  }, []);
+
+  /* -------------------------------------------------------
+     SAFETY: MAKE SURE ADMIN ALWAYS EXISTS
+  ------------------------------------------------------- */
+
+  useEffect(() => {
+    const adminExists = profiles.some(
+      profile => profile.id === 'admin'
+    );
+
+    if (!adminExists) {
+      setProfiles([
+        {
+          id: 'admin',
+          name: 'Admin',
+          avatar: '👑'
+        },
+        ...profiles
+      ]);
+    }
+
+    if (!states.admin) {
+      setStates({
+        ...states,
+        admin: emptyState()
+      });
+    }
+
+    // This effect intentionally runs once on startup.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  /* -------------------------------------------------------
+     CURRENT PROFILE
+  ------------------------------------------------------- */
+
   const isAdmin =
     profileId === 'admin';
 
   const profile =
     profiles.find(
-      x => x.id === profileId
+      item => item.id === profileId
     ) || profiles[0];
 
+  const currentProfileId =
+    profile?.id || 'admin';
+
   const state =
-    states[profileId] || {
-      watched: [],
-      watchlist: [],
-      rewatch: []
-    };
+    states[currentProfileId] ||
+    emptyState();
 
-  const hero = heroSettings.titleId
-    ? library.find(
-        x => x.id === heroSettings.titleId
-      ) || null
-    : null;
+  /* -------------------------------------------------------
+     HERO
+  ------------------------------------------------------- */
 
-  /* --------------------------------------------------
+  const hero =
+    heroSettings.titleId
+      ? library.find(
+          title =>
+            title.id ===
+            heroSettings.titleId
+        ) || null
+      : null;
+
+  /* -------------------------------------------------------
      TODAY'S RECOMMENDATION
-  -------------------------------------------------- */
+  ------------------------------------------------------- */
 
   const recommendation = useMemo(() => {
     const watchlistTitles =
-      library.filter(
-        title =>
+      library.filter(title => {
+        return (
           state.watchlist.includes(
             title.id
           ) &&
           !state.watched.includes(
             title.id
           )
-      );
+        );
+      });
 
-    return watchlistTitles[0] || null;
-  }, [
-    library,
-    state
-  ]);
-
-  /*
-   * Show Today's Reco once per profile.
-   * It is intentionally stored separately for
-   * each profile.
-   */
+    return (
+      watchlistTitles[0] || null
+    );
+  }, [library, state]);
 
   useEffect(() => {
     if (
-      !profileId ||
+      !currentProfileId ||
       !recommendation
     ) {
       return;
     }
 
     const key =
-      `sx-reco-seen-${profileId}`;
+      `sx-reco-seen-${currentProfileId}`;
 
-    const alreadySeen =
-      localStorage.getItem(key);
+    try {
+      const alreadySeen =
+        localStorage.getItem(key);
 
-    if (!alreadySeen) {
+      if (!alreadySeen) {
+        setShowReco(true);
+      }
+    } catch {
       setShowReco(true);
     }
   }, [
-    profileId,
+    currentProfileId,
     recommendation
   ]);
 
   const closeRecommendation = () => {
-    localStorage.setItem(
-      `sx-reco-seen-${profileId}`,
-      'true'
-    );
+    try {
+      localStorage.setItem(
+        `sx-reco-seen-${currentProfileId}`,
+        'true'
+      );
+    } catch {
+      // Ignore storage errors.
+    }
 
     setShowReco(false);
   };
 
-  /* --------------------------------------------------
-     SORTING
-  -------------------------------------------------- */
+  /* -------------------------------------------------------
+     VISIBLE LIBRARY
+  ------------------------------------------------------- */
 
   const visible = useMemo(() => {
     const filtered =
@@ -368,22 +518,41 @@ function App() {
             kind === 'all' ||
             title.kind === kind
         )
-        .filter(title =>
-          tab === 'rewatch'
-            ? state.rewatch.includes(
-                title.id
-              )
-            : filter === 'all' ||
-              (
-                filter === 'watched'
-                  ? state.watched.includes(
-                      title.id
-                    )
-                  : state.watchlist.includes(
-                      title.id
-                    )
-              )
-        );
+        .filter(title => {
+          if (sort !== 'year-filter') {
+            return true;
+          }
+
+          if (!filterYear) {
+            return true;
+          }
+
+          return (
+            title.year ===
+            Number(filterYear)
+          );
+        })
+        .filter(title => {
+          if (tab === 'rewatch') {
+            return state.rewatch.includes(
+              title.id
+            );
+          }
+
+          if (filter === 'all') {
+            return true;
+          }
+
+          if (filter === 'watched') {
+            return state.watched.includes(
+              title.id
+            );
+          }
+
+          return state.watchlist.includes(
+            title.id
+          );
+        });
 
     return [...filtered].sort(
       (a, b) => {
@@ -399,6 +568,7 @@ function App() {
           case 'year-asc':
             return a.year - b.year;
 
+          case 'year-filter':
           case 'name-asc':
           default:
             return a.name.localeCompare(
@@ -414,90 +584,182 @@ function App() {
     tab,
     filter,
     sort,
+    filterYear,
     state
   ]);
 
-  /* --------------------------------------------------
+  /* -------------------------------------------------------
      STATE ACTIONS
-  -------------------------------------------------- */
+  ------------------------------------------------------- */
 
   const updateState = (
-    fn: (s: State) => State
+    fn: (current: State) => State
   ) => {
+    const current =
+      states[currentProfileId] ||
+      emptyState();
+
     setStates({
       ...states,
-      [profileId]: fn(state)
+      [currentProfileId]:
+        fn(current)
     });
   };
 
   const toggle = (
     array: keyof State,
-    id: string
+    titleId: string
   ) => {
-    updateState(s => ({
-      ...s,
-      [array]: s[array].includes(id)
-        ? s[array].filter(
-            x => x !== id
-          )
-        : [...s[array], id]
-    }));
+    updateState(current => {
+      const exists =
+        current[array].includes(
+          titleId
+        );
+
+      return {
+        ...current,
+        [array]: exists
+          ? current[array].filter(
+              id => id !== titleId
+            )
+          : [
+              ...current[array],
+              titleId
+            ]
+      };
+    });
   };
 
-  /* --------------------------------------------------
+  /* -------------------------------------------------------
+     FILTER ACTIONS
+  ------------------------------------------------------- */
+
+  const selectSort = (
+    option: Exclude<
+      SortOption,
+      'year-filter'
+    >
+  ) => {
+    setSort(option);
+    setFilterYear('');
+    setShowFilter(false);
+  };
+
+  const updateYearFilter = (
+    value: string
+  ) => {
+    const numericValue =
+      value.replace(/\D/g, '');
+
+    setFilterYear(
+      numericValue.slice(0, 4)
+    );
+
+    setSort('year-filter');
+  };
+
+  const clearYearFilter = () => {
+    setFilterYear('');
+    setSort('name-asc');
+  };
+
+  /* -------------------------------------------------------
+     ADD TITLE
+  ------------------------------------------------------- */
+
+  const addTitle = (title: Title) => {
+    const alreadyExists =
+      library.some(
+        item => item.id === title.id
+      );
+
+    if (alreadyExists) {
+      return;
+    }
+
+    setLibrary([
+      ...library,
+      title
+    ]);
+
+    if (
+      library.length === 0 &&
+      !heroSettings.titleId
+    ) {
+      setHeroSettings({
+        ...heroSettings,
+        titleId: title.id
+      });
+    }
+  };
+
+  /* -------------------------------------------------------
      REMOVE TITLE
-  -------------------------------------------------- */
+  ------------------------------------------------------- */
 
   const removeTitle = (
-    id: string
+    titleId: string
   ) => {
     setLibrary(
       library.filter(
-        title => title.id !== id
+        title =>
+          title.id !== titleId
       )
     );
 
-    const nextStates = {
-      ...states
-    };
+    const nextStates: Record<
+      string,
+      State
+    > = {};
 
-    Object.keys(
-      nextStates
-    ).forEach(id => {
-      nextStates[id] = {
-        watched:
-          nextStates[id].watched.filter(
-            x => x !== id
-          ),
-        watchlist:
-          nextStates[id].watchlist.filter(
-            x => x !== id
-          ),
-        rewatch:
-          nextStates[id].rewatch.filter(
-            x => x !== id
-          )
-      };
-    });
+    Object.entries(states).forEach(
+      ([profileKey, profileState]) => {
+        nextStates[profileKey] = {
+          watched:
+            profileState.watched.filter(
+              savedTitleId =>
+                savedTitleId !==
+                titleId
+            ),
+
+          watchlist:
+            profileState.watchlist.filter(
+              savedTitleId =>
+                savedTitleId !==
+                titleId
+            ),
+
+          rewatch:
+            profileState.rewatch.filter(
+              savedTitleId =>
+                savedTitleId !==
+                titleId
+            )
+        };
+      }
+    );
 
     setStates(nextStates);
 
     setReminders(
       reminders.filter(
         reminder =>
-          reminder.titleId !== id
+          reminder.titleId !==
+          titleId
       )
     );
 
     setScheduled(
       scheduled.filter(
         item =>
-          item.titleId !== id
+          item.titleId !==
+          titleId
       )
     );
 
     if (
-      heroSettings.titleId === id
+      heroSettings.titleId ===
+      titleId
     ) {
       setHeroSettings({
         ...heroSettings,
@@ -506,9 +768,9 @@ function App() {
     }
   };
 
-  /* --------------------------------------------------
+  /* -------------------------------------------------------
      PROFILE MANAGEMENT
-  -------------------------------------------------- */
+  ------------------------------------------------------- */
 
   const addProfile = (
     name: string,
@@ -530,11 +792,8 @@ function App() {
 
     setStates({
       ...states,
-      [newProfile.id]: {
-        watched: [],
-        watchlist: [],
-        rewatch: []
-      }
+      [newProfile.id]:
+        emptyState()
     });
 
     setEditing(null);
@@ -545,16 +804,16 @@ function App() {
     direction: 'up' | 'down'
   ) => {
     if (
-      index === 0 &&
-      direction === 'up'
+      direction === 'up' &&
+      index === 0
     ) {
       return;
     }
 
     if (
+      direction === 'down' &&
       index ===
-        profiles.length - 1 &&
-      direction === 'down'
+        profiles.length - 1
     ) {
       return;
     }
@@ -579,16 +838,57 @@ function App() {
     setProfiles(next);
   };
 
-  /* --------------------------------------------------
+  const deleteProfile = (
+    profileToDelete: Profile
+  ) => {
+    if (
+      profileToDelete.id ===
+      'admin'
+    ) {
+      return;
+    }
+
+    const nextProfiles =
+      profiles.filter(
+        item =>
+          item.id !==
+          profileToDelete.id
+      );
+
+    const nextStates = {
+      ...states
+    };
+
+    delete nextStates[
+      profileToDelete.id
+    ];
+
+    setProfiles(nextProfiles);
+    setStates(nextStates);
+
+    setEditing(null);
+
+    if (
+      profileId ===
+      profileToDelete.id
+    ) {
+      setProfileId('admin');
+    }
+  };
+
+  /* -------------------------------------------------------
      RENDER
-  -------------------------------------------------- */
+  ------------------------------------------------------- */
 
   return (
     <div className="app">
 
-      {/* HEADER */}
+      {/* ===================================================
+          HEADER
+      =================================================== */}
 
       <header>
+
         <div className="logo">
           STREAM<span>IX</span>
         </div>
@@ -602,19 +902,25 @@ function App() {
             }
           >
             <span>
-              {profile.avatar}
+              {profile?.avatar ||
+                '👤'}
             </span>
 
-            {profile.name}
+            {profile?.name ||
+              'Profile'}
 
-            <ChevronDown size={16} />
+            <ChevronDown
+              size={16}
+            />
           </button>
 
           {isAdmin && (
             <button
               className="admin-badge"
               onClick={() =>
-                setMenu(!menu)
+                setMenu(
+                  current => !current
+                )
               }
             >
               ADMIN
@@ -630,7 +936,7 @@ function App() {
                   setMenu(false);
                 }}
               >
-                <Plus />
+                <Plus size={17} />
                 Add title
               </button>
 
@@ -640,7 +946,9 @@ function App() {
                   setMenu(false);
                 }}
               >
-                <Settings />
+                <Settings
+                  size={17}
+                />
                 Edit hero
               </button>
 
@@ -648,9 +956,12 @@ function App() {
           )}
 
         </div>
+
       </header>
 
-      {/* HERO */}
+      {/* ===================================================
+          HERO
+      =================================================== */}
 
       <section
         className="hero"
@@ -662,7 +973,7 @@ function App() {
                   rgba(0,0,0,.92),
                   rgba(0,0,0,.15)
                 ),
-                url(${hero.backdrop})`
+                url("${hero.backdrop}")`
               : 'none',
 
           backgroundPosition:
@@ -720,9 +1031,12 @@ function App() {
           )}
 
         </div>
+
       </section>
 
-      {/* MAIN */}
+      {/* ===================================================
+          MAIN
+      =================================================== */}
 
       <main>
 
@@ -755,7 +1069,7 @@ function App() {
                 setTab('rewatch')
               }
             >
-              ↻ {profile.name}'s
+              ↻ {profile?.name}'s
               Re-watch
             </button>
           )}
@@ -823,9 +1137,10 @@ function App() {
 
                 <input
                   value={q}
-                  onChange={e =>
+                  onChange={event =>
                     setQ(
-                      e.target.value
+                      event.target
+                        .value
                     )
                   }
                   placeholder="Search library"
@@ -878,39 +1193,213 @@ function App() {
                 TV
               </button>
 
-              <select
-                className="sort-select"
-                value={sort}
-                onChange={e =>
-                  setSort(
-                    e.target
-                      .value as SortOption
-                  )
-                }
-                aria-label="Sort library"
+              {/* =========================================
+                  FILTER MENU
+              ========================================= */}
+
+              <div
+                className="filter-wrapper"
+                ref={filterRef}
               >
-                <option value="name-asc">
-                  Name A–Z
-                </option>
 
-                <option value="name-desc">
-                  Name Z–A
-                </option>
+                <button
+                  type="button"
+                  className={
+                    sort ===
+                      'year-filter' &&
+                    filterYear
+                      ? 'filter-button active'
+                      : 'filter-button'
+                  }
+                  onClick={() =>
+                    setShowFilter(
+                      current =>
+                        !current
+                    )
+                  }
+                  aria-expanded={
+                    showFilter
+                  }
+                  aria-haspopup="menu"
+                >
+                  Filter
 
-                <option value="year-desc">
-                  Newest release
-                </option>
+                  <ChevronDown
+                    size={16}
+                    className={
+                      showFilter
+                        ? 'filter-chevron open'
+                        : 'filter-chevron'
+                    }
+                  />
+                </button>
 
-                <option value="year-asc">
-                  Oldest release
-                </option>
-              </select>
+                {showFilter && (
+                  <div
+                    className="filter-menu"
+                    role="menu"
+                  >
+
+                    <button
+                      type="button"
+                      className={
+                        sort ===
+                        'name-asc'
+                          ? 'filter-option selected'
+                          : 'filter-option'
+                      }
+                      onClick={() =>
+                        selectSort(
+                          'name-asc'
+                        )
+                      }
+                    >
+                      <span>
+                        Name A–Z
+                      </span>
+
+                      {sort ===
+                        'name-asc' && (
+                        <Check
+                          size={15}
+                        />
+                      )}
+                    </button>
+
+                    <button
+                      type="button"
+                      className={
+                        sort ===
+                        'name-desc'
+                          ? 'filter-option selected'
+                          : 'filter-option'
+                      }
+                      onClick={() =>
+                        selectSort(
+                          'name-desc'
+                        )
+                      }
+                    >
+                      <span>
+                        Name Z–A
+                      </span>
+
+                      {sort ===
+                        'name-desc' && (
+                        <Check
+                          size={15}
+                        />
+                      )}
+                    </button>
+
+                    <button
+                      type="button"
+                      className={
+                        sort ===
+                        'year-desc'
+                          ? 'filter-option selected'
+                          : 'filter-option'
+                      }
+                      onClick={() =>
+                        selectSort(
+                          'year-desc'
+                        )
+                      }
+                    >
+                      <span>
+                        Newest release
+                      </span>
+
+                      {sort ===
+                        'year-desc' && (
+                        <Check
+                          size={15}
+                        />
+                      )}
+                    </button>
+
+                    <button
+                      type="button"
+                      className={
+                        sort ===
+                        'year-asc'
+                          ? 'filter-option selected'
+                          : 'filter-option'
+                      }
+                      onClick={() =>
+                        selectSort(
+                          'year-asc'
+                        )
+                      }
+                    >
+                      <span>
+                        Oldest release
+                      </span>
+
+                      {sort ===
+                        'year-asc' && (
+                        <Check
+                          size={15}
+                        />
+                      )}
+                    </button>
+
+                    <div className="filter-year-section">
+
+                      <span>
+                        Filter by year
+                      </span>
+
+                      <div className="filter-year-row">
+
+                        <input
+                          type="text"
+                          inputMode="numeric"
+                          pattern="[0-9]*"
+                          maxLength={4}
+                          placeholder="YYYY"
+                          value={
+                            filterYear
+                          }
+                          onChange={event =>
+                            updateYearFilter(
+                              event
+                                .target
+                                .value
+                            )
+                          }
+                          aria-label="Filter by year"
+                        />
+
+                        {filterYear && (
+                          <button
+                            type="button"
+                            className="clear-year"
+                            onClick={
+                              clearYearFilter
+                            }
+                            aria-label="Clear year"
+                          >
+                            <X
+                              size={15}
+                            />
+                          </button>
+                        )}
+
+                      </div>
+
+                    </div>
+
+                  </div>
+                )}
+
+              </div>
 
             </div>
           </>
         )}
 
-        {/* LIBRARY */}
+        {/* LIBRARY GRID */}
 
         <div className="grid">
 
@@ -968,7 +1457,9 @@ function App() {
 
       </main>
 
-      {/* TODAY'S RECOMMENDATION */}
+      {/* ===================================================
+          TODAY'S RECOMMENDATION
+      =================================================== */}
 
       {showReco &&
         recommendation && (
@@ -978,6 +1469,7 @@ function App() {
               closeRecommendation
             }
           >
+
             <div className="reco">
 
               <img
@@ -1018,10 +1510,13 @@ function App() {
               </div>
 
             </div>
+
           </Modal>
         )}
 
-      {/* PROFILES */}
+      {/* ===================================================
+          PROFILES
+      =================================================== */}
 
       {showProfile && (
         <Modal
@@ -1045,13 +1540,14 @@ function App() {
                       setProfileId(
                         item.id
                       );
+
                       setShowProfile(
                         false
                       );
                     }}
                     className={
                       item.id ===
-                      profileId
+                      currentProfileId
                         ? 'current'
                         : ''
                     }
@@ -1066,7 +1562,7 @@ function App() {
                     </span>
 
                     {item.id ===
-                      profileId && (
+                      currentProfileId && (
                       <Check
                         size={18}
                       />
@@ -1083,10 +1579,12 @@ function App() {
                           setEditing(
                             item
                           );
+
                           setShowProfile(
                             false
                           );
                         }}
+                        aria-label={`Edit ${item.name}`}
                       >
                         ✎
                       </button>
@@ -1100,7 +1598,8 @@ function App() {
                         <button
                           className="icon"
                           disabled={
-                            index === 0
+                            index ===
+                            0
                           }
                           onClick={() =>
                             moveProfile(
@@ -1167,7 +1666,9 @@ function App() {
         </Modal>
       )}
 
-      {/* PROFILE EDITOR */}
+      {/* ===================================================
+          PROFILE EDITOR
+      =================================================== */}
 
       {editing && (
         <ProfileEditor
@@ -1179,63 +1680,51 @@ function App() {
           onClose={() =>
             setEditing(null)
           }
-          onSave={(name, avatar) =>
-            editing.id === 'new'
-              ? addProfile(
-                  name,
-                  avatar
-                )
-              : (
-                  setProfiles(
-                    profiles.map(
-                      item =>
-                        item.id ===
-                        editing.id
-                          ? {
-                              ...item,
-                              name,
-                              avatar
-                            }
-                          : item
-                    )
-                  ),
-                  setEditing(null)
-                )
-          }
+          onSave={(name, avatar) => {
+            if (
+              editing.id === 'new'
+            ) {
+              addProfile(
+                name,
+                avatar
+              );
+              return;
+            }
+
+            setProfiles(
+              profiles.map(
+                item =>
+                  item.id ===
+                  editing.id
+                    ? {
+                        ...item,
+                        name:
+                          name.trim() ||
+                          item.name,
+                        avatar:
+                          avatar ||
+                          item.avatar
+                      }
+                    : item
+              )
+            );
+
+            setEditing(null);
+          }}
           onDelete={
             editing.id === 'new'
               ? undefined
-              : () => {
-                  setProfiles(
-                    profiles.filter(
-                      item =>
-                        item.id !==
-                        editing.id
-                    )
-                  );
-
-                  const nextStates = {
-                    ...states
-                  };
-
-                  delete nextStates[
-                    editing.id
-                  ];
-
-                  setStates(
-                    nextStates
-                  );
-
-                  setEditing(null);
-                  setProfileId(
-                    'admin'
-                  );
-                }
+              : () =>
+                  deleteProfile(
+                    editing
+                  )
           }
         />
       )}
 
-      {/* ADD TITLE */}
+      {/* ===================================================
+          ADD TITLE
+      =================================================== */}
 
       {showAdd && (
         <AddTitle
@@ -1243,16 +1732,13 @@ function App() {
           onClose={() =>
             setShowAdd(false)
           }
-          onAdd={title =>
-            setLibrary([
-              ...library,
-              title
-            ])
-          }
+          onAdd={addTitle}
         />
       )}
 
-      {/* REMINDER */}
+      {/* ===================================================
+          REMINDER
+      =================================================== */}
 
       {showReminder && (
         <ReminderModal
@@ -1265,7 +1751,8 @@ function App() {
               ...reminders,
               {
                 id: uid(),
-                profileId,
+                profileId:
+                  currentProfileId,
                 titleId:
                   showReminder.id,
                 date,
@@ -1278,7 +1765,9 @@ function App() {
         />
       )}
 
-      {/* SCHEDULE RECOMMENDATION */}
+      {/* ===================================================
+          SCHEDULE RECOMMENDATION
+      =================================================== */}
 
       {showSchedule &&
         isAdmin && (
@@ -1303,7 +1792,9 @@ function App() {
           />
         )}
 
-      {/* HERO EDITOR */}
+      {/* ===================================================
+          HERO EDITOR
+      =================================================== */}
 
       {showHero &&
         isAdmin && (
@@ -1326,7 +1817,9 @@ function App() {
           />
         )}
 
-      {/* FOOTER */}
+      {/* ===================================================
+          FOOTER
+      =================================================== */}
 
       <footer>
 
@@ -1337,7 +1830,7 @@ function App() {
             reminders.filter(
               reminder =>
                 reminder.profileId ===
-                profileId
+                currentProfileId
             ).length
           }
 
@@ -1368,9 +1861,9 @@ function App() {
   );
 }
 
-/* --------------------------------------------------
+/* =========================================================
    CARD
--------------------------------------------------- */
+========================================================= */
 
 function Card({
   t,
@@ -1393,6 +1886,15 @@ function Card({
   onReminder: () => void;
   onSchedule: () => void;
 }) {
+  const watched =
+    st.watched.includes(t.id);
+
+  const watchlisted =
+    st.watchlist.includes(t.id);
+
+  const rewatches =
+    st.rewatch.includes(t.id);
+
   return (
     <article className="card">
 
@@ -1401,8 +1903,20 @@ function Card({
         <img
           src={t.poster}
           alt={t.name}
-          onError={e => {
-            e.currentTarget.src =
+          onError={event => {
+            const image =
+              event.currentTarget;
+
+            if (
+              image.dataset.fallback
+            ) {
+              return;
+            }
+
+            image.dataset.fallback =
+              'true';
+
+            image.src =
               'https://placehold.co/500x750/171717/ffffff?text=' +
               encodeURIComponent(
                 t.name
@@ -1421,6 +1935,7 @@ function Card({
             className="remove"
             onClick={onRemove}
             title="Remove title"
+            aria-label={`Remove ${t.name}`}
           >
             <Trash2 size={16} />
           </button>
@@ -1438,9 +1953,7 @@ function Card({
 
           <button
             className={
-              st.watchlist.includes(
-                t.id
-              )
+              watchlisted
                 ? 'on'
                 : ''
             }
@@ -1451,17 +1964,13 @@ function Card({
 
           <button
             className={
-              st.watched.includes(
-                t.id
-              )
+              watched
                 ? 'on'
                 : ''
             }
             onClick={onWatch}
           >
-            {st.watched.includes(
-              t.id
-            )
+            {watched
               ? '✓ Watched'
               : 'Mark watched'}
           </button>
@@ -1473,24 +1982,18 @@ function Card({
           {!isAdmin && (
             <button
               className={
-                st.rewatch.includes(
-                  t.id
-                )
+                rewatches
                   ? 'rewatch-action on'
                   : 'rewatch-action'
               }
-              onClick={
-                onRewatch
-              }
+              onClick={onRewatch}
             >
               ↻ Re-watch
             </button>
           )}
 
           <button
-            onClick={
-              onReminder
-            }
+            onClick={onReminder}
           >
             <Bell size={14} />
             Remind me
@@ -1498,9 +2001,7 @@ function Card({
 
           {isAdmin && (
             <button
-              onClick={
-                onSchedule
-              }
+              onClick={onSchedule}
             >
               Schedule reco
             </button>
@@ -1514,9 +2015,9 @@ function Card({
   );
 }
 
-/* --------------------------------------------------
+/* =========================================================
    MODAL
--------------------------------------------------- */
+========================================================= */
 
 function Modal({
   title,
@@ -1530,10 +2031,10 @@ function Modal({
   return (
     <div
       className="overlay"
-      onMouseDown={e => {
+      onMouseDown={event => {
         if (
-          e.currentTarget ===
-          e.target
+          event.currentTarget ===
+          event.target
         ) {
           onClose();
         }
@@ -1549,6 +2050,7 @@ function Modal({
           <button
             className="icon"
             onClick={onClose}
+            aria-label="Close"
           >
             <X />
           </button>
@@ -1563,9 +2065,9 @@ function Modal({
   );
 }
 
-/* --------------------------------------------------
+/* =========================================================
    PROFILE EDITOR
--------------------------------------------------- */
+========================================================= */
 
 function ProfileEditor({
   profile,
@@ -1607,9 +2109,9 @@ function ProfileEditor({
         <input
           autoFocus
           value={name}
-          onChange={e =>
+          onChange={event =>
             setName(
-              e.target.value
+              event.target.value
             )
           }
         />
@@ -1631,6 +2133,7 @@ function ProfileEditor({
             '🔥'
           ].map(item => (
             <button
+              type="button"
               className={
                 avatar === item
                   ? 'picked'
@@ -1655,6 +2158,12 @@ function ProfileEditor({
         <input
           type="file"
           accept="image/*"
+          onChange={() => {
+            /*
+             * Upload functionality can be
+             * connected later.
+             */
+          }}
         />
       </label>
 
@@ -1675,7 +2184,7 @@ function ProfileEditor({
           className="danger full"
           onClick={() => {
             if (
-              confirm(
+              window.confirm(
                 'Delete this profile?'
               )
             ) {
@@ -1691,9 +2200,9 @@ function ProfileEditor({
   );
 }
 
-/* --------------------------------------------------
+/* =========================================================
    ADD TITLE
--------------------------------------------------- */
+========================================================= */
 
 function AddTitle({
   library,
@@ -1717,34 +2226,54 @@ function AddTitle({
     useState('');
 
   useEffect(() => {
-    if (!query.trim()) {
+    const trimmed =
+      query.trim();
+
+    if (!trimmed) {
       setResults([]);
+      setLoading(false);
+      setError('');
       return;
     }
 
+    let cancelled = false;
+
     const timer =
-      setTimeout(async () => {
-        setLoading(true);
-        setError('');
+      window.setTimeout(
+        async () => {
+          setLoading(true);
+          setError('');
 
-        try {
-          const data =
-            await searchTMDB(
-              query
-            );
+          try {
+            const data =
+              await searchTMDB(
+                trimmed
+              );
 
-          setResults(data);
-        } catch {
-          setError(
-            'Unable to search TMDB right now.'
-          );
-        } finally {
-          setLoading(false);
-        }
-      }, 400);
+            if (!cancelled) {
+              setResults(data);
+            }
+          } catch {
+            if (!cancelled) {
+              setResults([]);
 
-    return () =>
-      clearTimeout(timer);
+              setError(
+                'Unable to search TMDB right now.'
+              );
+            }
+          } finally {
+            if (!cancelled) {
+              setLoading(false);
+            }
+          }
+        },
+        400
+      );
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
   }, [query]);
 
   const available =
@@ -1774,9 +2303,9 @@ function AddTitle({
         <input
           autoFocus
           value={query}
-          onChange={e =>
+          onChange={event =>
             setQuery(
-              e.target.value
+              event.target.value
             )
           }
           placeholder="Search movies and TV shows"
@@ -1796,6 +2325,15 @@ function AddTitle({
         </p>
       )}
 
+      {!loading &&
+        !error &&
+        query.trim() &&
+        available.length === 0 && (
+          <p className="muted">
+            No results found.
+          </p>
+        )}
+
       <div className="result-list">
 
         {available.map(title => (
@@ -1807,6 +2345,10 @@ function AddTitle({
             <img
               src={title.poster}
               alt={title.name}
+              onError={event => {
+                event.currentTarget.src =
+                  'https://placehold.co/500x750/171717/ffffff?text=No+Poster';
+              }}
             />
 
             <div>
@@ -1831,11 +2373,12 @@ function AddTitle({
                 onAdd(title);
 
                 setResults(
-                  results.filter(
-                    item =>
-                      item.id !==
-                      title.id
-                  )
+                  current =>
+                    current.filter(
+                      item =>
+                        item.id !==
+                        title.id
+                    )
                 );
               }}
             >
@@ -1851,9 +2394,9 @@ function AddTitle({
   );
 }
 
-/* --------------------------------------------------
+/* =========================================================
    REMINDER
--------------------------------------------------- */
+========================================================= */
 
 function ReminderModal({
   title,
@@ -1890,9 +2433,9 @@ function ReminderModal({
         <input
           type="date"
           value={date}
-          onChange={e =>
+          onChange={event =>
             setDate(
-              e.target.value
+              event.target.value
             )
           }
         />
@@ -1904,9 +2447,9 @@ function ReminderModal({
         <input
           type="time"
           value={time}
-          onChange={e =>
+          onChange={event =>
             setTime(
-              e.target.value
+              event.target.value
             )
           }
         />
@@ -1936,9 +2479,9 @@ function ReminderModal({
   );
 }
 
-/* --------------------------------------------------
+/* =========================================================
    SCHEDULE RECOMMENDATION
--------------------------------------------------- */
+========================================================= */
 
 function ScheduleModal({
   title,
@@ -1975,97 +2518,109 @@ function ScheduleModal({
       onClose={onClose}
     >
 
-      <label>
-        Profile
+      {profiles.length === 0 ? (
+        <>
+          <p className="muted">
+            Add a profile first
+            before scheduling a
+            recommendation.
+          </p>
+        </>
+      ) : (
+        <>
+          <label>
+            Profile
 
-        <select
-          value={profileId}
-          onChange={e =>
-            setProfileId(
-              e.target.value
-            )
-          }
-        >
-          {profiles.map(profile => (
-            <option
-              value={profile.id}
-              key={profile.id}
+            <select
+              value={profileId}
+              onChange={event =>
+                setProfileId(
+                  event.target.value
+                )
+              }
             >
-              {profile.name}
-            </option>
-          ))}
-        </select>
-      </label>
+              {profiles.map(profile => (
+                <option
+                  value={profile.id}
+                  key={profile.id}
+                >
+                  {profile.name}
+                </option>
+              ))}
+            </select>
+          </label>
 
-      <label>
-        Date
+          <label>
+            Date
 
-        <input
-          type="date"
-          value={date}
-          onChange={e =>
-            setDate(
-              e.target.value
-            )
-          }
-        />
-      </label>
+            <input
+              type="date"
+              value={date}
+              onChange={event =>
+                setDate(
+                  event.target.value
+                )
+              }
+            />
+          </label>
 
-      <label>
-        Time
+          <label>
+            Time
 
-        <input
-          type="time"
-          value={time}
-          onChange={e =>
-            setTime(
-              e.target.value
-            )
-          }
-        />
-      </label>
+            <input
+              type="time"
+              value={time}
+              onChange={event =>
+                setTime(
+                  event.target.value
+                )
+              }
+            />
+          </label>
 
-      <label>
-        Message
+          <label>
+            Message
 
-        <textarea
-          value={message}
-          onChange={e =>
-            setMessage(
-              e.target.value
-            )
-          }
-        />
-      </label>
+            <textarea
+              value={message}
+              onChange={event =>
+                setMessage(
+                  event.target.value
+                )
+              }
+            />
+          </label>
 
-      <button
-        className="pink full"
-        disabled={
-          !profileId ||
-          !date
-        }
-        onClick={() =>
-          onSave({
-            id: uid(),
-            profileId,
-            titleId:
-              title.id,
-            date,
-            time,
-            message
-          })
-        }
-      >
-        Schedule
-      </button>
+          <button
+            className="pink full"
+            disabled={
+              !profileId ||
+              !date
+            }
+            onClick={() =>
+              onSave({
+                id: uid(),
+                profileId,
+                titleId:
+                  title.id,
+                date,
+                time,
+                message
+              })
+            }
+          >
+            Schedule
+          </button>
+        </>
+      )}
 
     </Modal>
   );
 }
 
-/* --------------------------------------------------
+/* =========================================================
    HERO EDITOR
--------------------------------------------------- */
+========================================================= */
 
 function HeroModal({
   hero,
@@ -2129,9 +2684,9 @@ function HeroModal({
 
             <select
               value={titleId}
-              onChange={e =>
+              onChange={event =>
                 setTitleId(
-                  e.target.value
+                  event.target.value
                 )
               }
             >
@@ -2151,7 +2706,7 @@ function HeroModal({
               className="hero-preview"
               style={{
                 backgroundImage:
-                  `url(${selectedTitle.backdrop})`,
+                  `url("${selectedTitle.backdrop}")`,
                 backgroundPosition:
                   `${positionX}% ${positionY}%`
               }}
@@ -2170,10 +2725,10 @@ function HeroModal({
               min="0"
               max="100"
               value={positionX}
-              onChange={e =>
+              onChange={event =>
                 setPositionX(
                   Number(
-                    e.target.value
+                    event.target.value
                   )
                 )
               }
@@ -2192,10 +2747,10 @@ function HeroModal({
               min="0"
               max="100"
               value={positionY}
-              onChange={e =>
+              onChange={event =>
                 setPositionY(
                   Number(
-                    e.target.value
+                    event.target.value
                   )
                 )
               }
@@ -2225,12 +2780,22 @@ function HeroModal({
   );
 }
 
-/* --------------------------------------------------
+/* =========================================================
    START APP
--------------------------------------------------- */
+========================================================= */
 
-createRoot(
-  document.getElementById(
-    'root'
-  )!
-).render(<App />);
+const rootElement =
+  document.getElementById('root');
+
+if (!rootElement) {
+  throw new Error(
+    'Streamix could not start: #root element was not found.'
+  );
+}
+
+createRoot(rootElement).render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>
+);
+```
