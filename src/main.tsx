@@ -1469,238 +1469,195 @@ function App() {
 
     <div className="profiles">
 
-      {orderedProfiles.map(
-        (item, index) => (
-          <React.Fragment key={item.id}>
+      {orderedProfiles.map(item => (
+        <div
+          className={
+            "profile-row" +
+            (draggedProfileId === item.id
+              ? " dragging"
+              : "")
+          }
+          key={item.id}
 
-            {/* DROP INDICATOR */}
+          onDragOver={event => {
+            if (
+              !isAdmin ||
+              !draggedProfileId ||
+              draggedProfileId === item.id ||
+              item.id === "admin"
+            ) {
+              return;
+            }
 
-            {isAdmin &&
-              draggedProfileId &&
-              draggedProfileId !== item.id &&
-              item.id !== "admin" && (
-                <div
-                  className="profile-drop-indicator"
-                  aria-hidden="true"
-                />
-              )}
+            event.preventDefault();
 
-            {/* PROFILE ROW */}
+            event.dataTransfer.dropEffect =
+              "move";
+          }}
 
-            <div
-              className={
-                "profile-row" +
-                (draggedProfileId ===
-                item.id
-                  ? " dragging"
-                  : "")
+          onDrop={event => {
+            if (
+              !isAdmin ||
+              !draggedProfileId ||
+              draggedProfileId === item.id ||
+              item.id === "admin"
+            ) {
+              return;
+            }
+
+            event.preventDefault();
+
+            reorderProfiles(
+              draggedProfileId,
+              item.id
+            );
+
+            setDraggedProfileId(null);
+          }}
+        >
+
+          {/* PROFILE SELECT */}
+
+          <button
+            onClick={() => {
+              if (
+                item.id ===
+                effectiveProfileId
+              ) {
+                setShowProfile(false);
+                return;
               }
 
-              onDragOver={event => {
-                if (
-                  !isAdmin ||
-                  !draggedProfileId ||
-                  draggedProfileId ===
-                    item.id ||
-                  item.id === "admin"
-                ) {
-                  return;
+              if (isAdminUser) {
+                if (item.id === "admin") {
+                  setViewingAs(null);
+                  setProfileId("admin");
+                } else {
+                  setViewingAs(item.id);
+                  setProfileId("admin");
                 }
 
-                event.preventDefault();
+                setShowProfile(false);
+                return;
+              }
 
-                event.dataTransfer.dropEffect =
-                  "move";
-              }}
+              setLoginProfile(item);
+              setShowProfile(false);
+            }}
 
-              onDrop={event => {
-                if (
-                  !isAdmin ||
-                  !draggedProfileId ||
-                  draggedProfileId ===
-                    item.id ||
-                  item.id === "admin"
-                ) {
-                  return;
-                }
+            className={
+              item.id ===
+              effectiveProfileId
+                ? "current"
+                : ""
+            }
+          >
 
-                event.preventDefault();
+            <span className="avatar">
+              {item.avatar}
+            </span>
 
-                reorderProfiles(
-                  draggedProfileId,
-                  item.id
-                );
+            <span>
+              {item.name}
+            </span>
 
-                setDraggedProfileId(
-                  null
-                );
-              }}
-            >
+            {item.id ===
+              effectiveProfileId && (
+              <Check size={18} />
+            )}
 
-              {/* PROFILE SELECT */}
+          </button>
 
-              <button
-                onClick={() => {
-                  if (
-                    item.id ===
-                    effectiveProfileId
-                  ) {
-                    setShowProfile(
-                      false
-                    );
-                    return;
-                  }
+          {/* PROFILE SETTINGS */}
 
-                  if (isAdminUser) {
-                    if (
-                      item.id ===
-                      "admin"
-                    ) {
-                      setViewingAs(
-                        null
-                      );
+          <button
+            className="icon"
+            disabled={
+              !isAdminUser &&
+              item.id !== profileId
+            }
 
-                      setProfileId(
-                        "admin"
-                      );
-                    } else {
-                      setViewingAs(
-                        item.id
-                      );
+            onClick={() => {
+              if (
+                !isAdminUser &&
+                item.id !== profileId
+              ) {
+                return;
+              }
 
-                      setProfileId(
-                        "admin"
-                      );
-                    }
+              setEditing(item);
+              setShowProfile(false);
+            }}
 
-                    setShowProfile(
-                      false
-                    );
+            aria-label={
+              item.id ===
+                effectiveProfileId ||
+              isAdminUser
+                ? "Profile settings"
+                : "Switch to this profile to edit settings"
+            }
 
-                    return;
-                  }
+            title={
+              item.id ===
+                effectiveProfileId ||
+              isAdminUser
+                ? "Profile settings"
+                : "Switch to this profile to edit settings"
+            }
+          >
+            <Settings size={17} />
+          </button>
 
-                  setLoginProfile(
-                    item
-                  );
+          {/* DRAG HANDLE */}
 
-                  setShowProfile(
-                    false
+          {isAdmin &&
+            item.id !== "admin" && (
+              <div
+                className="profile-drag-handle"
+                draggable
+
+                onDragStart={event => {
+                  event.dataTransfer.effectAllowed =
+                    "move";
+
+                  setDraggedProfileId(
+                    item.id
                   );
                 }}
 
-                className={
-                  item.id ===
-                  effectiveProfileId
-                    ? "current"
-                    : ""
+                onDragEnd={() =>
+                  setDraggedProfileId(null)
                 }
-              >
 
-                <span className="avatar">
-                  {item.avatar}
-                </span>
-
-                <span>
-                  {item.name}
-                </span>
-
-                {item.id ===
-                  effectiveProfileId && (
-                  <Check size={18} />
-                )}
-
-              </button>
-
-              {/* PROFILE SETTINGS */}
-
-              <button
-                className="icon"
-                disabled={
-                  !isAdminUser &&
-                  item.id !==
-                    profileId
-                }
-                onClick={() => {
+                onDragOver={event => {
                   if (
-                    !isAdminUser &&
-                    item.id !==
-                      profileId
+                    !draggedProfileId ||
+                    draggedProfileId ===
+                      item.id
                   ) {
                     return;
                   }
 
-                  setEditing(item);
-
-                  setShowProfile(
-                    false
-                  );
+                  event.preventDefault();
+                  event.stopPropagation();
                 }}
+
+                role="button"
+                tabIndex={0}
 
                 aria-label={
-                  item.id ===
-                    effectiveProfileId ||
-                  isAdminUser
-                    ? "Profile settings"
-                    : "Switch to this profile to edit settings"
+                  "Drag to reorder " +
+                  item.name
                 }
 
-                title={
-                  item.id ===
-                    effectiveProfileId ||
-                  isAdminUser
-                    ? "Profile settings"
-                    : "Switch to this profile to edit settings"
-                }
+                title="Drag to reorder"
               >
-                <Settings size={17} />
-              </button>
+                <GripVertical size={20} />
+              </div>
+            )}
 
-              {/* DRAG HANDLE */}
-
-              {isAdmin &&
-                item.id !==
-                  "admin" && (
-                  <div
-                    className="profile-drag-handle"
-                    draggable
-
-                    onDragStart={event => {
-                      event.dataTransfer.effectAllowed =
-                        "move";
-
-                      setDraggedProfileId(
-                        item.id
-                      );
-                    }}
-
-                    onDragEnd={() =>
-                      setDraggedProfileId(
-                        null
-                      )
-                    }
-
-                    role="button"
-                    tabIndex={0}
-
-                    aria-label={
-                      "Drag to reorder " +
-                      item.name
-                    }
-
-                    title="Drag to reorder"
-                  >
-                    <GripVertical
-                      size={20}
-                    />
-                  </div>
-                )}
-
-            </div>
-
-          </React.Fragment>
-        )
-      )}
+        </div>
+      ))}
 
       {/* ADD PROFILE */}
 
@@ -1714,9 +1671,7 @@ function App() {
               avatar: "🙂"
             });
 
-            setShowProfile(
-              false
-            );
+            setShowProfile(false);
           }}
         >
           <Plus />
