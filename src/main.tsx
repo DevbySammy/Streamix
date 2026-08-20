@@ -458,16 +458,18 @@ const effectiveProfileId =
   isViewingAs
     ? viewingAs
     : profileId;
-  
-      ? profiles.find(
-          item =>
-            item.id ===
-            effectiveProfileId
-        ) || null
-      : null;
 
-  const profile =
-    effectiveProfile;
+const effectiveProfile =
+  effectiveProfileId
+    ? profiles.find(
+        item =>
+          item.id ===
+          effectiveProfileId
+      ) || null
+    : null;
+
+const profile =
+  effectiveProfile;
 
   const state =
     effectiveProfileId
