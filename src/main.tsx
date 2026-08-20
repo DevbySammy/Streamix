@@ -302,13 +302,19 @@ function App() {
       "library"
     );
 
-  const [filter, setFilter] =
-    useState<
-      "all" | "watchlist" | "watched"
-    >("all");
+const [filter, setFilter] =
+  useState<
+    "all" | "watchlist" | "watched"
+  >("all");
 
-  const [kind, setKind] =
-    useState<"all" | Kind>("all");
+const [filterClicked, setFilterClicked] =
+  useState(false);
+
+const [kind, setKind] =
+  useState<"all" | Kind>("all");
+
+const [kindClicked, setKindClicked] =
+  useState(false);
 
   const [sort, setSort] =
     useState<SortOption>("name-asc");
@@ -881,48 +887,51 @@ function App() {
         <div className="toolbar">
 
   {!isAdmin && (
-    <div className="filters">
+  <div className="filters">
 
-      <button
-        className={
-          filter === "all"
-            ? "selected"
-            : ""
-        }
-        onClick={() =>
-          setFilter("all")
-        }
-      >
-        All
-      </button>
+  <button
+    className={
+      filter === "all" && filterClicked
+        ? "selected"
+        : ""
+    }
+    onClick={() => {
+      setFilter("all");
+      setFilterClicked(true);
+    }}
+  >
+    All
+  </button>
 
-      <button
-        className={
-          filter === "watchlist"
-            ? "selected"
-            : ""
-        }
-        onClick={() =>
-          setFilter("watchlist")
-        }
-      >
-        Watchlist
-      </button>
+  <button
+    className={
+      filter === "watchlist"
+        ? "selected"
+        : ""
+    }
+    onClick={() => {
+      setFilter("watchlist");
+      setFilterClicked(true);
+    }}
+  >
+    Watchlist
+  </button>
 
-      <button
-        className={
-          filter === "watched"
-            ? "selected"
-            : ""
-        }
-        onClick={() =>
-          setFilter("watched")
-        }
-      >
-        Watched
-      </button>
+  <button
+    className={
+      filter === "watched"
+        ? "selected"
+        : ""
+    }
+    onClick={() => {
+      setFilter("watched");
+      setFilterClicked(true);
+    }}
+  >
+    Watched
+  </button>
 
-    </div>
+</div>
   )}
 
   <div className="search">
@@ -947,52 +956,55 @@ function App() {
 
             {/* FORMAT + SORT */}
 
-            <div className="format">
+       <div className="format">
 
-              <button
-                className={
-                  kind === "all"
-                    ? "selected"
-                    : ""
-                }
-                onClick={() =>
-                  setKind("all")
-                }
-              >
-                All
-              </button>
+  <button
+    className={
+      kind === "all" && kindClicked
+        ? "selected"
+        : ""
+    }
+    onClick={() => {
+      setKind("all");
+      setKindClicked(true);
+    }}
+  >
+    All
+  </button>
 
-              <button
-                className={
-                  kind === "movie"
-                    ? "selected"
-                    : ""
-                }
-                onClick={() =>
-                  setKind("movie")
-                }
-              >
-                <Film
-                  size={15}
-                />
-                Movies
-              </button>
+  <button
+    className={
+      kind === "movie"
+        ? "selected"
+        : ""
+    }
+    onClick={() => {
+      setKind("movie");
+      setKindClicked(true);
+    }}
+  >
+    <Film
+      size={15}
+    />
+    Movies
+  </button>
 
-              <button
-                className={
-                  kind === "tv"
-                    ? "selected"
-                    : ""
-                }
-                onClick={() =>
-                  setKind("tv")
-                }
-              >
-                <Tv
-                  size={15}
-                />
-                TV
-              </button>
+  <button
+    className={
+      kind === "tv"
+        ? "selected"
+        : ""
+    }
+    onClick={() => {
+      setKind("tv");
+      setKindClicked(true);
+    }}
+  >
+    <Tv
+      size={15}
+    />
+    TV
+  </button>
 
               <select
                 className="sort-select"
