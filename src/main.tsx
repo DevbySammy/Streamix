@@ -620,7 +620,7 @@ function App() {
 
               <div className="profiles">
 
-                {profiles.map(
+              {orderedProfiles.map(
                   item => (
                     <div
                       className="profile-row"
@@ -947,17 +947,23 @@ function reorderProfiles(
     return;
   }
 
-   setProfiles(current => {
+  setProfiles(current => {
+    const adminProfile = current.find(
+      profile => profile.id === "admin"
+    );
+
+    const regularProfiles = current.filter(
+      profile => profile.id !== "admin"
+    );
+
     const draggedIndex =
-      current.findIndex(
-        profile =>
-          profile.id === draggedId
+      regularProfiles.findIndex(
+        profile => profile.id === draggedId
       );
 
     const targetIndex =
-      current.findIndex(
-        profile =>
-          profile.id === targetId
+      regularProfiles.findIndex(
+        profile => profile.id === targetId
       );
 
     if (
@@ -967,13 +973,10 @@ function reorderProfiles(
       return current;
     }
 
-    const next = [...current];
+    const next = [...regularProfiles];
 
     const [draggedProfile] =
-      next.splice(
-        draggedIndex,
-        1
-      );
+      next.splice(draggedIndex, 1);
 
     next.splice(
       targetIndex,
@@ -981,14 +984,30 @@ function reorderProfiles(
       draggedProfile
     );
 
-    return next;
+    return adminProfile
+      ? [adminProfile, ...next]
+      : next;
   });
 }
 
   /* =======================================================
      RENDER
   ======================================================= */
+  
+  const orderedProfiles = useMemo(() => {
+    const adminProfile = profiles.find(
+      profile => profile.id === "admin"
+    );
 
+    const regularProfiles = profiles.filter(
+      profile => profile.id !== "admin"
+    );
+
+    return adminProfile
+      ? [adminProfile, ...regularProfiles]
+      : regularProfiles;
+  }, [profiles]);
+  
   return (
     <div className="app">
 
@@ -1493,7 +1512,7 @@ function reorderProfiles(
 
           <div className="profiles">
 
-            {profiles.map(
+{orderedProfiles.map(
               item => (
                 <div
                   className={
@@ -1664,7 +1683,7 @@ function reorderProfiles(
 
                   {/* ADMIN PROFILE REORDER */}
 
-                  {isAdmin && (
+{isAdmin && item.id !== "admin" && (
                     <div
                       className="profile-drag-handle"
                       draggable
