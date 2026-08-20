@@ -928,30 +928,80 @@ setStates(currentStates => {
 
 }
 
-function toggle(
-array: keyof State,
-id: string
+async function toggle(
+  array: keyof State,
+  id: string
 ) {
-updateState(current => {
-const exists =
-current[array].includes(id);
+  if (!effectiveProfileId) {
+    return;
+  }
 
+  const currentState =
+    states[effectiveProfileId] || {
+      watched: [],
+      watchlist: [],
+      rewatch: []
+    };
 
-  return {
-    ...current,
-    [array]: exists
-      ? current[array].filter(
-          item =>
-            item !== id
-        )
-      : [
-          ...current[array],
-          id
-        ]
-  };
-});
+  const exists =
+    currentState[array].includes(id);
 
+  const endpoint =
+    array === "watched"
+      ? "/api/watch-history"
+      : array === "watchlist"
+        ? "/api/watchlist"
+        : "/api/rewatch";
 
+  try {
+    const response = await fetch(
+      exists
+        ? `${endpoint}?profileId=${encodeURIComponent(
+            effectiveProfileId
+          )}&libraryItemId=${encodeURIComponent(id)}`
+        : endpoint,
+      {
+        method: exists ? "DELETE" : "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        ...(exists
+          ? {}
+          : {
+              body: JSON.stringify({
+                profileId:
+                  effectiveProfileId,
+                libraryItemId: id
+              })
+            })
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(
+        "Failed to update media state"
+      );
+    }
+
+    updateState(current => {
+      return {
+        ...current,
+        [array]: exists
+          ? current[array].filter(
+              item => item !== id
+            )
+          : [
+              ...current[array],
+              id
+            ]
+      };
+    });
+  } catch (error) {
+    console.error(
+      "Failed to update media state:",
+      error
+    );
+  }
 }
 
 /* =======================================================
