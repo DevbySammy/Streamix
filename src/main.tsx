@@ -60,8 +60,7 @@ type Scheduled = {
 
 type HeroSettings = {
   title: Title;
-  width: number;
-  height: number;
+  zoom: number;
   positionX: number;
   positionY: number;
 };
@@ -623,12 +622,14 @@ function App() {
               : 'none',
 
           backgroundSize: hero
-            ? `${hero.width}% ${hero.height}%`
+            ? `${hero.zoom}%`
             : 'cover',
 
           backgroundPosition: hero
             ? `${hero.positionX}% ${hero.positionY}%`
-            : 'center'
+            : 'center',
+
+          backgroundRepeat: 'no-repeat'
         }}
       >
 
@@ -2032,7 +2033,6 @@ function ScheduleModal({
    HERO EDITOR
 -------------------------------------------------- */
 
-
 function HeroModal({
   hero,
   library,
@@ -2059,23 +2059,19 @@ function HeroModal({
       x => x.id === id
     ) || initialTitle;
 
-  /*
-    100% = automatic starting fit.
-    Width and height can then be
-    adjusted independently.
-  */
-
-const [zoom, setZoom] =
-  useState(hero?.width || 100);
+  const [zoom, setZoom] =
+    useState(
+      hero?.zoom || 100
+    );
 
   const [positionX, setPositionX] =
     useState(
-      hero?.positionX || 50
+      hero?.positionX ?? 50
     );
 
   const [positionY, setPositionY] =
     useState(
-      hero?.positionY || 50
+      hero?.positionY ?? 50
     );
 
   if (!selectedTitle) {
@@ -2099,16 +2095,6 @@ const [zoom, setZoom] =
     );
   }
 
-  /*
-    HERO PREVIEW
-
-    The preview uses the same
-    wide shape as the actual hero.
-
-    The image starts at 100%,
-    meaning it fills the preview.
-  */
-
   return (
     <Modal
       title="Edit Hero"
@@ -2116,15 +2102,12 @@ const [zoom, setZoom] =
     >
 
       <p className="muted">
-        The image starts fitted to the
-        hero automatically. Adjust the
-        size first, then use crop and
-        position for fine-tuning.
+        Adjust the image size and
+        position until the hero looks
+        the way you want.
       </p>
 
-      {/* --------------------------------------------
-         LARGE HERO PREVIEW
-      -------------------------------------------- */}
+      {/* HERO PREVIEW */}
 
       <div
         style={{
@@ -2142,22 +2125,23 @@ const [zoom, setZoom] =
       >
 
         {selectedTitle.backdrop ? (
-          <img
-            src={
-              selectedTitle.backdrop
-            }
-            alt={
-              selectedTitle.name
-            }
-        style={{
-  position: 'absolute',
-  width: '100%',
-  height: '100%',
-  objectFit: 'cover',
-  transform: `translate(-${positionX}%, -${positionY}%) scale(${zoom / 100})`,
-  transformOrigin: 'center',
-  transition: 'transform .15s ease'
-}}
+          <div
+            style={{
+              position: 'absolute',
+              inset: 0,
+
+              backgroundImage:
+                `url(${selectedTitle.backdrop})`,
+
+              backgroundSize:
+                `${zoom}%`,
+
+              backgroundPosition:
+                `${positionX}% ${positionY}%`,
+
+              backgroundRepeat:
+                'no-repeat'
+            }}
           />
         ) : (
           <div
@@ -2226,9 +2210,7 @@ const [zoom, setZoom] =
 
       </div>
 
-      {/* --------------------------------------------
-         TITLE
-      -------------------------------------------- */}
+      {/* TITLE */}
 
       <label>
         Hero title
@@ -2240,13 +2222,7 @@ const [zoom, setZoom] =
               e.target.value
             );
 
-            /*
-              Selecting another title
-              returns everything to the
-              automatic starting position.
-            */
-            setWidth(100);
-            setHeight(100);
+            setZoom(100);
             setPositionX(50);
             setPositionY(50);
           }}
@@ -2264,9 +2240,7 @@ const [zoom, setZoom] =
         </select>
       </label>
 
-      {/* --------------------------------------------
-         IMAGE SIZE
-      -------------------------------------------- */}
+      {/* IMAGE SIZE */}
 
       <div
         style={{
@@ -2279,27 +2253,23 @@ const [zoom, setZoom] =
         </strong>
 
         <p className="muted">
-          Start at 100% for the default
-          fit. Increase or decrease the
-          width and height if you want
-          more control over how the image
-          fills the hero.
+          100% is the normal starting
+          size. Increase the percentage
+          to zoom further into the image.
         </p>
 
-        {/* WIDTH */}
-
         <label>
 
-          Width
+          Zoom
 
           <input
             type="range"
-            min="80"
-            max="160"
+            min="100"
+            max="180"
             step="1"
-            value={width}
+            value={zoom}
             onChange={e =>
-              setWidth(
+              setZoom(
                 Number(
                   e.target.value
                 )
@@ -2308,43 +2278,14 @@ const [zoom, setZoom] =
           />
 
           <span className="muted">
-            {width}%
-          </span>
-
-        </label>
-
-        {/* HEIGHT */}
-
-        <label>
-
-          Height
-
-          <input
-            type="range"
-            min="80"
-            max="160"
-            step="1"
-            value={height}
-            onChange={e =>
-              setHeight(
-                Number(
-                  e.target.value
-                )
-              )
-            }
-          />
-
-          <span className="muted">
-            {height}%
+            {zoom}%
           </span>
 
         </label>
 
       </div>
 
-      {/* --------------------------------------------
-         CROP / POSITION
-      -------------------------------------------- */}
+      {/* POSITION */}
 
       <div
         style={{
@@ -2357,13 +2298,10 @@ const [zoom, setZoom] =
         </strong>
 
         <p className="muted">
-          Once the image size looks
-          right, use these controls to
-          move the image and choose
-          which part is visible.
+          Move the image horizontally
+          or vertically to choose which
+          part of the backdrop is visible.
         </p>
-
-        {/* HORIZONTAL */}
 
         <label>
 
@@ -2389,8 +2327,6 @@ const [zoom, setZoom] =
           </span>
 
         </label>
-
-        {/* VERTICAL */}
 
         <label>
 
@@ -2419,15 +2355,12 @@ const [zoom, setZoom] =
 
       </div>
 
-      {/* --------------------------------------------
-         RESET
-      -------------------------------------------- */}
+      {/* RESET */}
 
       <button
         className="ghost full"
         onClick={() => {
-          setWidth(100);
-          setHeight(100);
+          setZoom(100);
           setPositionX(50);
           setPositionY(50);
         }}
@@ -2435,17 +2368,14 @@ const [zoom, setZoom] =
         Reset image
       </button>
 
-      {/* --------------------------------------------
-         SAVE
-      -------------------------------------------- */}
+      {/* SAVE */}
 
       <button
         className="pink full"
         onClick={() =>
           onSave({
             title: selectedTitle,
-            width,
-            height,
+            zoom,
             positionX,
             positionY
           })
