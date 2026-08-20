@@ -1,672 +1,1371 @@
-
 import React, {useEffect, useMemo, useState} from 'react';
 import {createRoot} from 'react-dom/client';
-import {Bell, Check, ChevronDown, Clock, Film, LogOut, Plus, Search, Settings, Trash2, Tv, X} from 'lucide-react';
+import {
+  Bell,
+  Check,
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  Clock,
+  Film,
+  LogOut,
+  Plus,
+  Search,
+  Settings,
+  Trash2,
+  Tv,
+  X
+} from 'lucide-react';
 import './styles.css';
 
-type Kind='movie'|'tv';
+type Kind = 'movie' | 'tv';
 
-type Title={
-  id:string;
-  name:string;
-  kind:Kind;
-  year:number;
-  poster:string;
-  backdrop:string;
-  overview:string;
+type Title = {
+  id: string;
+  name: string;
+  kind: Kind;
+  year: number;
+  poster: string;
+  backdrop: string;
+  overview: string;
+  addedAt?: string;
 };
 
-type Profile={
-  id:string;
-  name:string;
-  avatar:string;
+type Profile = {
+  id: string;
+  name: string;
+  avatar: string;
 };
 
-type State={
-  watched:string[];
-  watchlist:string[];
-  rewatch:string[];
+type State = {
+  watched: string[];
+  watchlist: string[];
+  rewatch: string[];
 };
 
-type Reminder={
-  id:string;
-  profileId:string;
-  titleId:string;
-  date:string;
-  time:string;
+type Reminder = {
+  id: string;
+  profileId: string;
+  titleId: string;
+  date: string;
+  time: string;
 };
 
-type Scheduled={
-  id:string;
-  profileId:string;
-  titleId:string;
-  date:string;
-  time:string;
-  message:string;
+type Scheduled = {
+  id: string;
+  profileId: string;
+  titleId: string;
+  date: string;
+  time: string;
+  message: string;
 };
 
-const initialProfiles:Profile[]=[
- {id:'admin',name:'Admin',avatar:'👑'},
- {id:'sarah',name:'Sarah',avatar:'🌸'},
- {id:'john',name:'John',avatar:'🎬'}
+type SortOption =
+  | 'name-asc'
+  | 'name-desc'
+  | 'year-desc'
+  | 'year-asc';
+
+type HeroSettings = {
+  titleId: string | null;
+  positionX: number;
+  positionY: number;
+};
+
+const initialProfiles: Profile[] = [
+  {
+    id: 'admin',
+    name: 'Admin',
+    avatar: '👑'
+  }
 ];
 
-const initialState:Record<string,State>={
- admin:{
-  watched:['matrix'],
-  watchlist:['interstellar','the-bear'],
-  rewatch:['matrix']
- },
- sarah:{
-  watched:['the-bear'],
-  watchlist:['matrix','severance'],
-  rewatch:['the-bear']
- },
- john:{
-  watched:['succession'],
-  watchlist:['spirited-away','interstellar'],
-  rewatch:[]
- }
+const initialState: Record<string, State> = {
+  admin: {
+    watched: [],
+    watchlist: [],
+    rewatch: []
+  }
 };
 
-const uid=()=>Math.random().toString(36).slice(2)+Date.now().toString(36);
+const initialHero: HeroSettings = {
+  titleId: null,
+  positionX: 50,
+  positionY: 50
+};
 
-function useStored<T>(key:string,fallback:T){
- const [v,setV]=useState<T>(()=>{ 
-  try{
-   return JSON.parse(localStorage.getItem(key)||'null')??fallback
-  }catch{
-   return fallback
-  }
- });
+const uid = () =>
+  Math.random().toString(36).slice(2) +
+  Date.now().toString(36);
 
- useEffect(()=>{
-  localStorage.setItem(key,JSON.stringify(v))
- },[key,v]);
+function useStored<T>(key: string, fallback: T) {
+  const [value, setValue] = useState<T>(() => {
+    try {
+      return (
+        JSON.parse(
+          localStorage.getItem(key) || 'null'
+        ) ?? fallback
+      );
+    } catch {
+      return fallback;
+    }
+  });
 
- return [v,setV] as const
+  useEffect(() => {
+    localStorage.setItem(
+      key,
+      JSON.stringify(value)
+    );
+  }, [key, value]);
+
+  return [value, setValue] as const;
 }
 
 /* --------------------------------------------------
    TMDB SERVICE
 -------------------------------------------------- */
 
-async function searchTMDB(query:string):Promise<Title[]>{
+async function searchTMDB(
+  query: string
+): Promise<Title[]> {
+  if (!query.trim()) return [];
 
- if(!query.trim()) return [];
+  const response = await fetch(
+    `/api/tmdb/search?query=${encodeURIComponent(
+      query
+    )}&type=multi`
+  );
 
- const response=await fetch(
-  `/api/tmdb/search?query=${encodeURIComponent(query)}&type=multi`
- );
+  if (!response.ok) {
+    throw new Error('TMDB search failed');
+  }
 
- if(!response.ok){
-  throw new Error('TMDB search failed');
- }
+  const data = await response.json();
 
- const data=await response.json();
+  return (data.results || [])
+    .filter(
+      (item: any) =>
+        item.media_type === 'movie' ||
+        item.media_type === 'tv'
+    )
+    .map((item: any): Title => {
+      const kind: Kind =
+        item.media_type === 'tv'
+          ? 'tv'
+          : 'movie';
 
- return (data.results||[])
-  .filter((item:any)=>item.media_type==='movie'||item.media_type==='tv')
-  .map((item:any):Title=>{
+      const date =
+        kind === 'movie'
+          ? item.release_date
+          : item.first_air_date;
 
-   const kind:Kind=item.media_type==='tv'?'tv':'movie';
-
-   const date=kind==='movie'
-    ?item.release_date
-    :item.first_air_date;
-
-   return {
-    id:`tmdb-${kind}-${item.id}`,
-    name:kind==='movie'?item.title:item.name,
-    kind,
-    year:date?Number(date.slice(0,4)):0,
-    poster:item.poster_path
-     ?`https://image.tmdb.org/t/p/w500${item.poster_path}`
-     :'https://placehold.co/500x750/171717/ffffff?text=No+Poster',
-    backdrop:item.backdrop_path
-     ?`https://image.tmdb.org/t/p/w1280${item.backdrop_path}`
-     :'',
-    overview:item.overview||''
-   };
-  });
+      return {
+        id: `tmdb-${kind}-${item.id}`,
+        name:
+          kind === 'movie'
+            ? item.title
+            : item.name,
+        kind,
+        year: date
+          ? Number(date.slice(0, 4))
+          : 0,
+        poster: item.poster_path
+          ? `https://image.tmdb.org/t/p/w500${item.poster_path}`
+          : 'https://placehold.co/500x750/171717/ffffff?text=No+Poster',
+        backdrop: item.backdrop_path
+          ? `https://image.tmdb.org/t/p/w1280${item.backdrop_path}`
+          : '',
+        overview: item.overview || '',
+        addedAt: new Date().toISOString()
+      };
+    });
 }
 
 /* --------------------------------------------------
    APP
 -------------------------------------------------- */
 
-function App(){
+function App() {
+  const [library, setLibrary] =
+    useStored<Title[]>(
+      'sx-library',
+      []
+    );
 
- const [library,setLibrary]=useStored<Title[]>('sx-library',mock);
- const [profiles,setProfiles]=useStored<Profile[]>('sx-profiles',initialProfiles);
- const [states,setStates]=useStored<Record<string,State>>('sx-states',initialState);
- const [reminders,setReminders]=useStored<Reminder[]>('sx-reminders',[]);
- const [scheduled,setScheduled]=useStored<Scheduled[]>('sx-scheduled',[]);
- const [hero,setHero]=useStored<Title>('sx-hero',mock[1]);
+  const [profiles, setProfiles] =
+    useStored<Profile[]>(
+      'sx-profiles',
+      initialProfiles
+    );
 
- const [profileId,setProfileId]=useState('admin');
- const [tab,setTab]=useState<'library'|'rewatch'>('library');
- const [filter,setFilter]=useState<'all'|'watchlist'|'watched'>('all');
- const [kind,setKind]=useState<'all'|Kind>('all');
- const [q,setQ]=useState('');
+  const [states, setStates] =
+    useStored<Record<string, State>>(
+      'sx-states',
+      initialState
+    );
 
- const [showProfile,setShowProfile]=useState(false);
- const [showAdd,setShowAdd]=useState(false);
- const [showReco,setShowReco]=useState(true);
- const [showReminder,setShowReminder]=useState<Title|null>(null);
- const [showSchedule,setShowSchedule]=useState<Title|null>(null);
- const [showHero,setShowHero]=useState(false);
- const [editing,setEditing]=useState<Profile|null>(null);
- const [menu,setMenu]=useState(false);
+  const [reminders, setReminders] =
+    useStored<Reminder[]>(
+      'sx-reminders',
+      []
+    );
 
- const isAdmin=profileId==='admin';
- const p=profiles.find(x=>x.id===profileId)||profiles[0];
+  const [scheduled, setScheduled] =
+    useStored<Scheduled[]>(
+      'sx-scheduled',
+      []
+    );
 
- const st=states[profileId]||{
-  watched:[],
-  watchlist:[],
-  rewatch:[]
- };
+  const [heroSettings, setHeroSettings] =
+    useStored<HeroSettings>(
+      'sx-hero-settings',
+      initialHero
+    );
 
- const visible=useMemo(
-  ()=>library
-   .filter(t=>t.name.toLowerCase().includes(q.toLowerCase()))
-   .filter(t=>kind==='all'||t.kind===kind)
-   .filter(
-    t=>tab==='rewatch'
-     ?st.rewatch.includes(t.id)
-     :filter==='all'
-      ||(filter==='watched'
-       ?st.watched.includes(t.id)
-       :st.watchlist.includes(t.id))
-   ),
-  [library,q,kind,tab,filter,st]
- );
+  const [profileId, setProfileId] =
+    useState('admin');
 
- const rec=
-  library.find(t=>st.watchlist.includes(t.id)&&!st.watched.includes(t.id))
-  ||library.find(t=>!st.watched.includes(t.id));
+  const [tab, setTab] =
+    useState<'library' | 'rewatch'>(
+      'library'
+    );
 
- const updateState=(fn:(s:State)=>State)=>
-  setStates({
-   ...states,
-   [profileId]:fn(st)
-  });
+  const [filter, setFilter] =
+    useState<
+      'all' | 'watchlist' | 'watched'
+    >('all');
 
- const toggle=(arr:keyof State,id:string)=>
-  updateState(
-   s=>({
-    ...s,
-    [arr]:s[arr].includes(id)
-     ?s[arr].filter(x=>x!==id)
-     :[...s[arr],id]
-   })
-  );
+  const [kind, setKind] =
+    useState<'all' | Kind>('all');
 
- const removeTitle=(id:string)=>{
+  const [sort, setSort] =
+    useState<SortOption>(
+      'name-asc'
+    );
 
-  setLibrary(
-   library.filter(t=>t.id!==id)
-  );
+  const [q, setQ] = useState('');
 
-  const ns={...states};
+  const [showProfile, setShowProfile] =
+    useState(false);
 
-  Object.keys(ns).forEach(k=>{
-   ns[k]={
-    watched:ns[k].watched.filter(x=>x!==id),
-    watchlist:ns[k].watchlist.filter(x=>x!==id),
-    rewatch:ns[k].rewatch.filter(x=>x!==id)
-   }
-  });
+  const [showAdd, setShowAdd] =
+    useState(false);
 
-  setStates(ns);
+  const [showReco, setShowReco] =
+    useState(false);
 
-  setReminders(
-   reminders.filter(r=>r.titleId!==id)
-  );
+  const [showReminder, setShowReminder] =
+    useState<Title | null>(null);
 
-  setScheduled(
-   scheduled.filter(r=>r.titleId!==id)
-  );
- };
+  const [showSchedule, setShowSchedule] =
+    useState<Title | null>(null);
 
- const addProfile=(name:string,avatar:string)=>{
+  const [showHero, setShowHero] =
+    useState(false);
 
-  const np={
-   id:uid(),
-   name:name||'New Profile',
-   avatar:avatar||'🙂'
+  const [editing, setEditing] =
+    useState<Profile | null>(null);
+
+  const [menu, setMenu] =
+    useState(false);
+
+  const isAdmin =
+    profileId === 'admin';
+
+  const profile =
+    profiles.find(
+      x => x.id === profileId
+    ) || profiles[0];
+
+  const state =
+    states[profileId] || {
+      watched: [],
+      watchlist: [],
+      rewatch: []
+    };
+
+  const hero = heroSettings.titleId
+    ? library.find(
+        x => x.id === heroSettings.titleId
+      ) || null
+    : null;
+
+  /* --------------------------------------------------
+     TODAY'S RECOMMENDATION
+  -------------------------------------------------- */
+
+  const recommendation = useMemo(() => {
+    const watchlistTitles =
+      library.filter(
+        title =>
+          state.watchlist.includes(
+            title.id
+          ) &&
+          !state.watched.includes(
+            title.id
+          )
+      );
+
+    return watchlistTitles[0] || null;
+  }, [
+    library,
+    state
+  ]);
+
+  /*
+   * Show Today's Reco once per profile.
+   * It is intentionally stored separately for
+   * each profile.
+   */
+
+  useEffect(() => {
+    if (
+      !profileId ||
+      !recommendation
+    ) {
+      return;
+    }
+
+    const key =
+      `sx-reco-seen-${profileId}`;
+
+    const alreadySeen =
+      localStorage.getItem(key);
+
+    if (!alreadySeen) {
+      setShowReco(true);
+    }
+  }, [
+    profileId,
+    recommendation
+  ]);
+
+  const closeRecommendation = () => {
+    localStorage.setItem(
+      `sx-reco-seen-${profileId}`,
+      'true'
+    );
+
+    setShowReco(false);
   };
 
-  setProfiles([...profiles,np]);
+  /* --------------------------------------------------
+     SORTING
+  -------------------------------------------------- */
 
-  setStates({
-   ...states,
-   [np.id]:{
-    watched:[],
-    watchlist:[],
-    rewatch:[]
-   }
-  });
+  const visible = useMemo(() => {
+    const filtered =
+      library
+        .filter(title =>
+          title.name
+            .toLowerCase()
+            .includes(
+              q.toLowerCase()
+            )
+        )
+        .filter(
+          title =>
+            kind === 'all' ||
+            title.kind === kind
+        )
+        .filter(title =>
+          tab === 'rewatch'
+            ? state.rewatch.includes(
+                title.id
+              )
+            : filter === 'all' ||
+              (
+                filter === 'watched'
+                  ? state.watched.includes(
+                      title.id
+                    )
+                  : state.watchlist.includes(
+                      title.id
+                    )
+              )
+        );
 
-  setEditing(null);
- };
+    return [...filtered].sort(
+      (a, b) => {
+        switch (sort) {
+          case 'name-desc':
+            return b.name.localeCompare(
+              a.name
+            );
 
- return <div className="app">
+          case 'year-desc':
+            return b.year - a.year;
 
-  <header>
-   <div className="logo">
-    STREAM<span>IX</span>
-   </div>
+          case 'year-asc':
+            return a.year - b.year;
 
-   <div className="header-right">
+          case 'name-asc':
+          default:
+            return a.name.localeCompare(
+              b.name
+            );
+        }
+      }
+    );
+  }, [
+    library,
+    q,
+    kind,
+    tab,
+    filter,
+    sort,
+    state
+  ]);
 
-    <button
-     className="profile-pill"
-     onClick={()=>setShowProfile(true)}
-    >
-     <span>{p.avatar}</span>
-     {p.name}
-     <ChevronDown size={16}/>
-    </button>
+  /* --------------------------------------------------
+     STATE ACTIONS
+  -------------------------------------------------- */
 
-    {isAdmin&&
-     <button
-      className="admin-badge"
-      onClick={()=>setMenu(!menu)}
-     >
-      ADMIN
-     </button>
+  const updateState = (
+    fn: (s: State) => State
+  ) => {
+    setStates({
+      ...states,
+      [profileId]: fn(state)
+    });
+  };
+
+  const toggle = (
+    array: keyof State,
+    id: string
+  ) => {
+    updateState(s => ({
+      ...s,
+      [array]: s[array].includes(id)
+        ? s[array].filter(
+            x => x !== id
+          )
+        : [...s[array], id]
+    }));
+  };
+
+  /* --------------------------------------------------
+     REMOVE TITLE
+  -------------------------------------------------- */
+
+  const removeTitle = (
+    id: string
+  ) => {
+    setLibrary(
+      library.filter(
+        title => title.id !== id
+      )
+    );
+
+    const nextStates = {
+      ...states
+    };
+
+    Object.keys(
+      nextStates
+    ).forEach(id => {
+      nextStates[id] = {
+        watched:
+          nextStates[id].watched.filter(
+            x => x !== id
+          ),
+        watchlist:
+          nextStates[id].watchlist.filter(
+            x => x !== id
+          ),
+        rewatch:
+          nextStates[id].rewatch.filter(
+            x => x !== id
+          )
+      };
+    });
+
+    setStates(nextStates);
+
+    setReminders(
+      reminders.filter(
+        reminder =>
+          reminder.titleId !== id
+      )
+    );
+
+    setScheduled(
+      scheduled.filter(
+        item =>
+          item.titleId !== id
+      )
+    );
+
+    if (
+      heroSettings.titleId === id
+    ) {
+      setHeroSettings({
+        ...heroSettings,
+        titleId: null
+      });
+    }
+  };
+
+  /* --------------------------------------------------
+     PROFILE MANAGEMENT
+  -------------------------------------------------- */
+
+  const addProfile = (
+    name: string,
+    avatar: string
+  ) => {
+    const newProfile: Profile = {
+      id: uid(),
+      name:
+        name.trim() ||
+        'New Profile',
+      avatar:
+        avatar || '🙂'
+    };
+
+    setProfiles([
+      ...profiles,
+      newProfile
+    ]);
+
+    setStates({
+      ...states,
+      [newProfile.id]: {
+        watched: [],
+        watchlist: [],
+        rewatch: []
+      }
+    });
+
+    setEditing(null);
+  };
+
+  const moveProfile = (
+    index: number,
+    direction: 'up' | 'down'
+  ) => {
+    if (
+      index === 0 &&
+      direction === 'up'
+    ) {
+      return;
     }
 
-    {menu&&isAdmin&&
-     <div className="admin-menu">
-
-      <button onClick={()=>setShowAdd(true)}>
-       <Plus/> Add title
-      </button>
-
-      <button onClick={()=>setShowHero(true)}>
-       <Settings/> Edit hero
-      </button>
-
-     </div>
+    if (
+      index ===
+        profiles.length - 1 &&
+      direction === 'down'
+    ) {
+      return;
     }
 
-   </div>
-  </header>
+    const next = [
+      ...profiles
+    ];
 
-  <section
-   className="hero"
-   style={{
-    backgroundImage:
-     `linear-gradient(90deg,rgba(0,0,0,.92),rgba(0,0,0,.15)),url(${hero.backdrop})`
-   }}
-  >
+    const target =
+      direction === 'up'
+        ? index - 1
+        : index + 1;
 
-   <div className="hero-content">
+    [
+      next[index],
+      next[target]
+    ] = [
+      next[target],
+      next[index]
+    ];
 
-    <div className="eyebrow">
-     FEATURED
-    </div>
+    setProfiles(next);
+  };
 
-    <h1>{hero.name}</h1>
+  /* --------------------------------------------------
+     RENDER
+  -------------------------------------------------- */
 
-    <p>
-     {hero.year} · {hero.kind==='movie'?'Movie':'TV Show'}
-    </p>
+  return (
+    <div className="app">
 
-    {isAdmin&&
-     <button
-      className="ghost"
-      onClick={()=>setShowHero(true)}
-     >
-      Edit Hero
-     </button>
-    }
+      {/* HEADER */}
 
-   </div>
+      <header>
+        <div className="logo">
+          STREAM<span>IX</span>
+        </div>
 
-  </section>
+        <div className="header-right">
 
-  <main>
+          <button
+            className="profile-pill"
+            onClick={() =>
+              setShowProfile(true)
+            }
+          >
+            <span>
+              {profile.avatar}
+            </span>
 
-   <div className="switch">
+            {profile.name}
 
-    <button
-     className={tab==='library'?'active':''}
-     onClick={()=>{
-      setTab('library');
-      setFilter('all')
-     }}
-    >
-     Library
-    </button>
+            <ChevronDown size={16} />
+          </button>
 
-    <button
-     className={tab==='rewatch'?'active':''}
-     onClick={()=>setTab('rewatch')}
-    >
-     {p.name}'s Re-watch
-    </button>
+          {isAdmin && (
+            <button
+              className="admin-badge"
+              onClick={() =>
+                setMenu(!menu)
+              }
+            >
+              ADMIN
+            </button>
+          )}
 
-   </div>
+          {menu && isAdmin && (
+            <div className="admin-menu">
 
-   {tab==='library'&&
-    <>
-     <div className="toolbar">
+              <button
+                onClick={() => {
+                  setShowAdd(true);
+                  setMenu(false);
+                }}
+              >
+                <Plus />
+                Add title
+              </button>
 
-      <div className="filters">
+              <button
+                onClick={() => {
+                  setShowHero(true);
+                  setMenu(false);
+                }}
+              >
+                <Settings />
+                Edit hero
+              </button>
 
-       <button
-        className={filter==='all'?'selected':''}
-        onClick={()=>setFilter('all')}
-       >
-        All
-       </button>
+            </div>
+          )}
 
-       <button
-        className={filter==='watchlist'?'selected':''}
-        onClick={()=>setFilter('watchlist')}
-       >
-        Watchlist
-       </button>
+        </div>
+      </header>
 
-       <button
-        className={filter==='watched'?'selected':''}
-        onClick={()=>setFilter('watched')}
-       >
-        Watched
-       </button>
+      {/* HERO */}
 
-      </div>
+      <section
+        className="hero"
+        style={{
+          backgroundImage:
+            hero?.backdrop
+              ? `linear-gradient(
+                  90deg,
+                  rgba(0,0,0,.92),
+                  rgba(0,0,0,.15)
+                ),
+                url(${hero.backdrop})`
+              : 'none',
 
-      <div className="search">
-
-       <Search size={18}/>
-
-       <input
-        value={q}
-        onChange={e=>setQ(e.target.value)}
-        placeholder="Search library"
-       />
-
-      </div>
-
-     </div>
-
-     <div className="format">
-
-      <button
-       className={kind==='all'?'selected':''}
-       onClick={()=>setKind('all')}
-      >
-       All
-      </button>
-
-      <button
-       className={kind==='movie'?'selected':''}
-       onClick={()=>setKind('movie')}
-      >
-       <Film size={15}/> Movies
-      </button>
-
-      <button
-       className={kind==='tv'?'selected':''}
-       onClick={()=>setKind('tv')}
-      >
-       <Tv size={15}/> TV
-      </button>
-
-     </div>
-    </>
-   }
-
-   <div className="grid">
-
-    {visible.map(t=>
-     <Card
-      key={t.id}
-      t={t}
-      st={st}
-      isAdmin={isAdmin}
-      onWatch={()=>toggle('watched',t.id)}
-      onList={()=>toggle('watchlist',t.id)}
-      onRewatch={()=>toggle('rewatch',t.id)}
-      onRemove={()=>removeTitle(t.id)}
-      onReminder={()=>setShowReminder(t)}
-      onSchedule={()=>setShowSchedule(t)}
-     />
-    )}
-
-    {!visible.length&&
-     <div className="empty">
-      Nothing here yet.
-     </div>
-    }
-
-   </div>
-
-  </main>
-
-  {showReco&&rec&&
-   <Modal
-    title="Today's Reco"
-    onClose={()=>setShowReco(false)}
-   >
-    <div className="reco">
-
-     <img src={rec.poster}/>
-
-     <div>
-
-      <h2>{rec.name}</h2>
-
-      <p>
-       {rec.year} · {rec.kind==='movie'?'Movie':'TV Show'}
-      </p>
-
-      <p>{rec.overview}</p>
-
-      <button
-       className="pink"
-       onClick={()=>{
-        toggle('watchlist',rec.id);
-        setShowReco(false)
-       }}
-      >
-       Add to Watchlist
-      </button>
-
-     </div>
-
-    </div>
-   </Modal>
-  }
-
-  {showProfile&&
-   <Modal
-    title="Profiles"
-    onClose={()=>setShowProfile(false)}
-   >
-
-    <div className="profiles">
-
-     {profiles.map(x=>
-      <div
-       className="profile-row"
-       key={x.id}
-      >
-
-       <button
-        onClick={()=>{
-         setProfileId(x.id);
-         setShowProfile(false)
+          backgroundPosition:
+            `${heroSettings.positionX}% ${heroSettings.positionY}%`
         }}
-        className={x.id===profileId?'current':''}
-       >
+      >
 
-        <span className="avatar">
-         {x.avatar}
+        <div className="hero-content">
+
+          <div className="eyebrow">
+            FEATURED
+          </div>
+
+          {hero ? (
+            <>
+              <h1>
+                {hero.name}
+              </h1>
+
+              <p>
+                {hero.year} ·{' '}
+                {hero.kind === 'movie'
+                  ? 'Movie'
+                  : 'TV Show'}
+              </p>
+
+              {isAdmin && (
+                <button
+                  className="ghost"
+                  onClick={() =>
+                    setShowHero(true)
+                  }
+                >
+                  Edit Hero
+                </button>
+              )}
+            </>
+          ) : (
+            <>
+              <h1>
+                Your library is empty
+              </h1>
+
+              {isAdmin && (
+                <button
+                  className="ghost"
+                  onClick={() =>
+                    setShowAdd(true)
+                  }
+                >
+                  Add your first title
+                </button>
+              )}
+            </>
+          )}
+
+        </div>
+      </section>
+
+      {/* MAIN */}
+
+      <main>
+
+        {/* PRIMARY NAVIGATION */}
+
+        <div className="switch">
+
+          <button
+            className={
+              tab === 'library'
+                ? 'active'
+                : ''
+            }
+            onClick={() => {
+              setTab('library');
+              setFilter('all');
+            }}
+          >
+            Library
+          </button>
+
+          {!isAdmin && (
+            <button
+              className={
+                tab === 'rewatch'
+                  ? 'active rewatch-tab'
+                  : 'rewatch-tab'
+              }
+              onClick={() =>
+                setTab('rewatch')
+              }
+            >
+              ↻ {profile.name}'s
+              Re-watch
+            </button>
+          )}
+
+        </div>
+
+        {/* LIBRARY CONTROLS */}
+
+        {tab === 'library' && (
+          <>
+            <div className="toolbar">
+
+              <div className="filters">
+
+                <button
+                  className={
+                    filter === 'all'
+                      ? 'selected'
+                      : ''
+                  }
+                  onClick={() =>
+                    setFilter('all')
+                  }
+                >
+                  All
+                </button>
+
+                <button
+                  className={
+                    filter ===
+                    'watchlist'
+                      ? 'selected'
+                      : ''
+                  }
+                  onClick={() =>
+                    setFilter(
+                      'watchlist'
+                    )
+                  }
+                >
+                  Watchlist
+                </button>
+
+                <button
+                  className={
+                    filter ===
+                    'watched'
+                      ? 'selected'
+                      : ''
+                  }
+                  onClick={() =>
+                    setFilter(
+                      'watched'
+                    )
+                  }
+                >
+                  Watched
+                </button>
+
+              </div>
+
+              <div className="search">
+
+                <Search size={18} />
+
+                <input
+                  value={q}
+                  onChange={e =>
+                    setQ(
+                      e.target.value
+                    )
+                  }
+                  placeholder="Search library"
+                />
+
+              </div>
+
+            </div>
+
+            <div className="format">
+
+              <button
+                className={
+                  kind === 'all'
+                    ? 'selected'
+                    : ''
+                }
+                onClick={() =>
+                  setKind('all')
+                }
+              >
+                All
+              </button>
+
+              <button
+                className={
+                  kind === 'movie'
+                    ? 'selected'
+                    : ''
+                }
+                onClick={() =>
+                  setKind('movie')
+                }
+              >
+                <Film size={15} />
+                Movies
+              </button>
+
+              <button
+                className={
+                  kind === 'tv'
+                    ? 'selected'
+                    : ''
+                }
+                onClick={() =>
+                  setKind('tv')
+                }
+              >
+                <Tv size={15} />
+                TV
+              </button>
+
+              <select
+                className="sort-select"
+                value={sort}
+                onChange={e =>
+                  setSort(
+                    e.target
+                      .value as SortOption
+                  )
+                }
+                aria-label="Sort library"
+              >
+                <option value="name-asc">
+                  Name A–Z
+                </option>
+
+                <option value="name-desc">
+                  Name Z–A
+                </option>
+
+                <option value="year-desc">
+                  Newest release
+                </option>
+
+                <option value="year-asc">
+                  Oldest release
+                </option>
+              </select>
+
+            </div>
+          </>
+        )}
+
+        {/* LIBRARY */}
+
+        <div className="grid">
+
+          {visible.map(title => (
+            <Card
+              key={title.id}
+              t={title}
+              st={state}
+              isAdmin={isAdmin}
+              onWatch={() =>
+                toggle(
+                  'watched',
+                  title.id
+                )
+              }
+              onList={() =>
+                toggle(
+                  'watchlist',
+                  title.id
+                )
+              }
+              onRewatch={() =>
+                toggle(
+                  'rewatch',
+                  title.id
+                )
+              }
+              onRemove={() =>
+                removeTitle(
+                  title.id
+                )
+              }
+              onReminder={() =>
+                setShowReminder(
+                  title
+                )
+              }
+              onSchedule={() =>
+                setShowSchedule(
+                  title
+                )
+              }
+            />
+          ))}
+
+          {!visible.length && (
+            <div className="empty">
+              {library.length === 0
+                ? 'Your library is empty.'
+                : 'Nothing here yet.'}
+            </div>
+          )}
+
+        </div>
+
+      </main>
+
+      {/* TODAY'S RECOMMENDATION */}
+
+      {showReco &&
+        recommendation && (
+          <Modal
+            title="Today's Reco"
+            onClose={
+              closeRecommendation
+            }
+          >
+            <div className="reco">
+
+              <img
+                src={
+                  recommendation.poster
+                }
+                alt={
+                  recommendation.name
+                }
+              />
+
+              <div>
+
+                <div className="reco-label">
+                  FROM YOUR WATCHLIST
+                </div>
+
+                <h2>
+                  {recommendation.name}
+                </h2>
+
+                <p>
+                  {recommendation.year} ·{' '}
+                  {recommendation.kind ===
+                  'movie'
+                    ? 'Movie'
+                    : 'TV Show'}
+                </p>
+
+                {recommendation.overview && (
+                  <p>
+                    {
+                      recommendation.overview
+                    }
+                  </p>
+                )}
+
+              </div>
+
+            </div>
+          </Modal>
+        )}
+
+      {/* PROFILES */}
+
+      {showProfile && (
+        <Modal
+          title="Profiles"
+          onClose={() =>
+            setShowProfile(false)
+          }
+        >
+
+          <div className="profiles">
+
+            {profiles.map(
+              (item, index) => (
+                <div
+                  className="profile-row"
+                  key={item.id}
+                >
+
+                  <button
+                    onClick={() => {
+                      setProfileId(
+                        item.id
+                      );
+                      setShowProfile(
+                        false
+                      );
+                    }}
+                    className={
+                      item.id ===
+                      profileId
+                        ? 'current'
+                        : ''
+                    }
+                  >
+
+                    <span className="avatar">
+                      {item.avatar}
+                    </span>
+
+                    <span>
+                      {item.name}
+                    </span>
+
+                    {item.id ===
+                      profileId && (
+                      <Check
+                        size={18}
+                      />
+                    )}
+
+                  </button>
+
+                  {isAdmin &&
+                    item.id !==
+                      'admin' && (
+                      <button
+                        className="icon"
+                        onClick={() => {
+                          setEditing(
+                            item
+                          );
+                          setShowProfile(
+                            false
+                          );
+                        }}
+                      >
+                        ✎
+                      </button>
+                    )}
+
+                  {isAdmin &&
+                    profiles.length >
+                      1 && (
+                      <div className="profile-order">
+
+                        <button
+                          className="icon"
+                          disabled={
+                            index === 0
+                          }
+                          onClick={() =>
+                            moveProfile(
+                              index,
+                              'up'
+                            )
+                          }
+                          aria-label="Move profile up"
+                        >
+                          <ChevronLeft
+                            size={16}
+                          />
+                        </button>
+
+                        <button
+                          className="icon"
+                          disabled={
+                            index ===
+                            profiles.length -
+                              1
+                          }
+                          onClick={() =>
+                            moveProfile(
+                              index,
+                              'down'
+                            )
+                          }
+                          aria-label="Move profile down"
+                        >
+                          <ChevronRight
+                            size={16}
+                          />
+                        </button>
+
+                      </div>
+                    )}
+
+                </div>
+              )
+            )}
+
+            {isAdmin && (
+              <button
+                className="add-profile"
+                onClick={() => {
+                  setEditing({
+                    id: 'new',
+                    name: '',
+                    avatar: '🙂'
+                  });
+
+                  setShowProfile(
+                    false
+                  );
+                }}
+              >
+                <Plus />
+                Add Profile
+              </button>
+            )}
+
+          </div>
+
+        </Modal>
+      )}
+
+      {/* PROFILE EDITOR */}
+
+      {editing && (
+        <ProfileEditor
+          profile={
+            editing.id === 'new'
+              ? null
+              : editing
+          }
+          onClose={() =>
+            setEditing(null)
+          }
+          onSave={(name, avatar) =>
+            editing.id === 'new'
+              ? addProfile(
+                  name,
+                  avatar
+                )
+              : (
+                  setProfiles(
+                    profiles.map(
+                      item =>
+                        item.id ===
+                        editing.id
+                          ? {
+                              ...item,
+                              name,
+                              avatar
+                            }
+                          : item
+                    )
+                  ),
+                  setEditing(null)
+                )
+          }
+          onDelete={
+            editing.id === 'new'
+              ? undefined
+              : () => {
+                  setProfiles(
+                    profiles.filter(
+                      item =>
+                        item.id !==
+                        editing.id
+                    )
+                  );
+
+                  const nextStates = {
+                    ...states
+                  };
+
+                  delete nextStates[
+                    editing.id
+                  ];
+
+                  setStates(
+                    nextStates
+                  );
+
+                  setEditing(null);
+                  setProfileId(
+                    'admin'
+                  );
+                }
+          }
+        />
+      )}
+
+      {/* ADD TITLE */}
+
+      {showAdd && (
+        <AddTitle
+          library={library}
+          onClose={() =>
+            setShowAdd(false)
+          }
+          onAdd={title =>
+            setLibrary([
+              ...library,
+              title
+            ])
+          }
+        />
+      )}
+
+      {/* REMINDER */}
+
+      {showReminder && (
+        <ReminderModal
+          title={showReminder}
+          onClose={() =>
+            setShowReminder(null)
+          }
+          onSave={(date, time) => {
+            setReminders([
+              ...reminders,
+              {
+                id: uid(),
+                profileId,
+                titleId:
+                  showReminder.id,
+                date,
+                time
+              }
+            ]);
+
+            setShowReminder(null);
+          }}
+        />
+      )}
+
+      {/* SCHEDULE RECOMMENDATION */}
+
+      {showSchedule &&
+        isAdmin && (
+          <ScheduleModal
+            title={showSchedule}
+            profiles={profiles.filter(
+              item =>
+                item.id !==
+                'admin'
+            )}
+            onClose={() =>
+              setShowSchedule(null)
+            }
+            onSave={item => {
+              setScheduled([
+                ...scheduled,
+                item
+              ]);
+
+              setShowSchedule(null);
+            }}
+          />
+        )}
+
+      {/* HERO EDITOR */}
+
+      {showHero &&
+        isAdmin && (
+          <HeroModal
+            hero={hero}
+            library={library}
+            settings={
+              heroSettings
+            }
+            onClose={() =>
+              setShowHero(false)
+            }
+            onSave={settings => {
+              setHeroSettings(
+                settings
+              );
+
+              setShowHero(false);
+            }}
+          />
+        )}
+
+      {/* FOOTER */}
+
+      <footer>
+
+        <span>
+          <Clock size={14} />
+
+          {
+            reminders.filter(
+              reminder =>
+                reminder.profileId ===
+                profileId
+            ).length
+          }
+
+          reminder(s)
         </span>
 
-        <span>{x.name}</span>
+        {isAdmin && (
+          <span>
+            {scheduled.length}{' '}
+            scheduled reco(s)
+          </span>
+        )}
 
-        {x.id===profileId&&
-         <Check size={18}/>
-        }
-
-       </button>
-
-       {x.id!=='admin'&&
         <button
-         className="icon"
-         onClick={()=>{
-          setEditing(x);
-          setShowProfile(false)
-         }}
+          onClick={() =>
+            alert(
+              'Sign out will be connected to your real authentication system.'
+            )
+          }
         >
-         ✎
+          <LogOut size={14} />
+          Sign out
         </button>
-       }
 
-      </div>
-     )}
-
-     <button
-      className="add-profile"
-      onClick={()=>{
-       setEditing({
-        id:'new',
-        name:'',
-        avatar:'🙂'
-       });
-       setShowProfile(false)
-      }}
-     >
-      <Plus/> Add Profile
-     </button>
+      </footer>
 
     </div>
-
-   </Modal>
-  }
-
-  {editing&&
-   <ProfileEditor
-    profile={editing.id==='new'?null:editing}
-    onClose={()=>setEditing(null)}
-    onSave={(n,a)=>
-     editing.id==='new'
-      ?addProfile(n,a)
-      :(setProfiles(
-        profiles.map(x=>
-         x.id===editing.id
-          ?{...x,name:n,avatar:a}
-          :x
-        )
-       ),setEditing(null))
-    }
-    onDelete={
-     editing.id==='new'
-      ?undefined
-      :()=>{
-       setProfiles(
-        profiles.filter(x=>x.id!==editing.id)
-       );
-
-       const ns={...states};
-       delete ns[editing.id];
-
-       setStates(ns);
-       setEditing(null);
-       setProfileId('admin');
-      }
-    }
-   />
-  }
-
-  {showAdd&&
-   <AddTitle
-    library={library}
-    onClose={()=>setShowAdd(false)}
-    onAdd={t=>setLibrary([...library,t])}
-   />
-  }
-
-  {showReminder&&
-   <ReminderModal
-    title={showReminder}
-    onClose={()=>setShowReminder(null)}
-    onSave={(d,time)=>{
-     setReminders([
-      ...reminders,
-      {
-       id:uid(),
-       profileId,
-       titleId:showReminder.id,
-       date:d,
-       time
-      }
-     ]);
-
-     setShowReminder(null)
-    }}
-   />
-  }
-
-  {showSchedule&&isAdmin&&
-   <ScheduleModal
-    title={showSchedule}
-    profiles={profiles.filter(x=>x.id!=='admin')}
-    onClose={()=>setShowSchedule(null)}
-    onSave={r=>{
-     setScheduled([...scheduled,r]);
-     setShowSchedule(null)
-    }}
-   />
-  }
-
-  {showHero&&isAdmin&&
-   <HeroModal
-    hero={hero}
-    library={library}
-    onClose={()=>setShowHero(false)}
-    onSave={t=>{
-     setHero(t);
-     setShowHero(false)
-    }}
-   />
-  }
-
-  <footer>
-
-   <span>
-    <Clock size={14}/>
-    {reminders.filter(r=>r.profileId===profileId).length}
-    reminder(s)
-   </span>
-
-   {isAdmin&&
-    <span>
-     {scheduled.length} scheduled reco(s)
-    </span>
-   }
-
-   <button
-    onClick={()=>
-     alert(
-      'Demo mode: connect your real auth/backend before production use.'
-     )
-    }
-   >
-    <LogOut size={14}/>
-    Sign out
-   </button>
-
-  </footer>
-
- </div>
+  );
 }
 
 /* --------------------------------------------------
@@ -674,104 +1373,145 @@ function App(){
 -------------------------------------------------- */
 
 function Card({
- t,
- st,
- isAdmin,
- onWatch,
- onList,
- onRewatch,
- onRemove,
- onReminder,
- onSchedule
-}:{
- t:Title;
- st:State;
- isAdmin:boolean;
- onWatch:()=>void;
- onList:()=>void;
- onRewatch:()=>void;
- onRemove:()=>void;
- onReminder:()=>void;
- onSchedule:()=>void
-}){
+  t,
+  st,
+  isAdmin,
+  onWatch,
+  onList,
+  onRewatch,
+  onRemove,
+  onReminder,
+  onSchedule
+}: {
+  t: Title;
+  st: State;
+  isAdmin: boolean;
+  onWatch: () => void;
+  onList: () => void;
+  onRewatch: () => void;
+  onRemove: () => void;
+  onReminder: () => void;
+  onSchedule: () => void;
+}) {
+  return (
+    <article className="card">
 
- return <article className="card">
+      <div className="poster-wrap">
 
-  <div className="poster-wrap">
+        <img
+          src={t.poster}
+          alt={t.name}
+          onError={e => {
+            e.currentTarget.src =
+              'https://placehold.co/500x750/171717/ffffff?text=' +
+              encodeURIComponent(
+                t.name
+              );
+          }}
+        />
 
-   <img
-    src={t.poster}
-    onError={e=>{
-     e.currentTarget.src=
-      'https://placehold.co/500x750/171717/ffffff?text='+
-      encodeURIComponent(t.name)
-    }}
-   />
+        <span className="kind">
+          {t.kind === 'movie'
+            ? 'MOVIE'
+            : 'TV'}
+        </span>
 
-   <span className="kind">
-    {t.kind==='movie'?'MOVIE':'TV'}
-   </span>
+        {isAdmin && (
+          <button
+            className="remove"
+            onClick={onRemove}
+            title="Remove title"
+          >
+            <Trash2 size={16} />
+          </button>
+        )}
 
-   {isAdmin&&
-    <button
-     className="remove"
-     onClick={onRemove}
-     title="Remove title"
-    >
-     <Trash2 size={16}/>
-    </button>
-   }
+      </div>
 
-  </div>
+      <div className="card-body">
 
-  <div className="card-body">
+        <h3>{t.name}</h3>
 
-   <h3>{t.name}</h3>
+        <p>{t.year}</p>
 
-   <p>{t.year}</p>
+        <div className="actions">
 
-   <div className="actions">
+          <button
+            className={
+              st.watchlist.includes(
+                t.id
+              )
+                ? 'on'
+                : ''
+            }
+            onClick={onList}
+          >
+            + Watchlist
+          </button>
 
-    <button
-     className={st.watchlist.includes(t.id)?'on':''}
-     onClick={onList}
-    >
-     + Watchlist
-    </button>
+          <button
+            className={
+              st.watched.includes(
+                t.id
+              )
+                ? 'on'
+                : ''
+            }
+            onClick={onWatch}
+          >
+            {st.watched.includes(
+              t.id
+            )
+              ? '✓ Watched'
+              : 'Mark watched'}
+          </button>
 
-    <button
-     className={st.watched.includes(t.id)?'on':''}
-     onClick={onWatch}
-    >
-     {st.watched.includes(t.id)
-      ?'✓ Watched'
-      :'Mark watched'}
-    </button>
+        </div>
 
-   </div>
+        <div className="small-actions">
 
-   <div className="small-actions">
+          {!isAdmin && (
+            <button
+              className={
+                st.rewatch.includes(
+                  t.id
+                )
+                  ? 'rewatch-action on'
+                  : 'rewatch-action'
+              }
+              onClick={
+                onRewatch
+              }
+            >
+              ↻ Re-watch
+            </button>
+          )}
 
-    <button onClick={onRewatch}>
-     ↻ Re-watch
-    </button>
+          <button
+            onClick={
+              onReminder
+            }
+          >
+            <Bell size={14} />
+            Remind me
+          </button>
 
-    <button onClick={onReminder}>
-     <Bell size={14}/>
-     Remind me
-    </button>
+          {isAdmin && (
+            <button
+              onClick={
+                onSchedule
+              }
+            >
+              Schedule reco
+            </button>
+          )}
 
-    {isAdmin&&
-     <button onClick={onSchedule}>
-      Schedule reco
-     </button>
-    }
+        </div>
 
-   </div>
+      </div>
 
-  </div>
-
- </article>
+    </article>
+  );
 }
 
 /* --------------------------------------------------
@@ -779,42 +1519,48 @@ function Card({
 -------------------------------------------------- */
 
 function Modal({
- title,
- onClose,
- children
-}:{
- title:string;
- onClose:()=>void;
- children:React.ReactNode
-}){
-
- return <div
-  className="overlay"
-  onMouseDown={e=>{
-   if(e.currentTarget===e.target)onClose()
-  }}
- >
-
-  <div className="modal">
-
-   <div className="modal-head">
-
-    <h2>{title}</h2>
-
-    <button
-     className="icon"
-     onClick={onClose}
+  title,
+  onClose,
+  children
+}: {
+  title: string;
+  onClose: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <div
+      className="overlay"
+      onMouseDown={e => {
+        if (
+          e.currentTarget ===
+          e.target
+        ) {
+          onClose();
+        }
+      }}
     >
-     <X/>
-    </button>
 
-   </div>
+      <div className="modal">
 
-   {children}
+        <div className="modal-head">
 
-  </div>
+          <h2>{title}</h2>
 
- </div>
+          <button
+            className="icon"
+            onClick={onClose}
+          >
+            <X />
+          </button>
+
+        </div>
+
+        {children}
+
+      </div>
+
+    </div>
+  );
 }
 
 /* --------------------------------------------------
@@ -822,222 +1568,287 @@ function Modal({
 -------------------------------------------------- */
 
 function ProfileEditor({
- profile,
- onClose,
- onSave,
- onDelete
-}:{
- profile:Profile|null;
- onClose:()=>void;
- onSave:(n:string,a:string)=>void;
- onDelete?:()=>void
-}){
+  profile,
+  onClose,
+  onSave,
+  onDelete
+}: {
+  profile: Profile | null;
+  onClose: () => void;
+  onSave: (
+    name: string,
+    avatar: string
+  ) => void;
+  onDelete?: () => void;
+}) {
+  const [name, setName] =
+    useState(
+      profile?.name || ''
+    );
 
- const [n,setN]=useState(profile?.name||'');
- const [a,setA]=useState(profile?.avatar||'🙂');
+  const [avatar, setAvatar] =
+    useState(
+      profile?.avatar || '🙂'
+    );
 
- return <Modal
-  title={profile?'Edit Profile':'Add Profile'}
-  onClose={onClose}
- >
+  return (
+    <Modal
+      title={
+        profile
+          ? 'Edit Profile'
+          : 'Add Profile'
+      }
+      onClose={onClose}
+    >
 
-  <label>
-   Profile Name
-   <input
-    autoFocus
-    value={n}
-    onChange={e=>setN(e.target.value)}
-   />
-  </label>
+      <label>
+        Profile Name
 
-  <label>
-   Profile Photo
+        <input
+          autoFocus
+          value={name}
+          onChange={e =>
+            setName(
+              e.target.value
+            )
+          }
+        />
+      </label>
 
-   <div className="emoji-grid">
+      <label>
+        Profile Photo
 
-    {['🙂','🌸','🎬','🍿','⭐','🐱','🦋','🔥'].map(x=>
-     <button
-      className={a===x?'picked':''}
-      onClick={()=>setA(x)}
-      key={x}
-     >
-      {x}
-     </button>
-    )}
+        <div className="emoji-grid">
 
-   </div>
+          {[
+            '🙂',
+            '🌸',
+            '🎬',
+            '🍿',
+            '⭐',
+            '🐱',
+            '🦋',
+            '🔥'
+          ].map(item => (
+            <button
+              className={
+                avatar === item
+                  ? 'picked'
+                  : ''
+              }
+              onClick={() =>
+                setAvatar(item)
+              }
+              key={item}
+            >
+              {item}
+            </button>
+          ))}
 
-  </label>
+        </div>
 
-  <label>
-   Upload Photo
-   <input
-    type="file"
-    accept="image/*"
-   />
-  </label>
+      </label>
 
-  <button
-   className="pink full"
-   onClick={()=>onSave(n,a)}
-  >
-   Save Profile
-  </button>
+      <label>
+        Upload Photo
 
-  {onDelete&&
-   <button
-    className="danger full"
-    onClick={()=>
-     confirm('Delete this profile?')&&onDelete()
-    }
-   >
-    Delete Profile
-   </button>
-  }
+        <input
+          type="file"
+          accept="image/*"
+        />
+      </label>
 
- </Modal>
+      <button
+        className="pink full"
+        onClick={() =>
+          onSave(
+            name,
+            avatar
+          )
+        }
+      >
+        Save Profile
+      </button>
+
+      {onDelete && (
+        <button
+          className="danger full"
+          onClick={() => {
+            if (
+              confirm(
+                'Delete this profile?'
+              )
+            ) {
+              onDelete();
+            }
+          }}
+        >
+          Delete Profile
+        </button>
+      )}
+
+    </Modal>
+  );
 }
 
 /* --------------------------------------------------
-   TMDB ADD TITLE
+   ADD TITLE
 -------------------------------------------------- */
 
 function AddTitle({
- library,
- onClose,
- onAdd
-}:{
- library:Title[];
- onClose:()=>void;
- onAdd:(t:Title)=>void
-}){
+  library,
+  onClose,
+  onAdd
+}: {
+  library: Title[];
+  onClose: () => void;
+  onAdd: (title: Title) => void;
+}) {
+  const [query, setQuery] =
+    useState('');
 
- const [q,setQ]=useState('');
- const [results,setResults]=useState<Title[]>([]);
- const [loading,setLoading]=useState(false);
- const [error,setError]=useState('');
+  const [results, setResults] =
+    useState<Title[]>([]);
 
- useEffect(()=>{
+  const [loading, setLoading] =
+    useState(false);
 
-  if(!q.trim()){
-   setResults([]);
-   return;
-  }
+  const [error, setError] =
+    useState('');
 
-  const timer=setTimeout(async()=>{
+  useEffect(() => {
+    if (!query.trim()) {
+      setResults([]);
+      return;
+    }
 
-   setLoading(true);
-   setError('');
+    const timer =
+      setTimeout(async () => {
+        setLoading(true);
+        setError('');
 
-   try{
+        try {
+          const data =
+            await searchTMDB(
+              query
+            );
 
-    const data=await searchTMDB(q);
+          setResults(data);
+        } catch {
+          setError(
+            'Unable to search TMDB right now.'
+          );
+        } finally {
+          setLoading(false);
+        }
+      }, 400);
 
-    setResults(data);
+    return () =>
+      clearTimeout(timer);
+  }, [query]);
 
-   }catch{
-
-    setError(
-     'Unable to search TMDB right now.'
+  const available =
+    results.filter(
+      title =>
+        !library.some(
+          item =>
+            item.id === title.id
+        )
     );
 
-   }finally{
-
-    setLoading(false);
-
-   }
-
-  },400);
-
-  return()=>clearTimeout(timer);
-
- },[q]);
-
- const available=results.filter(
-  t=>!library.some(
-   l=>l.id===t.id
-  )
- );
-
- return <Modal
-  title="Add Movie / TV Show"
-  onClose={onClose}
- >
-
-  <p className="muted">
-   Search TMDB for movies and TV shows.
-  </p>
-
-  <div className="search wide">
-
-   <Search size={18}/>
-
-   <input
-    autoFocus
-    value={q}
-    onChange={e=>setQ(e.target.value)}
-    placeholder="Search movies and TV shows"
-   />
-
-  </div>
-
-  {loading&&
-   <p className="muted">
-    Searching TMDB...
-   </p>
-  }
-
-  {error&&
-   <p className="muted">
-    {error}
-   </p>
-  }
-
-  <div className="result-list">
-
-   {available.map(t=>
-
-    <div
-     className="result"
-     key={t.id}
+  return (
+    <Modal
+      title="Add Movie / TV Show"
+      onClose={onClose}
     >
 
-     <img src={t.poster}/>
+      <p className="muted">
+        Search TMDB for movies
+        and TV shows.
+      </p>
 
-     <div>
+      <div className="search wide">
 
-      <b>{t.name}</b>
+        <Search size={18} />
 
-      <span>
-       {t.year} ·
-       {t.kind==='movie'
-        ?' Movie'
-        :' TV Show'}
-      </span>
+        <input
+          autoFocus
+          value={query}
+          onChange={e =>
+            setQuery(
+              e.target.value
+            )
+          }
+          placeholder="Search movies and TV shows"
+        />
 
-     </div>
+      </div>
 
-     <button
-      className="pink add"
-      onClick={()=>{
-       onAdd(t);
-       setResults(
-        results.filter(
-         x=>x.id!==t.id
-        )
-       );
-      }}
-     >
-      + Add
-     </button>
+      {loading && (
+        <p className="muted">
+          Searching TMDB...
+        </p>
+      )}
 
-    </div>
+      {error && (
+        <p className="muted">
+          {error}
+        </p>
+      )}
 
-   )}
+      <div className="result-list">
 
-  </div>
+        {available.map(title => (
+          <div
+            className="result"
+            key={title.id}
+          >
 
- </Modal>
+            <img
+              src={title.poster}
+              alt={title.name}
+            />
+
+            <div>
+
+              <b>
+                {title.name}
+              </b>
+
+              <span>
+                {title.year} ·{' '}
+                {title.kind ===
+                'movie'
+                  ? 'Movie'
+                  : 'TV Show'}
+              </span>
+
+            </div>
+
+            <button
+              className="pink add"
+              onClick={() => {
+                onAdd(title);
+
+                setResults(
+                  results.filter(
+                    item =>
+                      item.id !==
+                      title.id
+                  )
+                );
+              }}
+            >
+              + Add
+            </button>
+
+          </div>
+        ))}
+
+      </div>
+
+    </Modal>
+  );
 }
 
 /* --------------------------------------------------
@@ -1045,60 +1856,84 @@ function AddTitle({
 -------------------------------------------------- */
 
 function ReminderModal({
- title,
- onClose,
- onSave
-}:{
- title:Title;
- onClose:()=>void;
- onSave:(d:string,t:string)=>void
-}){
+  title,
+  onClose,
+  onSave
+}: {
+  title: Title;
+  onClose: () => void;
+  onSave: (
+    date: string,
+    time: string
+  ) => void;
+}) {
+  const [date, setDate] =
+    useState('');
 
- const [d,setD]=useState('');
- const [t,setT]=useState('19:00');
+  const [time, setTime] =
+    useState('19:00');
 
- return <Modal
-  title="Remind Me"
-  onClose={onClose}
- >
+  return (
+    <Modal
+      title="Remind Me"
+      onClose={onClose}
+    >
 
-  <p>
-   Set a reminder for <b>{title.name}</b>.
-  </p>
+      <p>
+        Set a reminder for{' '}
+        <b>{title.name}</b>.
+      </p>
 
-  <label>
-   Date
-   <input
-    type="date"
-    value={d}
-    onChange={e=>setD(e.target.value)}
-   />
-  </label>
+      <label>
+        Date
 
-  <label>
-   Time
-   <input
-    type="time"
-    value={t}
-    onChange={e=>setT(e.target.value)}
-   />
-  </label>
+        <input
+          type="date"
+          value={date}
+          onChange={e =>
+            setDate(
+              e.target.value
+            )
+          }
+        />
+      </label>
 
-  <button
-   className="pink full"
-   disabled={!d}
-   onClick={()=>onSave(d,t)}
-  >
-   Save Reminder
-  </button>
+      <label>
+        Time
 
-  <p className="muted">
-   Browser calendar/push notifications require
-   additional integration. The reminder is saved
-   locally in this demo.
-  </p>
+        <input
+          type="time"
+          value={time}
+          onChange={e =>
+            setTime(
+              e.target.value
+            )
+          }
+        />
+      </label>
 
- </Modal>
+      <button
+        className="pink full"
+        disabled={!date}
+        onClick={() =>
+          onSave(
+            date,
+            time
+          )
+        }
+      >
+        Save Reminder
+      </button>
+
+      <p className="muted">
+        Notification delivery will
+        be connected to the
+        Streamix notification
+        system.
+      </p>
+
+    </Modal>
+  );
 }
 
 /* --------------------------------------------------
@@ -1106,172 +1941,296 @@ function ReminderModal({
 -------------------------------------------------- */
 
 function ScheduleModal({
- title,
- profiles,
- onClose,
- onSave
-}:{
- title:Title;
- profiles:Profile[];
- onClose:()=>void;
- onSave:(r:Scheduled)=>void
-}){
+  title,
+  profiles,
+  onClose,
+  onSave
+}: {
+  title: Title;
+  profiles: Profile[];
+  onClose: () => void;
+  onSave: (
+    item: Scheduled
+  ) => void;
+}) {
+  const [profileId, setProfileId] =
+    useState(
+      profiles[0]?.id || ''
+    );
 
- const [pid,setPid]=useState(profiles[0]?.id||'');
- const [d,setD]=useState('');
- const [t,setT]=useState('19:00');
- const [m,setM]=useState('How about this one?');
+  const [date, setDate] =
+    useState('');
 
- return <Modal
-  title="Schedule Personal Recommendation"
-  onClose={onClose}
- >
+  const [time, setTime] =
+    useState('19:00');
 
-  <label>
-   Profile
+  const [message, setMessage] =
+    useState(
+      'How about this one?'
+    );
 
-   <select
-    value={pid}
-    onChange={e=>setPid(e.target.value)}
-   >
+  return (
+    <Modal
+      title="Schedule Personal Recommendation"
+      onClose={onClose}
+    >
 
-    {profiles.map(p=>
-     <option
-      value={p.id}
-      key={p.id}
-     >
-      {p.name}
-     </option>
-    )}
+      <label>
+        Profile
 
-   </select>
+        <select
+          value={profileId}
+          onChange={e =>
+            setProfileId(
+              e.target.value
+            )
+          }
+        >
+          {profiles.map(profile => (
+            <option
+              value={profile.id}
+              key={profile.id}
+            >
+              {profile.name}
+            </option>
+          ))}
+        </select>
+      </label>
 
-  </label>
+      <label>
+        Date
 
-  <label>
-   Date
-   <input
-    type="date"
-    value={d}
-    onChange={e=>setD(e.target.value)}
-   />
-  </label>
+        <input
+          type="date"
+          value={date}
+          onChange={e =>
+            setDate(
+              e.target.value
+            )
+          }
+        />
+      </label>
 
-  <label>
-   Time
-   <input
-    type="time"
-    value={t}
-    onChange={e=>setT(e.target.value)}
-   />
-  </label>
+      <label>
+        Time
 
-  <label>
-   Message
+        <input
+          type="time"
+          value={time}
+          onChange={e =>
+            setTime(
+              e.target.value
+            )
+          }
+        />
+      </label>
 
-   <textarea
-    value={m}
-    onChange={e=>setM(e.target.value)}
-   />
+      <label>
+        Message
 
-  </label>
+        <textarea
+          value={message}
+          onChange={e =>
+            setMessage(
+              e.target.value
+            )
+          }
+        />
+      </label>
 
-  <button
-   className="pink full"
-   disabled={!pid||!d}
-   onClick={()=>
-    onSave({
-     id:uid(),
-     profileId:pid,
-     titleId:title.id,
-     date:d,
-     time:t,
-     message:m
-    })
-   }
-  >
-   Schedule
-  </button>
+      <button
+        className="pink full"
+        disabled={
+          !profileId ||
+          !date
+        }
+        onClick={() =>
+          onSave({
+            id: uid(),
+            profileId,
+            titleId:
+              title.id,
+            date,
+            time,
+            message
+          })
+        }
+      >
+        Schedule
+      </button>
 
- </Modal>
+    </Modal>
+  );
 }
 
 /* --------------------------------------------------
-   HERO
+   HERO EDITOR
 -------------------------------------------------- */
 
 function HeroModal({
- hero,
- library,
- onClose,
- onSave
-}:{
- hero:Title;
- library:Title[];
- onClose:()=>void;
- onSave:(t:Title)=>void
-}){
+  hero,
+  library,
+  settings,
+  onClose,
+  onSave
+}: {
+  hero: Title | null;
+  library: Title[];
+  settings: HeroSettings;
+  onClose: () => void;
+  onSave: (
+    settings: HeroSettings
+  ) => void;
+}) {
+  const [titleId, setTitleId] =
+    useState<string>(
+      settings.titleId ||
+        library[0]?.id ||
+        ''
+    );
 
- const [id,setId]=useState(hero.id);
+  const [positionX, setPositionX] =
+    useState(
+      settings.positionX
+    );
 
- return <Modal
-  title="Edit Hero"
-  onClose={onClose}
- >
+  const [positionY, setPositionY] =
+    useState(
+      settings.positionY
+    );
 
-  <p>
-   <b>
-    Recommended image size: 1600 × 600 px
-   </b>
-   <br/>
-   Aspect ratio: approximately 8:3
-   <br/>
-   Format: JPG or PNG
-   <br/>
-   Recommended file size: under 2 MB
-  </p>
+  const selectedTitle =
+    library.find(
+      title =>
+        title.id === titleId
+    ) || hero;
 
-  <label>
-   Hero title
+  return (
+    <Modal
+      title="Edit Hero"
+      onClose={onClose}
+    >
 
-   <select
-    value={id}
-    onChange={e=>setId(e.target.value)}
-   >
+      <p>
+        Choose which title
+        appears in the featured
+        hero.
+      </p>
 
-    {library.map(t=>
-     <option
-      key={t.id}
-      value={t.id}
-     >
-      {t.name}
-     </option>
-    )}
+      {library.length === 0 ? (
+        <p className="muted">
+          Add a movie or TV show
+          to your library first.
+        </p>
+      ) : (
+        <>
+          <label>
+            Hero title
 
-   </select>
+            <select
+              value={titleId}
+              onChange={e =>
+                setTitleId(
+                  e.target.value
+                )
+              }
+            >
+              {library.map(title => (
+                <option
+                  key={title.id}
+                  value={title.id}
+                >
+                  {title.name}
+                </option>
+              ))}
+            </select>
+          </label>
 
-  </label>
+          {selectedTitle?.backdrop && (
+            <div
+              className="hero-preview"
+              style={{
+                backgroundImage:
+                  `url(${selectedTitle.backdrop})`,
+                backgroundPosition:
+                  `${positionX}% ${positionY}%`
+              }}
+            >
+              <div className="hero-preview-overlay">
+                Preview
+              </div>
+            </div>
+          )}
 
-  <p className="muted">
-   For the final version, the hero can use an
-   uploaded image or a secure media URL.
-   It will crop responsively for desktop and mobile.
-  </p>
+          <label>
+            Image horizontal crop
 
-  <button
-   className="pink full"
-   onClick={()=>
-    onSave(
-     library.find(x=>x.id===id)||hero
-    )
-   }
-  >
-   Save Hero
-  </button>
+            <input
+              type="range"
+              min="0"
+              max="100"
+              value={positionX}
+              onChange={e =>
+                setPositionX(
+                  Number(
+                    e.target.value
+                  )
+                )
+              }
+            />
 
- </Modal>
+            <span className="muted">
+              {positionX}%
+            </span>
+          </label>
+
+          <label>
+            Image vertical crop
+
+            <input
+              type="range"
+              min="0"
+              max="100"
+              value={positionY}
+              onChange={e =>
+                setPositionY(
+                  Number(
+                    e.target.value
+                  )
+                )
+              }
+            />
+
+            <span className="muted">
+              {positionY}%
+            </span>
+          </label>
+
+          <button
+            className="pink full"
+            onClick={() =>
+              onSave({
+                titleId,
+                positionX,
+                positionY
+              })
+            }
+          >
+            Save Hero
+          </button>
+        </>
+      )}
+
+    </Modal>
+  );
 }
 
+/* --------------------------------------------------
+   START APP
+-------------------------------------------------- */
+
 createRoot(
- document.getElementById('root')!
-).render(<App/>);
+  document.getElementById(
+    'root'
+  )!
+).render(<App />);
