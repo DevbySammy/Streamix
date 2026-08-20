@@ -296,11 +296,24 @@ function App() {
       initialHero
     );
 
- const [profileId, setProfileId] =
-  useState("admin");
+  /*
+   * =======================================================
+   * AUTHENTICATION / SESSION
+   *
+   * sx-session stores the ID of the profile currently
+   * signed in. If it is null, nobody is signed in.
+   * =======================================================
+   */
 
-const [viewingAs, setViewingAs] =
-  useState<string | null>(null);
+  const [profileId, setProfileId] =
+    useStored<string | null>(
+      "sx-session",
+      null
+    );
+
+  const [viewingAs, setViewingAs] =
+    useState<string | null>(null);
+
   const [tab, setTab] =
     useState<"library" | "rewatch">(
       "library"
@@ -355,32 +368,127 @@ const [viewingAs, setViewingAs] =
   const [draggedProfileId, setDraggedProfileId] =
     useState<string | null>(null);
 
-const isAdminUser = profileId === "admin";
+  /*
+   * If the saved session points to a profile that no longer
+   * exists, automatically clear the invalid session.
+   */
+  useEffect(() => {
+    if (
+      profileId !== null &&
+      !profiles.some(
+        profile =>
+          profile.id === profileId
+      )
+    ) {
+      setProfileId(null);
+      setViewingAs(null);
+    }
+  }, [
+    profileId,
+    profiles,
+    setProfileId
+  ]);
+
+  /*
+   * =======================================================
+   * AUTHENTICATION ACTIONS
+   * =======================================================
+   */
+
+  function handleLoginSuccess(
+    loggedInProfileId: string
+  ) {
+    setProfileId(
+      loggedInProfileId
+    );
+
+    setViewingAs(null);
+    setTab("library");
+    setFilter("all");
+    setKind("all");
+    setQ("");
+    setMenu(false);
+  }
+
+  function signOut() {
+    /*
+     * Clear the actual signed-in session.
+     */
+    setProfileId(null);
+
+    /*
+     * Clear Admin's "view as" state too.
+     */
+    setViewingAs(null);
+
+    /*
+     * Close any open UI that shouldn't survive
+     * a sign-out.
+     */
+    setShowProfile(false);
+    setLoginProfile(null);
+    setEditing(null);
+    setMenu(false);
+    setShowAdd(false);
+    setShowReco(false);
+    setShowReminder(null);
+    setShowSchedule(null);
+    setShowHero(false);
+
+    /*
+     * Reset navigation/filter state.
+     */
+    setTab("library");
+    setFilter("all");
+    setKind("all");
+    setQ("");
+  }
+
+  /*
+   * =======================================================
+   * CURRENT USER / PERMISSIONS
+   * =======================================================
+   */
+
+  const isAdminUser =
+    profileId === "admin";
 
   const isViewingAs =
-    isAdminUser && viewingAs !== null;
+    isAdminUser &&
+    viewingAs !== null;
 
   const isAdmin =
-    isAdminUser && !isViewingAs;
+    isAdminUser &&
+    !isViewingAs;
 
   const effectiveProfileId =
-  viewingAs || profileId;
+    viewingAs || profileId;
 
-const effectiveProfile =
-  profiles.find(
-    item => item.id === effectiveProfileId
-  ) || profiles[0];
+  const effectiveProfile =
+    effectiveProfileId
+      ? profiles.find(
+          item =>
+            item.id ===
+            effectiveProfileId
+        ) || null
+      : null;
 
- const profile =
-  effectiveProfile;
-  
- const state =
-  states[effectiveProfileId] || {
-    watched: [],
-    watchlist: [],
-    rewatch: []
-  };
-  
+  const profile =
+    effectiveProfile;
+
+  const state =
+    effectiveProfileId
+      ? states[effectiveProfileId] || {
+          watched: [],
+          watchlist: [],
+          rewatch: []
+        }
+      : {
+          watched: [],
+          watchlist: [],
+          rewatch: []
+        };
+
   const hero = heroSettings.titleId
     ? library.find(
         item =>
@@ -388,6 +496,141 @@ const effectiveProfile =
           heroSettings.titleId
       ) || null
     : null;
+
+  /*
+   * =======================================================
+   * LOGIN SCREEN
+   *
+   * This is shown whenever nobody is authenticated.
+   * =======================================================
+   */
+
+  if (profileId === null) {
+    return (
+      <div className="app">
+
+        <header>
+          <div className="logo">
+            STREAM<span>IX</span>
+          </div>
+        </header>
+
+        <main>
+          <div
+            style={{
+              minHeight:
+                "calc(100vh - 100px)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              padding: "40px 20px"
+            }}
+          >
+            <div
+              style={{
+                width:
+                  "min(560px, 100%)"
+              }}
+            >
+              <div
+                style={{
+                  textAlign: "center",
+                  marginBottom: "28px"
+                }}
+              >
+                <h1>
+                  Who's watching?
+                </h1>
+
+                <p className="muted">
+                  Choose a profile to
+                  continue.
+                </p>
+              </div>
+
+              <div className="profiles">
+
+                {profiles.map(
+                  item => (
+                    <div
+                      className="profile-row"
+                      key={item.id}
+                    >
+                      <button
+                        onClick={() =>
+                          setLoginProfile(
+                            item
+                          )
+                        }
+                        style={{
+                          width: "100%"
+                        }}
+                      >
+                        <span className="avatar">
+                          {item.avatar}
+                        </span>
+
+                        <span>
+                          {item.name}
+                        </span>
+                      </button>
+                    </div>
+                  )
+                )}
+
+              </div>
+
+              <p
+                className="muted"
+                style={{
+                  textAlign: "center",
+                  marginTop: "24px",
+                  fontSize: "13px"
+                }}
+              >
+                Select your profile to
+                sign in.
+              </p>
+            </div>
+          </div>
+        </main>
+
+        {loginProfile && (
+          <ProfileLogin
+            profile={loginProfile}
+            onClose={() =>
+              setLoginProfile(null)
+            }
+            onSuccess={() => {
+              handleLoginSuccess(
+                loginProfile.id
+              );
+
+              setLoginProfile(
+                null
+              );
+            }}
+            onSetPassword={password => {
+              setProfiles(
+                current =>
+                  current.map(
+                    item =>
+                      item.id ===
+                      loginProfile.id
+                        ? {
+                            ...item,
+                            password
+                          }
+                        : item
+                  )
+              );
+            }}
+          />
+        )}
+
+      </div>
+    );
+  }
 
   /* =======================================================
      RECOMMENDATION
@@ -432,6 +675,10 @@ const effectiveProfile =
   }, [profileId, recommendation]);
 
   function closeRecommendation() {
+    if (!profileId) {
+      return;
+    }
+
     localStorage.setItem(
       "sx-reco-seen-" + profileId,
       "true"
@@ -519,24 +766,30 @@ const effectiveProfile =
      STATE ACTIONS
   ======================================================= */
 
- function updateState(
-  fn: (current: State) => State
-) {
-  setStates(currentStates => {
-    const currentState =
-      currentStates[effectiveProfileId] || {
-        watched: [],
-        watchlist: [],
-        rewatch: []
-      };
+  function updateState(
+    fn: (current: State) => State
+  ) {
+    if (!effectiveProfileId) {
+      return;
+    }
 
-    return {
-      ...currentStates,
-      [effectiveProfileId]:
-        fn(currentState)
-    };
-  });
-}
+    setStates(currentStates => {
+      const currentState =
+        currentStates[
+          effectiveProfileId
+        ] || {
+          watched: [],
+          watchlist: [],
+          rewatch: []
+        };
+
+      return {
+        ...currentStates,
+        [effectiveProfileId]:
+          fn(currentState)
+      };
+    });
+  }
 
   function toggle(
     array: keyof State,
@@ -733,13 +986,15 @@ const effectiveProfile =
             }
           >
             <span>
-              {isViewingAs ? "👑" : profile.avatar}
+              {isViewingAs
+                ? "👑"
+                : profile?.avatar}
             </span>
 
             <span>
               {isViewingAs
                 ? "Admin"
-                : profile.name}
+                : profile?.name}
             </span>
 
             <ChevronDown
@@ -838,7 +1093,8 @@ const effectiveProfile =
 
           <div className="eyebrow">
             {isViewingAs
-              ? "VIEWING AS " + profile.name.toUpperCase()
+              ? "VIEWING AS " +
+                (profile?.name || "").toUpperCase()
               : "FEATURED"}
           </div>
 
@@ -1226,7 +1482,10 @@ const effectiveProfile =
                   }
                   key={item.id}
                   onDragOver={event => {
-                    if (!isAdmin || !draggedProfileId) {
+                    if (
+                      !isAdmin ||
+                      !draggedProfileId
+                    ) {
                       return;
                     }
 
@@ -1234,16 +1493,23 @@ const effectiveProfile =
                     event.dataTransfer.dropEffect = "move";
                   }}
                   onDrop={event => {
-                    if (!isAdmin || !draggedProfileId) {
+                    if (
+                      !isAdmin ||
+                      !draggedProfileId
+                    ) {
                       return;
                     }
 
                     event.preventDefault();
+
                     reorderProfiles(
                       draggedProfileId,
                       item.id
                     );
-                    setDraggedProfileId(null);
+
+                    setDraggedProfileId(
+                      null
+                    );
                   }}
                 >
 
@@ -1251,31 +1517,64 @@ const effectiveProfile =
 
                   <button
                     onClick={() => {
-                      if (item.id === effectiveProfileId) {
-                        setShowProfile(false);
+                      if (
+                        item.id ===
+                        effectiveProfileId
+                      ) {
+                        setShowProfile(
+                          false
+                        );
                         return;
                       }
 
-                      // Admin can view any profile without a password.
+                      /*
+                       * Admin can view any profile
+                       * without entering that profile's
+                       * password.
+                       *
+                       * This is "View As", not a new
+                       * authentication session.
+                       */
                       if (isAdminUser) {
-                        if (item.id === "admin") {
-                          setViewingAs(null);
-                          setProfileId("admin");
+                        if (
+                          item.id ===
+                          "admin"
+                        ) {
+                          setViewingAs(
+                            null
+                          );
+                          setProfileId(
+                            "admin"
+                          );
                         } else {
-                          setViewingAs(item.id);
-                          setProfileId("admin");
+                          setViewingAs(
+                            item.id
+                          );
+                          setProfileId(
+                            "admin"
+                          );
                         }
 
-                        setShowProfile(false);
+                        setShowProfile(
+                          false
+                        );
                         return;
                       }
 
-                      // Regular users must enter the selected profile's password.
-                      setLoginProfile(item);
-                      setShowProfile(false);
+                      /*
+                       * Regular users must enter the
+                       * selected profile's password.
+                       */
+                      setLoginProfile(
+                        item
+                      );
+                      setShowProfile(
+                        false
+                      );
                     }}
                     className={
-                      item.id === effectiveProfileId
+                      item.id ===
+                      effectiveProfileId
                         ? "current"
                         : ""
                     }
@@ -1302,22 +1601,36 @@ const effectiveProfile =
 
                   <button
                     className="icon"
-                    disabled={!isAdminUser && item.id !== profileId}
+                    disabled={
+                      !isAdminUser &&
+                      item.id !==
+                        profileId
+                    }
                     onClick={() => {
-                      if (!isAdminUser && item.id !== profileId) {
+                      if (
+                        !isAdminUser &&
+                        item.id !==
+                          profileId
+                      ) {
                         return;
                       }
 
                       setEditing(item);
-                      setShowProfile(false);
+                      setShowProfile(
+                        false
+                      );
                     }}
                     aria-label={
-                      item.id === effectiveProfileId || isAdminUser
+                      item.id ===
+                        effectiveProfileId ||
+                      isAdminUser
                         ? "Profile settings"
                         : "Switch to this profile to edit settings"
                     }
                     title={
-                      item.id === effectiveProfileId || isAdminUser
+                      item.id ===
+                        effectiveProfileId ||
+                      isAdminUser
                         ? "Profile settings"
                         : "Switch to this profile to edit settings"
                     }
@@ -1334,11 +1647,17 @@ const effectiveProfile =
                       className="profile-drag-handle"
                       draggable
                       onDragStart={event => {
-                        event.dataTransfer.effectAllowed = "move";
-                        setDraggedProfileId(item.id);
+                        event.dataTransfer.effectAllowed =
+                          "move";
+
+                        setDraggedProfileId(
+                          item.id
+                        );
                       }}
                       onDragEnd={() =>
-                        setDraggedProfileId(null)
+                        setDraggedProfileId(
+                          null
+                        )
                       }
                       role="button"
                       tabIndex={0}
@@ -1390,13 +1709,15 @@ const effectiveProfile =
             setLoginProfile(null)
           }
           onSuccess={() => {
-            setProfileId(
+            handleLoginSuccess(
               loginProfile.id
             );
 
-            setLoginProfile(null);
+            setLoginProfile(
+              null
+            );
           }}
-          onSetPassword={(password) => {
+          onSetPassword={password => {
             setProfiles(current =>
               current.map(item =>
                 item.id ===
@@ -1477,12 +1798,15 @@ const effectiveProfile =
             editing.id === "new"
               ? undefined
               : () => {
+                  const deletedProfileId =
+                    editing.id;
+
                   setProfiles(
                     current =>
                       current.filter(
                         item =>
                           item.id !==
-                          editing.id
+                          deletedProfileId
                       )
                   );
 
@@ -1493,16 +1817,29 @@ const effectiveProfile =
                       };
 
                       delete next[
-                        editing.id
+                        deletedProfileId
                       ];
 
                       return next;
                     }
                   );
 
-                  setEditing(null);
-                  setViewingAs(null);
-                  setProfileId("admin");
+                  /*
+                   * If the currently signed-in user
+                   * deletes their own profile, sign out.
+                   *
+                   * Do NOT automatically switch them
+                   * into Admin.
+                   */
+                  if (
+                    deletedProfileId ===
+                    profileId
+                  ) {
+                    signOut();
+                  } else {
+                    setViewingAs(null);
+                    setEditing(null);
+                  }
                 }
           }
         />
@@ -1534,6 +1871,10 @@ const effectiveProfile =
             setShowReminder(null)
           }
           onSave={(date, time) => {
+            if (!profileId) {
+              return;
+            }
+
             setReminders(current => [
               ...current,
               {
@@ -1624,12 +1965,10 @@ const effectiveProfile =
           </span>
         )}
 
+        {/* REAL SIGN OUT */}
+
         <button
-          onClick={() =>
-            alert(
-              "Sign out will be connected to your real authentication system."
-            )
-          }
+          onClick={signOut}
         >
           <LogOut
             size={14}
@@ -2260,7 +2599,7 @@ function ProfileEditor({
     if (
       !adminOverride &&
       currentPassword !==
-      profile.password
+        profile.password
     ) {
       setPasswordError(
         "Current password is incorrect."
@@ -2384,45 +2723,45 @@ function ProfileEditor({
 
                   <div className="password-wrapper">
 
-                  <input
-                    type={
-                      showCurrentPassword
-                        ? "text"
-                        : "password"
-                    }
-                    value={
-                      currentPassword
-                    }
-                    onChange={event => {
-                      setCurrentPassword(
-                        event.target.value
-                      );
-                      setPasswordError("");
-                    }}
-                    placeholder="Enter current password"
-                  />
+                    <input
+                      type={
+                        showCurrentPassword
+                          ? "text"
+                          : "password"
+                      }
+                      value={
+                        currentPassword
+                      }
+                      onChange={event => {
+                        setCurrentPassword(
+                          event.target.value
+                        );
+                        setPasswordError("");
+                      }}
+                      placeholder="Enter current password"
+                    />
 
-                  <button
-                    type="button"
-                    className="password-toggle"
-                    onClick={() =>
-                      setShowCurrentPassword(
-                        current =>
-                          !current
-                      )
-                    }
-                    aria-label={
-                      showCurrentPassword
-                        ? "Hide password"
-                        : "Show password"
-                    }
-                  >
-                    {showCurrentPassword ? (
-                      <EyeOff size={18} />
-                    ) : (
-                      <Eye size={18} />
-                    )}
-                  </button>
+                    <button
+                      type="button"
+                      className="password-toggle"
+                      onClick={() =>
+                        setShowCurrentPassword(
+                          current =>
+                            !current
+                        )
+                      }
+                      aria-label={
+                        showCurrentPassword
+                          ? "Hide password"
+                          : "Show password"
+                      }
+                    >
+                      {showCurrentPassword ? (
+                        <EyeOff size={18} />
+                      ) : (
+                        <Eye size={18} />
+                      )}
+                    </button>
 
                   </div>
                 </label>
