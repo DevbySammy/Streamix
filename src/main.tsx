@@ -1039,14 +1039,20 @@ function App() {
               className="admin-badge"
               onClick={() =>
                 setMenu(
-                  current => !current
-                )
+                  current => !current)
               }
             >
               SETTINGS
             </button>
           )}
 
+          <button
+  className="admin-badge"
+  onClick={signOut}
+>
+  LOG OUT
+</button>
+          
           {menu && isAdmin && (
             <div className="admin-menu">
 
@@ -1685,23 +1691,7 @@ function App() {
               </button>
             )}
 
-            <div
-              style={{
-                marginTop: "20px",
-                paddingTop: "20px",
-                borderTop:
-                  "1px solid rgba(255,255,255,.08)"
-              }}
-            >
-              <button
-                className="danger full"
-                onClick={signOut}
-              >
-                <LogOut size={17} />
-                Sign out
-              </button>
-            </div>
-
+          
           </div>
 
         </Modal>
