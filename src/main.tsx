@@ -844,28 +844,11 @@ function App() {
     return (
       <div className="app">
 
-        <header>
-          <div className="logo">
-            STREAM<span>IX</span>
-          </div>
-
-          <div className="header-right">
-            <button
-              className="profile-pill"
-              onClick={() => {
-                if (profiles.length > 0) {
-                  setLoginProfile(
-                    profiles[0]
-                  );
-                }
-              }}
-            >
-              <span>👤</span>
-              <span>Sign in</span>
-              <ChevronDown size={16} />
-            </button>
-          </div>
-        </header>
+   <header>
+  <div className="logo">
+    STREAM<span>IX</span>
+  </div>
+</header>
 
         <main>
           <div
