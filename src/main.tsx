@@ -497,6 +497,61 @@ function App() {
       ) || null
     : null;
 
+    /* =======================================================
+     RECOMMENDATION
+  ======================================================= */
+
+  const recommendation = useMemo(() => {
+    const watchlistTitles =
+      library.filter(title => {
+        const inWatchlist =
+          state.watchlist.includes(
+            title.id
+          );
+
+        const alreadyWatched =
+          state.watched.includes(
+            title.id
+          );
+
+        return (
+          inWatchlist &&
+          !alreadyWatched
+        );
+      });
+
+    return watchlistTitles[0] || null;
+  }, [library, state]);
+
+  useEffect(() => {
+    if (!profileId || !recommendation) {
+      return;
+    }
+
+    const key =
+      "sx-reco-seen-" + profileId;
+
+    const alreadySeen =
+      localStorage.getItem(key);
+
+    if (!alreadySeen) {
+      setShowReco(true);
+    }
+  }, [profileId, recommendation]);
+
+  function closeRecommendation() {
+    if (!profileId) {
+      return;
+    }
+
+    localStorage.setItem(
+      "sx-reco-seen-" + profileId,
+      "true"
+    );
+
+    setShowReco(false);
+  }
+
   /*
    * =======================================================
    * LOGIN SCREEN
@@ -647,60 +702,6 @@ function App() {
     );
   }
 
-  /* =======================================================
-     RECOMMENDATION
-  ======================================================= */
-
-  const recommendation = useMemo(() => {
-    const watchlistTitles =
-      library.filter(title => {
-        const inWatchlist =
-          state.watchlist.includes(
-            title.id
-          );
-
-        const alreadyWatched =
-          state.watched.includes(
-            title.id
-          );
-
-        return (
-          inWatchlist &&
-          !alreadyWatched
-        );
-      });
-
-    return watchlistTitles[0] || null;
-  }, [library, state]);
-
-  useEffect(() => {
-    if (!profileId || !recommendation) {
-      return;
-    }
-
-    const key =
-      "sx-reco-seen-" + profileId;
-
-    const alreadySeen =
-      localStorage.getItem(key);
-
-    if (!alreadySeen) {
-      setShowReco(true);
-    }
-  }, [profileId, recommendation]);
-
-  function closeRecommendation() {
-    if (!profileId) {
-      return;
-    }
-
-    localStorage.setItem(
-      "sx-reco-seen-" + profileId,
-      "true"
-    );
-
-    setShowReco(false);
-  }
 
   /* =======================================================
      FILTERING + SORTING
