@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { createRoot } from "react-dom/client";
 import {
-  Bell,
   Check,
   ChevronDown,
   ChevronLeft,
@@ -696,6 +695,8 @@ function App() {
   return (
     <div className="app">
 
+      {/* HEADER */}
+
       <header>
         <div className="logo">
           STREAM<span>IX</span>
@@ -763,6 +764,8 @@ function App() {
 
         </div>
       </header>
+
+      {/* HERO */}
 
       <section
         className="hero"
@@ -844,7 +847,11 @@ function App() {
         </div>
       </section>
 
+      {/* MAIN */}
+
       <main>
+
+        {/* PRIMARY NAVIGATION */}
 
         <div className="switch">
 
@@ -878,6 +885,8 @@ function App() {
           )}
 
         </div>
+
+        {/* LIBRARY CONTROLS */}
 
         {tab === "library" && (
           <>
@@ -952,6 +961,8 @@ function App() {
               </div>
 
             </div>
+
+            {/* FORMAT + SORT */}
 
             <div className="format">
 
@@ -1037,6 +1048,8 @@ function App() {
           </>
         )}
 
+        {/* LIBRARY */}
+
         <div className="grid">
 
           {visible.map(title => (
@@ -1093,6 +1106,8 @@ function App() {
 
       </main>
 
+      {/* TODAY'S RECOMMENDATION */}
+
       {showReco &&
         recommendation && (
           <Modal
@@ -1145,6 +1160,8 @@ function App() {
           </Modal>
         )}
 
+      {/* PROFILES */}
+
       {showProfile && (
         <Modal
           title="Profiles"
@@ -1161,6 +1178,8 @@ function App() {
                   className="profile-row"
                   key={item.id}
                 >
+
+                  {/* PROFILE SELECT */}
 
                   <button
                     onClick={() => {
@@ -1200,6 +1219,45 @@ function App() {
 
                   </button>
 
+                  {/* PERSONAL PROFILE SETTINGS */}
+
+                  <button
+                    className="icon"
+                    disabled={
+                      item.id !==
+                      profileId
+                    }
+                    onClick={() => {
+                      if (
+                        item.id !==
+                        profileId
+                      ) {
+                        return;
+                      }
+
+                      setEditing(item);
+                      setShowProfile(false);
+                    }}
+                    aria-label={
+                      item.id ===
+                      profileId
+                        ? "Profile settings"
+                        : "Switch to this profile to edit settings"
+                    }
+                    title={
+                      item.id ===
+                      profileId
+                        ? "Profile settings"
+                        : "Switch to this profile to edit settings"
+                    }
+                  >
+                    <Settings
+                      size={17}
+                    />
+                  </button>
+
+                  {/* ADMIN PROFILE MANAGEMENT */}
+
                   {isAdmin &&
                     item.id !==
                       "admin" && (
@@ -1214,10 +1272,20 @@ function App() {
                             false
                           );
                         }}
+                        aria-label={
+                          "Edit " +
+                          item.name
+                        }
+                        title={
+                          "Edit " +
+                          item.name
+                        }
                       >
                         ✎
                       </button>
                     )}
+
+                  {/* PROFILE ORDER */}
 
                   {isAdmin &&
                     profiles.length >
@@ -1295,6 +1363,8 @@ function App() {
         </Modal>
       )}
 
+      {/* PROFILE LOGIN */}
+
       {loginProfile && (
         <ProfileLogin
           profile={loginProfile}
@@ -1311,7 +1381,8 @@ function App() {
           onSetPassword={(password) => {
             setProfiles(current =>
               current.map(item =>
-                item.id === loginProfile.id
+                item.id ===
+                loginProfile.id
                   ? {
                       ...item,
                       password
@@ -1322,6 +1393,8 @@ function App() {
           }}
         />
       )}
+
+      {/* PROFILE SETTINGS / EDITOR */}
 
       {editing && (
         <ProfileEditor
@@ -1362,6 +1435,25 @@ function App() {
 
             setEditing(null);
           }}
+          onChangePassword={password => {
+            if (
+              editing.id === "new"
+            ) {
+              return;
+            }
+
+            setProfiles(current =>
+              current.map(item =>
+                item.id ===
+                editing.id
+                  ? {
+                      ...item,
+                      password
+                    }
+                  : item
+              )
+            );
+          }}
           onDelete={
             editing.id === "new"
               ? undefined
@@ -1396,6 +1488,8 @@ function App() {
         />
       )}
 
+      {/* ADD TITLE */}
+
       {showAdd && (
         <AddTitle
           library={library}
@@ -1410,6 +1504,8 @@ function App() {
           }
         />
       )}
+
+      {/* REMINDER */}
 
       {showReminder && (
         <ReminderModal
@@ -1435,6 +1531,8 @@ function App() {
         />
       )}
 
+      {/* SCHEDULE */}
+
       {showSchedule &&
         isAdmin && (
           <ScheduleModal
@@ -1459,6 +1557,8 @@ function App() {
           />
         )}
 
+      {/* HERO EDITOR */}
+
       {showHero &&
         isAdmin && (
           <HeroModal
@@ -1477,6 +1577,8 @@ function App() {
             }}
           />
         )}
+
+      {/* FOOTER */}
 
       <footer>
 
@@ -1589,10 +1691,6 @@ function ProfileLogin({
     onSuccess();
   }
 
-  function togglePasswordVisibility() {
-    setShowPassword(current => !current);
-  }
-
   return (
     <Modal
       title={
@@ -1654,8 +1752,10 @@ function ProfileLogin({
                 <button
                   type="button"
                   className="password-toggle"
-                  onClick={
-                    togglePasswordVisibility
+                  onClick={() =>
+                    setShowPassword(
+                      current => !current
+                    )
                   }
                   aria-label={
                     showPassword
@@ -1725,8 +1825,10 @@ function ProfileLogin({
                 <button
                   type="button"
                   className="password-toggle"
-                  onClick={
-                    togglePasswordVisibility
+                  onClick={() =>
+                    setShowPassword(
+                      current => !current
+                    )
                   }
                   aria-label={
                     showPassword
@@ -1809,8 +1911,10 @@ function ProfileLogin({
                 <button
                   type="button"
                   className="password-toggle"
-                  onClick={
-                    togglePasswordVisibility
+                  onClick={() =>
+                    setShowPassword(
+                      current => !current
+                    )
                   }
                   aria-label={
                     showPassword
@@ -2047,14 +2151,15 @@ function Modal({
 }
 
 /* =========================================================
-   PROFILE EDITOR
+   PROFILE EDITOR / PROFILE SETTINGS
 ========================================================= */
 
 function ProfileEditor({
   profile,
   onClose,
   onSave,
-  onDelete
+  onDelete,
+  onChangePassword
 }: {
   profile: Profile | null;
   onClose: () => void;
@@ -2063,6 +2168,9 @@ function ProfileEditor({
     avatar: string
   ) => void;
   onDelete?: () => void;
+  onChangePassword?: (
+    password: string
+  ) => void;
 }) {
   const [name, setName] =
     useState(
@@ -2073,6 +2181,24 @@ function ProfileEditor({
     useState(
       profile?.avatar || "🙂"
     );
+
+  const [showPasswordSection, setShowPasswordSection] =
+    useState(false);
+
+  const [currentPassword, setCurrentPassword] =
+    useState("");
+
+  const [newPassword, setNewPassword] =
+    useState("");
+
+  const [showCurrentPassword, setShowCurrentPassword] =
+    useState(false);
+
+  const [showNewPassword, setShowNewPassword] =
+    useState(false);
+
+  const [passwordError, setPasswordError] =
+    useState("");
 
   const avatars = [
     "🙂",
@@ -2085,11 +2211,56 @@ function ProfileEditor({
     "🔥"
   ];
 
+  function handlePasswordChange() {
+    if (!profile) {
+      return;
+    }
+
+    if (!profile.password) {
+      setPasswordError(
+        "This profile does not have a password yet."
+      );
+      return;
+    }
+
+    if (
+      currentPassword !==
+      profile.password
+    ) {
+      setPasswordError(
+        "Current password is incorrect."
+      );
+      return;
+    }
+
+    if (!newPassword.trim()) {
+      setPasswordError(
+        "Please enter a new password."
+      );
+      return;
+    }
+
+    onChangePassword?.(
+      newPassword
+    );
+
+    setCurrentPassword("");
+    setNewPassword("");
+    setPasswordError("");
+    setShowPasswordSection(false);
+    setShowCurrentPassword(false);
+    setShowNewPassword(false);
+
+    alert(
+      "Password updated successfully."
+    );
+  }
+
   return (
     <Modal
       title={
         profile
-          ? "Edit Profile"
+          ? "Profile Settings"
           : "Add Profile"
       }
       onClose={onClose}
@@ -2110,12 +2281,13 @@ function ProfileEditor({
       </label>
 
       <label>
-        Profile Photo
+        Profile Icon
 
         <div className="emoji-grid">
 
           {avatars.map(item => (
             <button
+              type="button"
               className={
                 avatar === item
                   ? "picked"
@@ -2125,22 +2297,12 @@ function ProfileEditor({
                 setAvatar(item)
               }
               key={item}
-              type="button"
             >
               {item}
             </button>
           ))}
 
         </div>
-      </label>
-
-      <label>
-        Upload Photo
-
-        <input
-          type="file"
-          accept="image/*"
-        />
       </label>
 
       <button
@@ -2154,6 +2316,150 @@ function ProfileEditor({
       >
         Save Profile
       </button>
+
+      {/* CHANGE PASSWORD */}
+
+      {profile && (
+        <>
+          <button
+            className="ghost full"
+            onClick={() => {
+              setShowPasswordSection(
+                current => !current
+              );
+
+              setPasswordError("");
+              setCurrentPassword("");
+              setNewPassword("");
+              setShowCurrentPassword(false);
+              setShowNewPassword(false);
+            }}
+          >
+            {showPasswordSection
+              ? "Cancel Password Change"
+              : "Change Password"}
+          </button>
+
+          {showPasswordSection && (
+            <div className="password-settings">
+
+              <label>
+                Current Password
+
+                <div className="password-wrapper">
+
+                  <input
+                    type={
+                      showCurrentPassword
+                        ? "text"
+                        : "password"
+                    }
+                    value={
+                      currentPassword
+                    }
+                    onChange={event => {
+                      setCurrentPassword(
+                        event.target.value
+                      );
+                      setPasswordError("");
+                    }}
+                    placeholder="Enter current password"
+                  />
+
+                  <button
+                    type="button"
+                    className="password-toggle"
+                    onClick={() =>
+                      setShowCurrentPassword(
+                        current =>
+                          !current
+                      )
+                    }
+                    aria-label={
+                      showCurrentPassword
+                        ? "Hide password"
+                        : "Show password"
+                    }
+                  >
+                    {showCurrentPassword ? (
+                      <EyeOff size={18} />
+                    ) : (
+                      <Eye size={18} />
+                    )}
+                  </button>
+
+                </div>
+              </label>
+
+              <label>
+                New Password
+
+                <div className="password-wrapper">
+
+                  <input
+                    type={
+                      showNewPassword
+                        ? "text"
+                        : "password"
+                    }
+                    value={
+                      newPassword
+                    }
+                    onChange={event => {
+                      setNewPassword(
+                        event.target.value
+                      );
+                      setPasswordError("");
+                    }}
+                    placeholder="Enter new password"
+                  />
+
+                  <button
+                    type="button"
+                    className="password-toggle"
+                    onClick={() =>
+                      setShowNewPassword(
+                        current =>
+                          !current
+                      )
+                    }
+                    aria-label={
+                      showNewPassword
+                        ? "Hide password"
+                        : "Show password"
+                    }
+                  >
+                    {showNewPassword ? (
+                      <EyeOff size={18} />
+                    ) : (
+                      <Eye size={18} />
+                    )}
+                  </button>
+
+                </div>
+              </label>
+
+              {passwordError && (
+                <p className="login-error">
+                  {passwordError}
+                </p>
+              )}
+
+              <button
+                className="pink full"
+                onClick={
+                  handlePasswordChange
+                }
+              >
+                Update Password
+              </button>
+
+            </div>
+          )}
+        </>
+      )}
+
+      {/* DELETE PROFILE */}
 
       {onDelete && (
         <button
