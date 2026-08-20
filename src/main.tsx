@@ -333,21 +333,15 @@ AUTHENTICATION / SESSION
 ======================================================= */
 
 const [profileId, setProfileId] =
-useStored<string | null>(
-"sx-session",
-null
-);
+  useState<string | null>(null);
 
 const [viewingAs, setViewingAs] =
-useStored<string | null>(
-"sx-viewing-as",
-null
-);
+  useState<string | null>(null);
 
 const [tab, setTab] =
-useState<"library" | "rewatch">(
-"library"
-);
+  useState<"library" | "rewatch">(
+    "library"
+  );
 
 const [filter, setFilter] =
 useState<
