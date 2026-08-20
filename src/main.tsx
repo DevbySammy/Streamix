@@ -718,7 +718,7 @@ function App() {
                 )
               }
             >
-              ADMIN
+              SETTINGS
             </button>
           )}
 
@@ -878,76 +878,72 @@ function App() {
         {tab === "library" && (
           <>
 
-            <div className="toolbar">
+        <div className="toolbar">
 
-              <div className="filters">
+  {!isAdmin && (
+    <div className="filters">
 
-                <button
-                  className={
-                    filter === "all"
-                      ? "selected"
-                      : ""
-                  }
-                  onClick={() =>
-                    setFilter("all")
-                  }
-                >
-                  All
-                </button>
+      <button
+        className={
+          filter === "all"
+            ? "selected"
+            : ""
+        }
+        onClick={() =>
+          setFilter("all")
+        }
+      >
+        All
+      </button>
 
-                <button
-                  className={
-                    filter ===
-                    "watchlist"
-                      ? "selected"
-                      : ""
-                  }
-                  onClick={() =>
-                    setFilter(
-                      "watchlist"
-                    )
-                  }
-                >
-                  Watchlist
-                </button>
+      <button
+        className={
+          filter === "watchlist"
+            ? "selected"
+            : ""
+        }
+        onClick={() =>
+          setFilter("watchlist")
+        }
+      >
+        Watchlist
+      </button>
 
-                <button
-                  className={
-                    filter ===
-                    "watched"
-                      ? "selected"
-                      : ""
-                  }
-                  onClick={() =>
-                    setFilter(
-                      "watched"
-                    )
-                  }
-                >
-                  Watched
-                </button>
+      <button
+        className={
+          filter === "watched"
+            ? "selected"
+            : ""
+        }
+        onClick={() =>
+          setFilter("watched")
+        }
+      >
+        Watched
+      </button>
 
-              </div>
+    </div>
+  )}
 
-              <div className="search">
+  <div className="search">
 
-                <Search
-                  size={18}
-                />
+    <Search
+      size={18}
+    />
 
-                <input
-                  value={q}
-                  onChange={event =>
-                    setQ(
-                      event.target.value
-                    )
-                  }
-                  placeholder="Search library"
-                />
+    <input
+      value={q}
+      onChange={event =>
+        setQ(
+          event.target.value
+        )
+      }
+      placeholder="Search library"
+    />
 
-              </div>
+  </div>
 
-            </div>
+</div>
 
             {/* FORMAT + SORT */}
 
