@@ -367,6 +367,20 @@ function App() {
 
   const [draggedProfileId, setDraggedProfileId] =
     useState<string | null>(null);
+  
+   const orderedProfiles = useMemo(() => {
+    const adminProfile = profiles.find(
+      profile => profile.id === "admin"
+    );
+
+    const regularProfiles = profiles.filter(
+      profile => profile.id !== "admin"
+    );
+
+    return adminProfile
+      ? [adminProfile, ...regularProfiles]
+      : regularProfiles;
+  }, [profiles]);
 
   /*
    * If the saved session points to a profile that no longer
@@ -991,19 +1005,6 @@ function reorderProfiles(
      RENDER
   ======================================================= */
   
-  const orderedProfiles = useMemo(() => {
-    const adminProfile = profiles.find(
-      profile => profile.id === "admin"
-    );
-
-    const regularProfiles = profiles.filter(
-      profile => profile.id !== "admin"
-    );
-
-    return adminProfile
-      ? [adminProfile, ...regularProfiles]
-      : regularProfiles;
-  }, [profiles]);
   
   return (
     <div className="app">
