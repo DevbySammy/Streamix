@@ -948,22 +948,16 @@ function reorderProfiles(
   }
 
   setProfiles(current => {
-    const adminProfile = current.find(
-      profile => profile.id === "admin"
-    );
-
-    const regularProfiles = current.filter(
-      profile => profile.id !== "admin"
-    );
-
     const draggedIndex =
-      regularProfiles.findIndex(
-        profile => profile.id === draggedId
+      current.findIndex(
+        profile =>
+          profile.id === draggedId
       );
 
     const targetIndex =
-      regularProfiles.findIndex(
-        profile => profile.id === targetId
+      current.findIndex(
+        profile =>
+          profile.id === targetId
       );
 
     if (
@@ -973,10 +967,13 @@ function reorderProfiles(
       return current;
     }
 
-    const next = [...regularProfiles];
+    const next = [...current];
 
     const [draggedProfile] =
-      next.splice(draggedIndex, 1);
+      next.splice(
+        draggedIndex,
+        1
+      );
 
     next.splice(
       targetIndex,
@@ -984,11 +981,11 @@ function reorderProfiles(
       draggedProfile
     );
 
-    return adminProfile
-      ? [adminProfile, ...next]
-      : next;
+    return next;
   });
 }
+
+ 
 
   /* =======================================================
      RENDER
