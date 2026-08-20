@@ -866,8 +866,8 @@ function App() {
                 setTab("rewatch")
               }
             >
-              ↻ {profile.name}'s
-              {" "}Re-watch
+        
+              Re-watch
             </button>
           )}
 
