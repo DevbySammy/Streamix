@@ -244,12 +244,12 @@ gap: 7px;
 }
 
 .filters button {
-background: transparent;
-border: 1px solid #ff3d8d;
+background: #fff;
+border: 1px solid #fff;
 border-radius: 9px;
 padding: 9px 17px;
 min-height: 42px;
-color: #ff3d8d;
+color: #090909;
 font-size: 13px;
 font-weight: 600;
 }
