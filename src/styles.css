@@ -906,6 +906,26 @@ footer button {
   color: #ff3d8d;
 }
 
+.forgot-password {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  color: #ffffff !important;
+  padding: 8px 0;
+  margin-top: 8px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.forgot-password:hover,
+.forgot-password:focus,
+.forgot-password:active {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  color: #ffffff !important;
+}
+
 /* Mobile */
 
 @media (max-width: 650px) {
