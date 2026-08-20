@@ -3,7 +3,7 @@ export interface Env {
   TMDB_READ_ACCESS_TOKEN: string;
   ADMIN_API_TOKEN: string;
   DB: D1Database;
-}
+} 
 
 export default {
   async fetch(
