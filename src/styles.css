@@ -245,19 +245,35 @@ gap: 7px;
 
 .filters button {
 background: transparent;
-border: 1px solid #292929;
+border: 1px solid #ff3d8d;
 border-radius: 9px;
 padding: 9px 17px;
 min-height: 42px;
-color: #777;
+color: #ff3d8d;
 font-size: 12px;
 font-weight: 700;
 }
 
-.filters .selected {
-background: rgba(255, 61, 141, 0.08);
+/* Clicked / active state */
+
+.filters button.selected {
+background: #ff3d8d;
+color: #090909;
+border-color: #ff3d8d;
+}
+
+/* No hover-dependent colour changes */
+
+.filters button:hover {
+background: transparent;
 color: #ff3d8d;
-border: 1px solid #ff3d8d;
+border-color: #ff3d8d;
+}
+
+.filters button.selected:hover {
+background: #ff3d8d;
+color: #090909;
+border-color: #ff3d8d;
 }
 
 /* Movie / TV format */
