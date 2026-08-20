@@ -1,19 +1,13 @@
-import React, {
-  Component,
-  ErrorInfo,
-  useEffect,
-  useMemo,
-  useState
-} from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { createRoot } from "react-dom/client";
 import {
   Check,
   ChevronDown,
+  GripVertical,
   Clock,
   Eye,
   EyeOff,
   Film,
-  GripVertical,
   LogOut,
   Plus,
   Search,
@@ -110,118 +104,6 @@ const initialHero: HeroSettings = {
   positionY: 50
 };
 
-const emptyState: State = {
-  watched: [],
-  watchlist: [],
-  rewatch: []
-};
-
-/* =========================================================
-   ERROR BOUNDARY
-========================================================= */
-
-type ErrorBoundaryState = {
-  hasError: boolean;
-  message: string;
-};
-
-class ErrorBoundary extends Component<
-  { children: React.ReactNode },
-  ErrorBoundaryState
-> {
-  state: ErrorBoundaryState = {
-    hasError: false,
-    message: ""
-  };
-
-  static getDerivedStateFromError(
-    error: Error
-  ): ErrorBoundaryState {
-    return {
-      hasError: true,
-      message:
-        error?.message ||
-        "Something went wrong while loading Streamix."
-    };
-  }
-
-  componentDidCatch(
-    error: Error,
-    info: ErrorInfo
-  ) {
-    console.error(
-      "STREAMIX RENDER ERROR:",
-      error,
-      info
-    );
-  }
-
-  render() {
-    if (this.state.hasError) {
-      return (
-        <div
-          className="app"
-          style={{
-            minHeight: "100vh",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            padding: "24px"
-          }}
-        >
-          <div
-            style={{
-              width: "min(520px, 100%)",
-              textAlign: "center"
-            }}
-          >
-            <div
-              className="logo"
-              style={{
-                justifyContent: "center",
-                marginBottom: "30px"
-              }}
-            >
-              STREAM<span>IX</span>
-            </div>
-
-            <h1>
-              Something went wrong
-            </h1>
-
-            <p className="muted">
-              Streamix couldn't load this
-              screen. Your saved data has
-              not been deleted.
-            </p>
-
-            <p
-              className="muted"
-              style={{
-                fontSize: "12px",
-                wordBreak: "break-word"
-              }}
-            >
-              {this.state.message}
-            </p>
-
-            <button
-              className="pink"
-              onClick={() =>
-                window.location.reload()
-              }
-            >
-              Reload Streamix
-            </button>
-          </div>
-        </div>
-      );
-    }
-
-    return this.props.children;
-  }
-}
-
 /* =========================================================
    HELPERS
 ========================================================= */
@@ -236,43 +118,29 @@ function uid(): string {
 function useStored<T>(
   key: string,
   fallback: T
-): [
-  T,
-  React.Dispatch<React.SetStateAction<T>>
-] {
+): [T, React.Dispatch<React.SetStateAction<T>>] {
   const [value, setValue] = useState<T>(() => {
     try {
-      const stored =
-        window.localStorage.getItem(key);
+      const stored = localStorage.getItem(key);
 
       if (!stored) {
         return fallback;
       }
 
-      const parsed = JSON.parse(stored);
-
-      return parsed as T;
-    } catch (error) {
-      console.warn(
-        `Unable to read localStorage key "${key}". Using fallback.`,
-        error
-      );
-
+      return JSON.parse(stored) as T;
+    } catch {
       return fallback;
     }
   });
 
   useEffect(() => {
     try {
-      window.localStorage.setItem(
+      localStorage.setItem(
         key,
         JSON.stringify(value)
       );
-    } catch (error) {
-      console.warn(
-        `Unable to save localStorage key "${key}".`,
-        error
-      );
+    } catch {
+      // Ignore localStorage errors.
     }
   }, [key, value]);
 
@@ -286,14 +154,7 @@ function getPosterUrl(
     return "https://placehold.co/500x750/171717/ffffff?text=No+Poster";
   }
 
-  if (path.startsWith("http")) {
-    return path;
-  }
-
-  return (
-    "https://image.tmdb.org/t/p/w500" +
-    path
-  );
+  return "https://image.tmdb.org/t/p/w500" + path;
 }
 
 function getBackdropUrl(
@@ -303,34 +164,7 @@ function getBackdropUrl(
     return "";
   }
 
-  if (path.startsWith("http")) {
-    return path;
-  }
-
-  return (
-    "https://image.tmdb.org/t/p/w1280" +
-    path
-  );
-}
-
-function normalizeState(
-  value: Partial<State> | null | undefined
-): State {
-  return {
-    watched: Array.isArray(value?.watched)
-      ? value.watched
-      : [],
-    watchlist: Array.isArray(
-      value?.watchlist
-    )
-      ? value.watchlist
-      : [],
-    rewatch: Array.isArray(
-      value?.rewatch
-    )
-      ? value.rewatch
-      : []
-  };
+  return "https://image.tmdb.org/t/p/w1280" + path;
 }
 
 /* =========================================================
@@ -354,16 +188,12 @@ async function searchTMDB(
   const response = await fetch(url);
 
   if (!response.ok) {
-    throw new Error(
-      "TMDB search failed"
-    );
+    throw new Error("TMDB search failed");
   }
 
   const data = await response.json();
 
-  const results = Array.isArray(
-    data?.results
-  )
+  const results = Array.isArray(data.results)
     ? data.results
     : [];
 
@@ -388,9 +218,7 @@ async function searchTMDB(
       const year =
         releaseDate &&
         typeof releaseDate === "string"
-          ? Number(
-              releaseDate.slice(0, 4)
-            )
+          ? Number(releaseDate.slice(0, 4))
           : 0;
 
       const name =
@@ -404,28 +232,20 @@ async function searchTMDB(
           kind +
           "-" +
           String(item.id),
-
         name,
-
         kind,
-
         year,
-
         poster: getPosterUrl(
           item.poster_path
         ),
-
         backdrop: getBackdropUrl(
           item.backdrop_path
         ),
-
         overview:
           typeof item.overview === "string"
             ? item.overview
             : "",
-
-        addedAt:
-          new Date().toISOString()
+        addedAt: new Date().toISOString()
       };
     });
 }
@@ -472,7 +292,7 @@ function App() {
     );
 
   /* =======================================================
-     SESSION
+     AUTHENTICATION / SESSION
   ======================================================= */
 
   const [profileId, setProfileId] =
@@ -486,10 +306,6 @@ function App() {
       "sx-viewing-as",
       null
     );
-
-  /* =======================================================
-     UI STATE
-  ======================================================= */
 
   const [tab, setTab] =
     useState<"library" | "rewatch">(
@@ -542,56 +358,39 @@ function App() {
   const [menu, setMenu] =
     useState(false);
 
-  const [
-    draggedProfileId,
-    setDraggedProfileId
-  ] = useState<string | null>(null);
+  const [draggedProfileId, setDraggedProfileId] =
+    useState<string | null>(null);
 
   /* =======================================================
      PROFILE ORDER
   ======================================================= */
 
   const orderedProfiles = useMemo(() => {
-    const safeProfiles =
-      Array.isArray(profiles)
-        ? profiles
-        : [];
+    const adminProfile = profiles.find(
+      profile => profile.id === "admin"
+    );
 
-    const adminProfile =
-      safeProfiles.find(
-        profile =>
-          profile.id === "admin"
-      );
-
-    const regularProfiles =
-      safeProfiles.filter(
-        profile =>
-          profile.id !== "admin"
-      );
+    const regularProfiles = profiles.filter(
+      profile => profile.id !== "admin"
+    );
 
     return adminProfile
-      ? [
-          adminProfile,
-          ...regularProfiles
-        ]
+      ? [adminProfile, ...regularProfiles]
       : regularProfiles;
   }, [profiles]);
 
   /* =======================================================
-     SESSION VALIDATION
+     VALIDATE SESSION
   ======================================================= */
 
   useEffect(() => {
-    if (!profileId) {
-      return;
-    }
-
-    const exists = profiles.some(
-      profile =>
-        profile.id === profileId
-    );
-
-    if (!exists) {
+    if (
+      profileId !== null &&
+      !profiles.some(
+        profile =>
+          profile.id === profileId
+      )
+    ) {
       setProfileId(null);
       setViewingAs(null);
     }
@@ -603,114 +402,54 @@ function App() {
   ]);
 
   /* =======================================================
-     SESSION ACTIONS
-  ======================================================= */
-
-  function handleLoginSuccess(
-    loggedInProfileId: string
-  ) {
-    const exists = profiles.some(
-      profile =>
-        profile.id ===
-        loggedInProfileId
-    );
-
-    if (!exists) {
-      console.error(
-        "Cannot log in: profile does not exist.",
-        loggedInProfileId
-      );
-      return;
-    }
-
-    /*
-     * Set the session first.
-     * React will then render the main app.
-     */
-    setViewingAs(null);
-    setProfileId(
-      loggedInProfileId
-    );
-
-    setTab("library");
-    setFilter("all");
-    setFilterClicked(false);
-    setKind("all");
-    setKindClicked(false);
-    setQ("");
-    setMenu(false);
-    setLoginProfile(null);
-  }
-
-  function signOut() {
-    setProfileId(null);
-    setViewingAs(null);
-
-    setShowProfile(false);
-    setLoginProfile(null);
-    setEditing(null);
-    setMenu(false);
-    setShowAdd(false);
-    setShowReco(false);
-    setShowReminder(null);
-    setShowSchedule(null);
-    setShowHero(false);
-
-    setTab("library");
-    setFilter("all");
-    setFilterClicked(false);
-    setKind("all");
-    setKindClicked(false);
-    setQ("");
-  }
-
-  /* =======================================================
-     CURRENT USER
+     CURRENT USER / PERMISSIONS
   ======================================================= */
 
   const isAdminUser =
     profileId === "admin";
 
   const isViewingAs =
-    isAdminUser &&
-    viewingAs !== null;
+    isAdminUser && viewingAs !== null;
 
   const isAdmin =
-    isAdminUser &&
-    !isViewingAs;
+    isAdminUser && !isViewingAs;
 
-  const effectiveProfileId =
-    isViewingAs
-      ? viewingAs
-      : profileId;
+  let effectiveProfileId: string | null =
+    profileId;
 
-  const profile =
-    effectiveProfileId
-      ? profiles.find(
-          item =>
-            item.id ===
-            effectiveProfileId
-        ) || null
-      : null;
+  if (isViewingAs) {
+    effectiveProfileId = viewingAs;
+  }
 
-  const state = normalizeState(
-    effectiveProfileId
+  let effectiveProfile: Profile | null =
+    null;
+
+  if (effectiveProfileId) {
+    effectiveProfile =
+      profiles.find(
+        item =>
+          item.id === effectiveProfileId
+      ) || null;
+  }
+
+  const profile = effectiveProfile;
+
+  const state: State =
+    effectiveProfileId &&
+    states[effectiveProfileId]
       ? states[effectiveProfileId]
-      : undefined
-  );
+      : {
+          watched: [],
+          watchlist: [],
+          rewatch: []
+        };
 
-  /* =======================================================
-     HERO
-  ======================================================= */
-
-  const hero =
-    heroSettings?.titleId
-      ? library.find(
-          item =>
-            item.id ===
-            heroSettings.titleId
-        ) || null
-      : null;
+  const hero = heroSettings.titleId
+    ? library.find(
+        item =>
+          item.id === heroSettings.titleId
+      ) || null
+    : null;
 
   /* =======================================================
      RECOMMENDATION
@@ -735,201 +474,31 @@ function App() {
         );
       });
 
-    return (
-      watchlistTitles[0] || null
-    );
-  }, [
-    library,
-    state.watchlist,
-    state.watched
-  ]);
+    return watchlistTitles[0] || null;
+  }, [library, state]);
 
   useEffect(() => {
-    if (
-      !profileId ||
-      !recommendation
-    ) {
+    if (!profileId || !recommendation) {
       return;
     }
 
     const key =
-      "sx-reco-seen-" +
-      profileId;
+      "sx-reco-seen-" + profileId;
 
     const alreadySeen =
-      window.localStorage.getItem(
-        key
-      );
+      localStorage.getItem(key);
 
     if (!alreadySeen) {
       setShowReco(true);
     }
-  }, [
-    profileId,
-    recommendation
-  ]);
-
-  function closeRecommendation() {
-    if (!profileId) {
-      return;
-    }
-
-    window.localStorage.setItem(
-      "sx-reco-seen-" +
-        profileId,
-      "true"
-    );
-
-    setShowReco(false);
-  }
-
-  /* =======================================================
-     LOGIN SCREEN
-  ======================================================= */
-
-  if (!profileId) {
-    return (
-      <div className="app">
-        <header>
-          <div className="logo">
-            STREAM<span>IX</span>
-          </div>
-
-          <div className="header-right">
-            <button
-              className="profile-pill"
-              onClick={() => {
-                if (
-                  orderedProfiles.length >
-                  0
-                ) {
-                  setLoginProfile(
-                    orderedProfiles[0]
-                  );
-                }
-              }}
-            >
-              <span>👤</span>
-              <span>Sign in</span>
-              <ChevronDown
-                size={16}
-              />
-            </button>
-          </div>
-        </header>
-
-        <main>
-          <div
-            style={{
-              minHeight:
-                "calc(100vh - 100px)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              padding: "40px 20px"
-            }}
-          >
-            <div
-              style={{
-                width:
-                  "min(560px, 100%)"
-              }}
-            >
-              <div
-                style={{
-                  textAlign: "center",
-                  marginBottom: "28px"
-                }}
-              >
-                <h1>
-                  Who's watching?
-                </h1>
-
-                <p className="muted">
-                  Choose a profile to
-                  continue.
-                </p>
-              </div>
-
-              <div className="profiles">
-                {orderedProfiles.map(
-                  item => (
-                    <div
-                      className="profile-row"
-                      key={item.id}
-                    >
-                      <button
-                        style={{
-                          width: "100%"
-                        }}
-                        onClick={() =>
-                          setLoginProfile(
-                            item
-                          )
-                        }
-                      >
-                        <span className="avatar">
-                          {item.avatar}
-                        </span>
-
-                        <span>
-                          {item.name}
-                        </span>
-                      </button>
-                    </div>
-                  )
-                )}
-              </div>
-
-              <p
-                className="muted"
-                style={{
-                  textAlign: "center",
-                  marginTop: "24px",
-                  fontSize: "13px"
-                }}
-              >
-                Select your profile to
-                sign in.
-              </p>
-            </div>
-          </div>
-        </main>
-
-        {loginProfile && (
-          <ProfileLogin
-            profile={loginProfile}
-            onClose={() =>
-              setLoginProfile(null)
-            }
-            onSuccess={() =>
-              handleLoginSuccess(
-                loginProfile.id
-              )
-            }
-            onSetPassword={password => {
-              setProfiles(
-                current =>
-                  current.map(
-                    item =>
-                      item.id ===
-                      loginProfile.id
-                        ? {
-                            ...item,
-                            password
-                          }
-                        : item
-                  )
-              );
-            }}
-          />
-        )}
-      </div>
-    );
-  }
+  }, [profileId, recommendation]);
 
   /* =======================================================
      FILTERING + SORTING
+
+     IMPORTANT:
+     This hook MUST be above the login-screen return.
+     React hooks cannot be called conditionally.
   ======================================================= */
 
   const visible = useMemo(() => {
@@ -947,9 +516,7 @@ function App() {
             return true;
           }
 
-          return (
-            title.kind === kind
-          );
+          return title.kind === kind;
         })
         .filter(title => {
           if (tab === "rewatch") {
@@ -1002,10 +569,64 @@ function App() {
     tab,
     filter,
     sort,
-    state.rewatch,
-    state.watched,
-    state.watchlist
+    state
   ]);
+
+  /* =======================================================
+     AUTHENTICATION ACTIONS
+  ======================================================= */
+
+  function handleLoginSuccess(
+    loggedInProfileId: string
+  ) {
+    setProfileId(
+      loggedInProfileId
+    );
+
+    setViewingAs(null);
+    setTab("library");
+    setFilter("all");
+    setKind("all");
+    setQ("");
+    setMenu(false);
+  }
+
+  function signOut() {
+    setProfileId(null);
+    setViewingAs(null);
+
+    setShowProfile(false);
+    setLoginProfile(null);
+    setEditing(null);
+    setMenu(false);
+    setShowAdd(false);
+    setShowReco(false);
+    setShowReminder(null);
+    setShowSchedule(null);
+    setShowHero(false);
+
+    setTab("library");
+    setFilter("all");
+    setKind("all");
+    setQ("");
+  }
+
+  /* =======================================================
+     CLOSE RECOMMENDATION
+  ======================================================= */
+
+  function closeRecommendation() {
+    if (!profileId) {
+      return;
+    }
+
+    localStorage.setItem(
+      "sx-reco-seen-" + profileId,
+      "true"
+    );
+
+    setShowReco(false);
+  }
 
   /* =======================================================
      STATE ACTIONS
@@ -1018,20 +639,19 @@ function App() {
       return;
     }
 
-    const targetProfileId =
-      effectiveProfileId;
-
     setStates(currentStates => {
       const currentState =
-        normalizeState(
-          currentStates[
-            targetProfileId
-          ]
-        );
+        currentStates[
+          effectiveProfileId
+        ] || {
+          watched: [],
+          watchlist: [],
+          rewatch: []
+        };
 
       return {
         ...currentStates,
-        [targetProfileId]:
+        [effectiveProfileId]:
           fn(currentState)
       };
     });
@@ -1064,29 +684,25 @@ function App() {
   ======================================================= */
 
   function removeTitle(id: string) {
-    setLibrary(current =>
-      current.filter(
-        title =>
-          title.id !== id
+    setLibrary(currentLibrary =>
+      currentLibrary.filter(
+        title => title.id !== id
       )
     );
 
-    setStates(current => {
-      const next: Record<
-        string,
-        State
-      > = {};
+    setStates(currentStates => {
+      const nextStates = {
+        ...currentStates
+      };
 
-      Object.keys(current).forEach(
+      Object.keys(nextStates).forEach(
         profileKey => {
           const profileState =
-            normalizeState(
-              current[
-                profileKey
-              ]
-            );
+            nextStates[
+              profileKey
+            ];
 
-          next[profileKey] = {
+          nextStates[profileKey] = {
             watched:
               profileState.watched.filter(
                 item => item !== id
@@ -1103,7 +719,7 @@ function App() {
         }
       );
 
-      return next;
+      return nextStates;
     });
 
     setReminders(current =>
@@ -1121,9 +737,7 @@ function App() {
     );
 
     setHeroSettings(current => {
-      if (
-        current.titleId !== id
-      ) {
+      if (current.titleId !== id) {
         return current;
       }
 
@@ -1158,10 +772,11 @@ function App() {
 
     setStates(current => ({
       ...current,
-      [newProfile.id]:
-        normalizeState(
-          undefined
-        )
+      [newProfile.id]: {
+        watched: [],
+        watchlist: [],
+        rewatch: []
+      }
     }));
 
     setEditing(null);
@@ -1184,15 +799,13 @@ function App() {
       const draggedIndex =
         current.findIndex(
           profile =>
-            profile.id ===
-            draggedId
+            profile.id === draggedId
         );
 
       const targetIndex =
         current.findIndex(
           profile =>
-            profile.id ===
-            targetId
+            profile.id === targetId
         );
 
       if (
@@ -1204,12 +817,11 @@ function App() {
 
       const next = [...current];
 
-      const [
-        draggedProfile
-      ] = next.splice(
-        draggedIndex,
-        1
-      );
+      const [draggedProfile] =
+        next.splice(
+          draggedIndex,
+          1
+        );
 
       next.splice(
         targetIndex,
@@ -1222,11 +834,159 @@ function App() {
   }
 
   /* =======================================================
-     RENDER
+     LOGIN SCREEN
+
+     IMPORTANT:
+     There are NO hooks below this return.
+  ======================================================= */
+
+  if (profileId === null) {
+    return (
+      <div className="app">
+
+        <header>
+          <div className="logo">
+            STREAM<span>IX</span>
+          </div>
+
+          <div className="header-right">
+            <button
+              className="profile-pill"
+              onClick={() => {
+                if (profiles.length > 0) {
+                  setLoginProfile(
+                    profiles[0]
+                  );
+                }
+              }}
+            >
+              <span>👤</span>
+              <span>Sign in</span>
+              <ChevronDown size={16} />
+            </button>
+          </div>
+        </header>
+
+        <main>
+          <div
+            style={{
+              minHeight:
+                "calc(100vh - 100px)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              padding: "40px 20px"
+            }}
+          >
+            <div
+              style={{
+                width:
+                  "min(560px, 100%)"
+              }}
+            >
+              <div
+                style={{
+                  textAlign: "center",
+                  marginBottom: "28px"
+                }}
+              >
+                <h1>
+                  Who's watching?
+                </h1>
+
+                <p className="muted">
+                  Choose a profile to
+                  continue.
+                </p>
+              </div>
+
+              <div className="profiles">
+                {orderedProfiles.map(
+                  item => (
+                    <div
+                      className="profile-row"
+                      key={item.id}
+                    >
+                      <button
+                        onClick={() =>
+                          setLoginProfile(
+                            item
+                          )
+                        }
+                        style={{
+                          width: "100%"
+                        }}
+                      >
+                        <span className="avatar">
+                          {item.avatar}
+                        </span>
+
+                        <span>
+                          {item.name}
+                        </span>
+                      </button>
+                    </div>
+                  )
+                )}
+              </div>
+
+              <p
+                className="muted"
+                style={{
+                  textAlign: "center",
+                  marginTop: "24px",
+                  fontSize: "13px"
+                }}
+              >
+                Select your profile to
+                sign in.
+              </p>
+            </div>
+          </div>
+        </main>
+
+        {loginProfile && (
+          <ProfileLogin
+            profile={loginProfile}
+            onClose={() =>
+              setLoginProfile(null)
+            }
+            onSuccess={() => {
+              handleLoginSuccess(
+                loginProfile.id
+              );
+
+              setLoginProfile(null);
+            }}
+            onSetPassword={password => {
+              setProfiles(
+                current =>
+                  current.map(
+                    item =>
+                      item.id ===
+                      loginProfile.id
+                        ? {
+                            ...item,
+                            password
+                          }
+                        : item
+                  )
+              );
+            }}
+          />
+        )}
+
+      </div>
+    );
+  }
+
+  /* =======================================================
+     MAIN APP
   ======================================================= */
 
   return (
     <div className="app">
+
       {/* HEADER */}
 
       <header>
@@ -1235,6 +995,7 @@ function App() {
         </div>
 
         <div className="header-right">
+
           <button
             className="profile-pill"
             onClick={() =>
@@ -1244,20 +1005,16 @@ function App() {
             <span>
               {isViewingAs
                 ? "👑"
-                : profile?.avatar ||
-                  "🙂"}
+                : profile?.avatar}
             </span>
 
             <span>
               {isViewingAs
                 ? "Admin"
-                : profile?.name ||
-                  "Profile"}
+                : profile?.name}
             </span>
 
-            <ChevronDown
-              size={16}
-            />
+            <ChevronDown size={16} />
           </button>
 
           {isViewingAs && (
@@ -1271,12 +1028,13 @@ function App() {
                 setKind("all");
                 setMenu(false);
               }}
+              aria-label="Back to Admin"
             >
               ← ADMIN
             </button>
           )}
 
-          {isAdmin && (
+          {isAdmin && !isViewingAs && (
             <button
               className="admin-badge"
               onClick={() =>
@@ -1291,6 +1049,7 @@ function App() {
 
           {menu && isAdmin && (
             <div className="admin-menu">
+
               <button
                 onClick={() => {
                   setShowAdd(true);
@@ -1310,8 +1069,10 @@ function App() {
                 <Settings />
                 Edit hero
               </button>
+
             </div>
           )}
+
         </div>
       </header>
 
@@ -1320,16 +1081,21 @@ function App() {
       <section
         className="hero"
         style={
-          hero?.backdrop
+          hero &&
+          hero.backdrop
             ? {
                 backgroundImage:
                   "linear-gradient(90deg, rgba(0,0,0,.92), rgba(0,0,0,.15)), url(" +
                   hero.backdrop +
                   ")",
                 backgroundPosition:
-                  heroSettings.positionX +
+                  String(
+                    heroSettings.positionX
+                  ) +
                   "% " +
-                  heroSettings.positionY +
+                  String(
+                    heroSettings.positionY
+                  ) +
                   "%"
               }
             : {
@@ -1339,13 +1105,11 @@ function App() {
         }
       >
         <div className="hero-content">
+
           <div className="eyebrow">
             {isViewingAs
               ? "VIEWING AS " +
-                (
-                  profile?.name ||
-                  ""
-                ).toUpperCase()
+                (profile?.name || "").toUpperCase()
               : "FEATURED"}
           </div>
 
@@ -1389,13 +1153,18 @@ function App() {
               )}
             </>
           )}
+
         </div>
       </section>
 
       {/* MAIN */}
 
       <main>
+
+        {/* PRIMARY NAVIGATION */}
+
         <div className="switch">
+
           <button
             className={
               tab === "library"
@@ -1424,13 +1193,19 @@ function App() {
               Re-watch
             </button>
           )}
+
         </div>
+
+        {/* LIBRARY CONTROLS */}
 
         {tab === "library" && (
           <>
+
             <div className="toolbar">
+
               {!isAdmin && (
                 <div className="filters">
+
                   <button
                     className={
                       filter === "all" &&
@@ -1440,9 +1215,7 @@ function App() {
                     }
                     onClick={() => {
                       setFilter("all");
-                      setFilterClicked(
-                        true
-                      );
+                      setFilterClicked(true);
                     }}
                   >
                     All
@@ -1450,18 +1223,13 @@ function App() {
 
                   <button
                     className={
-                      filter ===
-                      "watchlist"
+                      filter === "watchlist"
                         ? "selected"
                         : ""
                     }
                     onClick={() => {
-                      setFilter(
-                        "watchlist"
-                      );
-                      setFilterClicked(
-                        true
-                      );
+                      setFilter("watchlist");
+                      setFilterClicked(true);
                     }}
                   >
                     Watchlist
@@ -1469,26 +1237,23 @@ function App() {
 
                   <button
                     className={
-                      filter ===
-                      "watched"
+                      filter === "watched"
                         ? "selected"
                         : ""
                     }
                     onClick={() => {
-                      setFilter(
-                        "watched"
-                      );
-                      setFilterClicked(
-                        true
-                      );
+                      setFilter("watched");
+                      setFilterClicked(true);
                     }}
                   >
                     Watched
                   </button>
+
                 </div>
               )}
 
               <div className="search">
+
                 <Search size={18} />
 
                 <input
@@ -1500,10 +1265,15 @@ function App() {
                   }
                   placeholder="Search library"
                 />
+
               </div>
+
             </div>
 
+            {/* FORMAT + SORT */}
+
             <div className="format">
+
               <button
                 className={
                   kind === "all" &&
@@ -1558,6 +1328,7 @@ function App() {
                       .value as SortOption
                   )
                 }
+                aria-label="Sort library"
               >
                 <option value="name-asc">
                   Name A–Z
@@ -1575,11 +1346,16 @@ function App() {
                   Oldest release
                 </option>
               </select>
+
             </div>
+
           </>
         )}
 
+        {/* LIBRARY */}
+
         <div className="grid">
+
           {visible.map(title => (
             <Card
               key={title.id}
@@ -1629,10 +1405,12 @@ function App() {
                 : "Nothing here yet."}
             </div>
           )}
+
         </div>
+
       </main>
 
-      {/* RECOMMENDATION */}
+      {/* TODAY'S RECOMMENDATION */}
 
       {showReco &&
         recommendation && (
@@ -1643,6 +1421,7 @@ function App() {
             }
           >
             <div className="reco">
+
               <img
                 src={
                   recommendation.poster
@@ -1653,6 +1432,7 @@ function App() {
               />
 
               <div>
+
                 <div className="reco-label">
                   FROM YOUR WATCHLIST
                 </div>
@@ -1676,7 +1456,9 @@ function App() {
                     }
                   </p>
                 )}
+
               </div>
+
             </div>
           </Modal>
         )}
@@ -1691,7 +1473,9 @@ function App() {
             setShowProfile(false)
           }
         >
+
           <div className="profiles">
+
             {orderedProfiles.map(
               item => (
                 <div
@@ -1736,6 +1520,7 @@ function App() {
                     );
                   }}
                 >
+
                   <button
                     onClick={() => {
                       if (
@@ -1756,15 +1541,19 @@ function App() {
                           setViewingAs(
                             null
                           );
+
+                          setProfileId(
+                            "admin"
+                          );
                         } else {
                           setViewingAs(
                             item.id
                           );
-                        }
 
-                        setProfileId(
-                          "admin"
-                        );
+                          setProfileId(
+                            "admin"
+                          );
+                        }
 
                         setShowProfile(
                           false
@@ -1788,6 +1577,7 @@ function App() {
                         : ""
                     }
                   >
+
                     <span className="avatar">
                       {item.avatar}
                     </span>
@@ -1800,6 +1590,7 @@ function App() {
                       effectiveProfileId && (
                       <Check size={18} />
                     )}
+
                   </button>
 
                   <button
@@ -1823,7 +1614,20 @@ function App() {
                         false
                       );
                     }}
-                    aria-label="Profile settings"
+                    aria-label={
+                      item.id ===
+                        effectiveProfileId ||
+                      isAdminUser
+                        ? "Profile settings"
+                        : "Switch to this profile to edit settings"
+                    }
+                    title={
+                      item.id ===
+                        effectiveProfileId ||
+                      isAdminUser
+                        ? "Profile settings"
+                        : "Switch to this profile to edit settings"
+                    }
                   >
                     <Settings size={17} />
                   </button>
@@ -1853,10 +1657,12 @@ function App() {
                           "Drag to reorder " +
                           item.name
                         }
+                        title="Drag to reorder"
                       >
                         <GripVertical size={20} />
                       </div>
                     )}
+
                 </div>
               )
             )}
@@ -1871,9 +1677,7 @@ function App() {
                     avatar: "🙂"
                   });
 
-                  setShowProfile(
-                    false
-                  );
+                  setShowProfile(false);
                 }}
               >
                 <Plus />
@@ -1897,11 +1701,13 @@ function App() {
                 Sign out
               </button>
             </div>
+
           </div>
+
         </Modal>
       )}
 
-      {/* LOGIN */}
+      {/* PROFILE LOGIN */}
 
       {loginProfile && (
         <ProfileLogin
@@ -1909,11 +1715,13 @@ function App() {
           onClose={() =>
             setLoginProfile(null)
           }
-          onSuccess={() =>
+          onSuccess={() => {
             handleLoginSuccess(
               loginProfile.id
-            )
-          }
+            );
+
+            setLoginProfile(null);
+          }}
           onSetPassword={password => {
             setProfiles(current =>
               current.map(item =>
@@ -1930,7 +1738,7 @@ function App() {
         />
       )}
 
-      {/* PROFILE EDITOR */}
+      {/* PROFILE SETTINGS */}
 
       {editing && (
         <ProfileEditor
@@ -1950,6 +1758,7 @@ function App() {
                 name,
                 avatar
               );
+
               return;
             }
 
@@ -1961,9 +1770,7 @@ function App() {
                     editing.id
                       ? {
                           ...item,
-                          name:
-                            name.trim() ||
-                            item.name,
+                          name,
                           avatar
                         }
                       : item
@@ -1996,22 +1803,15 @@ function App() {
             editing.id === "new"
               ? undefined
               : () => {
-                  const deletedId =
+                  const deletedProfileId =
                     editing.id;
-
-                  if (
-                    deletedId ===
-                    "admin"
-                  ) {
-                    return;
-                  }
 
                   setProfiles(
                     current =>
                       current.filter(
                         item =>
                           item.id !==
-                          deletedId
+                          deletedProfileId
                       )
                   );
 
@@ -2022,7 +1822,7 @@ function App() {
                       };
 
                       delete next[
-                        deletedId
+                        deletedProfileId
                       ];
 
                       return next;
@@ -2030,14 +1830,12 @@ function App() {
                   );
 
                   if (
-                    deletedId ===
+                    deletedProfileId ===
                     profileId
                   ) {
                     signOut();
                   } else {
-                    setViewingAs(
-                      null
-                    );
+                    setViewingAs(null);
                     setEditing(null);
                   }
                 }
@@ -2071,7 +1869,7 @@ function App() {
             setShowReminder(null)
           }
           onSave={(date, time) => {
-            if (!effectiveProfileId) {
+            if (!profileId) {
               return;
             }
 
@@ -2079,8 +1877,7 @@ function App() {
               ...current,
               {
                 id: uid(),
-                profileId:
-                  effectiveProfileId,
+                profileId,
                 titleId:
                   showReminder.id,
                 date,
@@ -2119,7 +1916,7 @@ function App() {
           />
         )}
 
-      {/* HERO */}
+      {/* HERO EDITOR */}
 
       {showHero &&
         isAdmin && (
@@ -2143,6 +1940,7 @@ function App() {
       {/* FOOTER */}
 
       <footer>
+
         <span>
           <Clock size={14} />
 
@@ -2162,7 +1960,9 @@ function App() {
             scheduled reco(s)
           </span>
         )}
+
       </footer>
+
     </div>
   );
 }
@@ -2180,9 +1980,7 @@ function ProfileLogin({
   profile: Profile;
   onClose: () => void;
   onSuccess: () => void;
-  onSetPassword: (
-    password: string
-  ) => void;
+  onSetPassword: (password: string) => void;
 }) {
   const [password, setPassword] =
     useState("");
@@ -2197,10 +1995,7 @@ function ProfileLogin({
     useState(false);
 
   const hasPassword =
-    Boolean(
-      profile.password &&
-        profile.password.length > 0
-    );
+    Boolean(profile.password);
 
   function handleLogin() {
     if (
@@ -2224,10 +2019,7 @@ function ProfileLogin({
       return;
     }
 
-    onSetPassword(
-      password.trim()
-    );
-
+    onSetPassword(password);
     onSuccess();
   }
 
@@ -2239,10 +2031,7 @@ function ProfileLogin({
       return;
     }
 
-    onSetPassword(
-      password.trim()
-    );
-
+    onSetPassword(password);
     onSuccess();
   }
 
@@ -2257,7 +2046,9 @@ function ProfileLogin({
       }
       onClose={onClose}
     >
+
       <div className="profile-login">
+
         <div className="profile-login-avatar">
           {profile.avatar}
         </div>
@@ -2269,29 +2060,62 @@ function ProfileLogin({
         {!hasPassword ? (
           <>
             <p className="muted">
-              Create a password for your
-              profile. You'll use it
-              whenever you log in.
+              Create a password for your profile.
+              You'll use it whenever you log in.
             </p>
 
-            <PasswordField
-              label="Password"
-              value={password}
-              onChange={value => {
-                setPassword(value);
-                setError("");
-              }}
-              show={showPassword}
-              onToggle={() =>
-                setShowPassword(
-                  current => !current
-                )
-              }
-              placeholder="Create a password"
-              onEnter={
-                handleSetPassword
-              }
-            />
+            <label>
+              Password
+
+              <div className="password-wrapper">
+
+                <input
+                  autoFocus
+                  type={
+                    showPassword
+                      ? "text"
+                      : "password"
+                  }
+                  value={password}
+                  onChange={event => {
+                    setPassword(
+                      event.target.value
+                    );
+                    setError("");
+                  }}
+                  onKeyDown={event => {
+                    if (
+                      event.key === "Enter"
+                    ) {
+                      handleSetPassword();
+                    }
+                  }}
+                  placeholder="Create a password"
+                />
+
+                <button
+                  type="button"
+                  className="password-toggle"
+                  onClick={() =>
+                    setShowPassword(
+                      current => !current
+                    )
+                  }
+                  aria-label={
+                    showPassword
+                      ? "Hide password"
+                      : "Show password"
+                  }
+                >
+                  {showPassword ? (
+                    <EyeOff size={18} />
+                  ) : (
+                    <Eye size={18} />
+                  )}
+                </button>
+
+              </div>
+            </label>
 
             {error && (
               <p className="login-error">
@@ -2301,9 +2125,7 @@ function ProfileLogin({
 
             <button
               className="pink full"
-              onClick={
-                handleSetPassword
-              }
+              onClick={handleSetPassword}
             >
               Set Password
             </button>
@@ -2311,28 +2133,62 @@ function ProfileLogin({
         ) : resetting ? (
           <>
             <p className="muted">
-              Create a new password for
-              your profile.
+              Create a new password for your
+              profile.
             </p>
 
-            <PasswordField
-              label="New Password"
-              value={password}
-              onChange={value => {
-                setPassword(value);
-                setError("");
-              }}
-              show={showPassword}
-              onToggle={() =>
-                setShowPassword(
-                  current => !current
-                )
-              }
-              placeholder="Create a new password"
-              onEnter={
-                handleResetPassword
-              }
-            />
+            <label>
+              New Password
+
+              <div className="password-wrapper">
+
+                <input
+                  autoFocus
+                  type={
+                    showPassword
+                      ? "text"
+                      : "password"
+                  }
+                  value={password}
+                  onChange={event => {
+                    setPassword(
+                      event.target.value
+                    );
+                    setError("");
+                  }}
+                  onKeyDown={event => {
+                    if (
+                      event.key === "Enter"
+                    ) {
+                      handleResetPassword();
+                    }
+                  }}
+                  placeholder="Create a new password"
+                />
+
+                <button
+                  type="button"
+                  className="password-toggle"
+                  onClick={() =>
+                    setShowPassword(
+                      current => !current
+                    )
+                  }
+                  aria-label={
+                    showPassword
+                      ? "Hide password"
+                      : "Show password"
+                  }
+                >
+                  {showPassword ? (
+                    <EyeOff size={18} />
+                  ) : (
+                    <Eye size={18} />
+                  )}
+                </button>
+
+              </div>
+            </label>
 
             {error && (
               <p className="login-error">
@@ -2364,26 +2220,61 @@ function ProfileLogin({
         ) : (
           <>
             <p className="muted">
-              Enter your password to
-              continue.
+              Enter your password to continue.
             </p>
 
-            <PasswordField
-              label="Password"
-              value={password}
-              onChange={value => {
-                setPassword(value);
-                setError("");
-              }}
-              show={showPassword}
-              onToggle={() =>
-                setShowPassword(
-                  current => !current
-                )
-              }
-              placeholder="Enter password"
-              onEnter={handleLogin}
-            />
+            <label>
+              Password
+
+              <div className="password-wrapper">
+
+                <input
+                  autoFocus
+                  type={
+                    showPassword
+                      ? "text"
+                      : "password"
+                  }
+                  value={password}
+                  onChange={event => {
+                    setPassword(
+                      event.target.value
+                    );
+                    setError("");
+                  }}
+                  onKeyDown={event => {
+                    if (
+                      event.key === "Enter"
+                    ) {
+                      handleLogin();
+                    }
+                  }}
+                  placeholder="Enter password"
+                />
+
+                <button
+                  type="button"
+                  className="password-toggle"
+                  onClick={() =>
+                    setShowPassword(
+                      current => !current
+                    )
+                  }
+                  aria-label={
+                    showPassword
+                      ? "Hide password"
+                      : "Show password"
+                  }
+                >
+                  {showPassword ? (
+                    <EyeOff size={18} />
+                  ) : (
+                    <Eye size={18} />
+                  )}
+                </button>
+
+              </div>
+            </label>
 
             {error && (
               <p className="login-error">
@@ -2411,80 +2302,10 @@ function ProfileLogin({
             </button>
           </>
         )}
+
       </div>
+
     </Modal>
-  );
-}
-
-/* =========================================================
-   PASSWORD FIELD
-========================================================= */
-
-function PasswordField({
-  label,
-  value,
-  onChange,
-  show,
-  onToggle,
-  placeholder,
-  onEnter
-}: {
-  label: string;
-  value: string;
-  onChange: (
-    value: string
-  ) => void;
-  show: boolean;
-  onToggle: () => void;
-  placeholder: string;
-  onEnter: () => void;
-}) {
-  return (
-    <label>
-      {label}
-
-      <div className="password-wrapper">
-        <input
-          autoFocus
-          type={
-            show
-              ? "text"
-              : "password"
-          }
-          value={value}
-          onChange={event =>
-            onChange(
-              event.target.value
-            )
-          }
-          onKeyDown={event => {
-            if (
-              event.key === "Enter"
-            ) {
-              onEnter();
-            }
-          }}
-          placeholder={placeholder}
-        />
-
-        <button
-          type="button"
-          className="password-toggle"
-          onClick={onToggle}
-          aria-label={
-            show
-              ? "Hide password"
-              : "Show password"
-          }
-        >
-          {show ? (
-            <EyeOff size={18} />
-          ) : (
-            <Eye size={18} />
-          )}
-        </button>
-      </div>
-    </label>
   );
 }
 
@@ -2524,16 +2345,16 @@ function Card({
 
   return (
     <article className="card">
+
       <div className="poster-wrap">
+
         <img
           src={t.poster}
           alt={t.name}
           onError={event => {
             event.currentTarget.src =
               "https://placehold.co/500x750/171717/ffffff?text=" +
-              encodeURIComponent(
-                t.name
-              );
+              encodeURIComponent(t.name);
           }}
         />
 
@@ -2555,9 +2376,11 @@ function Card({
             <Trash2 size={16} />
           </button>
         )}
+
       </div>
 
       <div className="card-body">
+
         <h3>{t.name}</h3>
 
         <p>{t.year}</p>
@@ -2565,6 +2388,7 @@ function Card({
         {!isAdmin && (
           <>
             <div className="actions">
+
               <button
                 className={
                   isOnWatchlist
@@ -2590,9 +2414,11 @@ function Card({
                   ? "✓ Watched"
                   : "Mark watched"}
               </button>
+
             </div>
 
             <div className="small-actions">
+
               <button
                 className={
                   isRewatch
@@ -2609,10 +2435,13 @@ function Card({
               >
                 Remind me
               </button>
+
             </div>
           </>
         )}
+
       </div>
+
     </article>
   );
 }
@@ -2644,6 +2473,7 @@ function Modal({
         }
       }}
     >
+
       <div
         className="modal"
         style={
@@ -2656,7 +2486,9 @@ function Modal({
             : undefined
         }
       >
+
         <div className="modal-head">
+
           <h2>{title}</h2>
 
           <button
@@ -2666,10 +2498,13 @@ function Modal({
           >
             <X />
           </button>
+
         </div>
 
         {children}
+
       </div>
+
     </div>
   );
 }
@@ -2754,10 +2589,7 @@ function ProfileEditor({
       return;
     }
 
-    if (
-      !adminOverride &&
-      !profile.password
-    ) {
+    if (!profile.password) {
       setPasswordError(
         "This profile does not have a password yet."
       );
@@ -2783,7 +2615,7 @@ function ProfileEditor({
     }
 
     onChangePassword?.(
-      newPassword.trim()
+      newPassword
     );
 
     setCurrentPassword("");
@@ -2793,7 +2625,7 @@ function ProfileEditor({
     setShowCurrentPassword(false);
     setShowNewPassword(false);
 
-    window.alert(
+    alert(
       "Password updated successfully."
     );
   }
@@ -2807,6 +2639,7 @@ function ProfileEditor({
       }
       onClose={onClose}
     >
+
       <label>
         Profile Name
 
@@ -2825,6 +2658,7 @@ function ProfileEditor({
         Profile Icon
 
         <div className="emoji-grid">
+
           {avatars.map(item => (
             <button
               type="button"
@@ -2841,6 +2675,7 @@ function ProfileEditor({
               {item}
             </button>
           ))}
+
         </div>
       </label>
 
@@ -2879,64 +2714,110 @@ function ProfileEditor({
 
           {showPasswordSection && (
             <div className="password-settings">
+
               {!adminOverride && (
-                <PasswordField
-                  label="Current Password"
-                  value={
-                    currentPassword
-                  }
-                  onChange={value => {
-                    setCurrentPassword(
-                      value
-                    );
-                    setPasswordError("");
-                  }}
-                  show={
-                    showCurrentPassword
-                  }
-                  onToggle={() =>
-                    setShowCurrentPassword(
-                      current =>
-                        !current
-                    )
-                  }
-                  placeholder="Enter current password"
-                  onEnter={
-                    handlePasswordChange
-                  }
-                />
+                <label>
+                  Current Password
+
+                  <div className="password-wrapper">
+
+                    <input
+                      type={
+                        showCurrentPassword
+                          ? "text"
+                          : "password"
+                      }
+                      value={
+                        currentPassword
+                      }
+                      onChange={event => {
+                        setCurrentPassword(
+                          event.target.value
+                        );
+                        setPasswordError("");
+                      }}
+                      placeholder="Enter current password"
+                    />
+
+                    <button
+                      type="button"
+                      className="password-toggle"
+                      onClick={() =>
+                        setShowCurrentPassword(
+                          current =>
+                            !current
+                        )
+                      }
+                      aria-label={
+                        showCurrentPassword
+                          ? "Hide password"
+                          : "Show password"
+                      }
+                    >
+                      {showCurrentPassword ? (
+                        <EyeOff size={18} />
+                      ) : (
+                        <Eye size={18} />
+                      )}
+                    </button>
+
+                  </div>
+                </label>
               )}
 
               {adminOverride && (
                 <p className="muted">
-                  Admin can reset this
-                  profile's password
-                  without entering the
-                  current password.
+                  Admin can reset this profile's password without entering the current password.
                 </p>
               )}
 
-              <PasswordField
-                label="New Password"
-                value={newPassword}
-                onChange={value => {
-                  setNewPassword(
-                    value
-                  );
-                  setPasswordError("");
-                }}
-                show={showNewPassword}
-                onToggle={() =>
-                  setShowNewPassword(
-                    current =>
-                      !current
-                  )
-                }
-                placeholder="Enter new password"
-                onEnter={
-                  handlePasswordChange
-                }
-              />
+              <label>
+                New Password
+
+                <div className="password-wrapper">
+
+                  <input
+                    type={
+                      showNewPassword
+                        ? "text"
+                        : "password"
+                    }
+                    value={
+                      newPassword
+                    }
+                    onChange={event => {
+                      setNewPassword(
+                        event.target.value
+                      );
+                      setPasswordError("");
+                    }}
+                    placeholder="Enter new password"
+                  />
+
+                  <button
+                    type="button"
+                    className="password-toggle"
+                    onClick={() =>
+                      setShowNewPassword(
+                        current =>
+                          !current
+                      )
+                    }
+                    aria-label={
+                      showNewPassword
+                        ? "Hide password"
+                        : "Show password"
+                    }
+                  >
+                    {showNewPassword ? (
+                      <EyeOff size={18} />
+                    ) : (
+                      <Eye size={18} />
+                    )}
+                  </button>
+
+                </div>
+              </label>
 
               {passwordError && (
                 <p className="login-error">
@@ -2954,6 +2835,7 @@ function ProfileEditor({
                   ? "Reset Password"
                   : "Update Password"}
               </button>
+
             </div>
           )}
         </>
@@ -2975,6 +2857,7 @@ function ProfileEditor({
           Delete Profile
         </button>
       )}
+
     </Modal>
   );
 }
@@ -3014,8 +2897,6 @@ function AddTitle({
       return;
     }
 
-    let cancelled = false;
-
     const timer =
       window.setTimeout(
         async () => {
@@ -3028,33 +2909,22 @@ function AddTitle({
                 cleanQuery
               );
 
-            if (!cancelled) {
-              setResults(data);
-            }
-          } catch (error) {
-            console.error(
-              "TMDB search error:",
-              error
+            setResults(data);
+          } catch {
+            setError(
+              "Unable to search TMDB right now."
             );
-
-            if (!cancelled) {
-              setError(
-                "Unable to search TMDB right now."
-              );
-            }
           } finally {
-            if (!cancelled) {
-              setLoading(false);
-            }
+            setLoading(false);
           }
         },
         400
       );
 
-    return () => {
-      cancelled = true;
-      window.clearTimeout(timer);
-    };
+    return () =>
+      window.clearTimeout(
+        timer
+      );
   }, [query]);
 
   const available =
@@ -3072,12 +2942,14 @@ function AddTitle({
       title="Add Movie / TV Show"
       onClose={onClose}
     >
+
       <p className="muted">
         Search TMDB for movies
         and TV shows.
       </p>
 
       <div className="search wide">
+
         <Search size={18} />
 
         <input
@@ -3090,6 +2962,7 @@ function AddTitle({
           }
           placeholder="Search movies and TV shows"
         />
+
       </div>
 
       {loading && (
@@ -3099,34 +2972,37 @@ function AddTitle({
       )}
 
       {error && (
-        <p className="login-error">
+        <p className="muted">
           {error}
         </p>
       )}
 
       <div className="result-list">
+
         {available.map(title => (
           <div
             className="result"
             key={title.id}
           >
+
             <img
               src={title.poster}
               alt={title.name}
             />
 
             <div>
+
               <b>
                 {title.name}
               </b>
 
               <span>
                 {title.year} ·{" "}
-                {title.kind ===
-                "movie"
+                {title.kind === "movie"
                   ? "Movie"
                   : "TV Show"}
               </span>
+
             </div>
 
             <button
@@ -3146,9 +3022,12 @@ function AddTitle({
             >
               + Add
             </button>
+
           </div>
         ))}
+
       </div>
+
     </Modal>
   );
 }
@@ -3180,6 +3059,7 @@ function ReminderModal({
       title="Remind Me"
       onClose={onClose}
     >
+
       <p>
         Set a reminder for{" "}
         <b>{title.name}</b>.
@@ -3228,15 +3108,17 @@ function ReminderModal({
 
       <p className="muted">
         Notification delivery will
-        be connected to the Streamix
-        notification system.
+        be connected to the
+        Streamix notification
+        system.
       </p>
+
     </Modal>
   );
 }
 
 /* =========================================================
-   SCHEDULE
+   SCHEDULE RECOMMENDATION
 ========================================================= */
 
 function ScheduleModal({
@@ -3273,12 +3155,14 @@ function ScheduleModal({
       title="Schedule Personal Recommendation"
       onClose={onClose}
     >
+
       {profiles.length === 0 ? (
         <p className="muted">
           Create a profile first.
         </p>
       ) : (
         <>
+
           <label>
             Profile
 
@@ -3291,12 +3175,16 @@ function ScheduleModal({
               }
             >
               {profiles.map(
-                item => (
+                profile => (
                   <option
-                    key={item.id}
-                    value={item.id}
+                    value={
+                      profile.id
+                    }
+                    key={
+                      profile.id
+                    }
                   >
-                    {item.name}
+                    {profile.name}
                   </option>
                 )
               )}
@@ -3364,8 +3252,10 @@ function ScheduleModal({
           >
             Schedule
           </button>
+
         </>
       )}
+
     </Modal>
   );
 }
@@ -3398,16 +3288,12 @@ function HeroModal({
 
   const [positionX, setPositionX] =
     useState(
-      Number(
-        settings.positionX ?? 50
-      )
+      settings.positionX
     );
 
   const [positionY, setPositionY] =
     useState(
-      Number(
-        settings.positionY ?? 50
-      )
+      settings.positionY
     );
 
   const selectedTitle =
@@ -3421,6 +3307,7 @@ function HeroModal({
       title="Edit Hero"
       onClose={onClose}
     >
+
       <p>
         Choose which title appears
         in the featured hero.
@@ -3433,6 +3320,7 @@ function HeroModal({
         </p>
       ) : (
         <>
+
           <label>
             Hero title
 
@@ -3464,9 +3352,9 @@ function HeroModal({
                   selectedTitle.backdrop +
                   ")",
                 backgroundPosition:
-                  positionX +
+                  String(positionX) +
                   "% " +
-                  positionY +
+                  String(positionY) +
                   "%"
               }}
             >
@@ -3487,7 +3375,8 @@ function HeroModal({
               onChange={event =>
                 setPositionX(
                   Number(
-                    event.target.value
+                    event.target
+                      .value
                   )
                 )
               }
@@ -3509,7 +3398,8 @@ function HeroModal({
               onChange={event =>
                 setPositionY(
                   Number(
-                    event.target.value
+                    event.target
+                      .value
                   )
                 )
               }
@@ -3524,8 +3414,7 @@ function HeroModal({
             className="pink full"
             onClick={() =>
               onSave({
-                titleId:
-                  titleId || null,
+                titleId,
                 positionX,
                 positionY
               })
@@ -3533,8 +3422,10 @@ function HeroModal({
           >
             Save Hero
           </button>
+
         </>
       )}
+
     </Modal>
   );
 }
@@ -3544,7 +3435,9 @@ function HeroModal({
 ========================================================= */
 
 const rootElement =
-  document.getElementById("root");
+  document.getElementById(
+    "root"
+  );
 
 if (!rootElement) {
   throw new Error(
@@ -3553,7 +3446,7 @@ if (!rootElement) {
 }
 
 createRoot(rootElement).render(
-  <ErrorBoundary>
+  <React.StrictMode>
     <App />
-  </ErrorBoundary>
+  </React.StrictMode>
 );
