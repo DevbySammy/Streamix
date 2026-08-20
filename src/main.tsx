@@ -322,71 +322,7 @@ const [profilesLoading, setProfilesLoading] = useState(true);
 
 const [states, setStates] =
   useState<Record<string, State>>({});
-  useEffect(() => {
-  if (!effectiveProfileId) {
-    return;
-  }
 
-  async function loadProfileState() {
-    try {
-      const [watchedResponse, watchlistResponse, rewatchResponse] =
-        await Promise.all([
-          fetch(
-            `/api/watch-history?profileId=${encodeURIComponent(
-              effectiveProfileId
-            )}`
-          ),
-          fetch(
-            `/api/watchlist?profileId=${encodeURIComponent(
-              effectiveProfileId
-            )}`
-          ),
-          fetch(
-            `/api/rewatch?profileId=${encodeURIComponent(
-              effectiveProfileId
-            )}`
-          )
-        ]);
-
-      if (
-        !watchedResponse.ok ||
-        !watchlistResponse.ok ||
-        !rewatchResponse.ok
-      ) {
-        throw new Error("Failed to load profile state");
-      }
-
-      const watchedData = await watchedResponse.json();
-      const watchlistData = await watchlistResponse.json();
-      const rewatchData = await rewatchResponse.json();
-
-      setStates(currentStates => ({
-        ...currentStates,
-        [effectiveProfileId]: {
-          watched: watchedData.map(
-            (item: { library_item_id: string }) =>
-              item.library_item_id
-          ),
-          watchlist: watchlistData.map(
-            (item: { library_item_id: string }) =>
-              item.library_item_id
-          ),
-          rewatch: rewatchData.map(
-            (item: { library_item_id: string }) =>
-              item.library_item_id
-          )
-        }
-      }));
-    } catch (error) {
-      console.error(
-        "Failed to load profile state:",
-        error
-      );
-    }
-  }
-
-  loadProfileState();
-}, [effectiveProfileId]);
 const [reminders, setReminders] = useState<Reminder[]>([]);
 const [scheduled, setScheduled] = useState<Scheduled[]>([]);
 const [heroSettings, setHeroSettings] =
