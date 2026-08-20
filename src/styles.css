@@ -298,3 +298,139 @@ header {
     font-size: 13px;
   }
 }
+
+/* =========================================================
+   STREAMIX — MOBILE-FIRST INTERACTION REFINEMENT
+   No hover states. Pink reserved for active selections.
+   ========================================================= */
+
+/* Remove desktop-style hover interactions */
+.switch button:hover,
+.profile-pill:hover,
+.admin-badge:hover,
+.actions button:hover,
+.small-actions button:hover,
+.filters button:hover,
+.format button:hover {
+  background: inherit;
+  border-color: inherit;
+  color: inherit;
+}
+
+/* ---------- Active navigation ---------- */
+
+.switch button.active {
+  background: #fff;
+  color: #090909;
+  border: 1px solid #fff;
+}
+
+/* ---------- Active library filters ---------- */
+
+.filters .selected {
+  background: rgba(255, 61, 141, 0.08);
+  color: #ff3d8d;
+  border: 1px solid #ff3d8d;
+}
+
+/* ---------- Active Movies / TV filters ---------- */
+
+.format button {
+  border: 1px solid #292929;
+}
+
+.format .selected {
+  background: rgba(255, 61, 141, 0.08);
+  color: #ff3d8d;
+  border-color: #ff3d8d;
+}
+
+/* ---------- Selected Watchlist / Watched buttons ---------- */
+
+.actions button.on {
+  background: rgba(255, 61, 141, 0.08);
+  color: #ff3d8d;
+  border-color: #ff3d8d;
+}
+
+/* ---------- Search ---------- */
+
+.search:focus-within {
+  border-color: #444;
+  background: #111;
+}
+
+/* Don't make the search box pink when focused */
+.search input:focus {
+  outline: none;
+}
+
+/* ---------- Cards ---------- */
+
+.card {
+  transition: transform .15s ease, border-color .15s ease;
+}
+
+/* No hover lift on mobile */
+@media (hover: none) {
+  .card:hover {
+    transform: none;
+    border-color: #242424;
+    box-shadow: none;
+  }
+}
+
+/* ---------- Buttons should feel tappable ---------- */
+
+.switch button,
+.filters button,
+.format button,
+.actions button,
+.small-actions button,
+.profile-pill,
+.admin-badge {
+  min-height: 40px;
+}
+
+/* ---------- Primary pink buttons ---------- */
+
+.pink {
+  background: #ff3d8d;
+  color: #fff;
+}
+
+/* ---------- Admin menu: no hover dependency ---------- */
+
+.admin-menu button {
+  min-height: 42px;
+}
+
+/* ---------- Mobile spacing ---------- */
+
+@media (max-width: 650px) {
+
+  .switch {
+    margin-bottom: 22px;
+  }
+
+  .toolbar {
+    gap: 14px;
+  }
+
+  .search {
+    height: 50px;
+  }
+
+  .filters button {
+    min-height: 42px;
+  }
+
+  .format button {
+    min-height: 40px;
+  }
+
+  .actions button,
+  .small-actions button {
+    min-height: 40px;
+  }
+}
