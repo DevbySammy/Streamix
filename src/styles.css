@@ -1,1 +1,300 @@
 :root{font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#fff;background:#090909;font-synthesis:none}*{box-sizing:border-box}body{margin:0;background:#090909}button,input,select,textarea{font:inherit}button{cursor:pointer;border:0;color:inherit}header{height:68px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;border-bottom:1px solid #222;background:#090909;position:sticky;top:0;z-index:20}.logo{font-weight:900;letter-spacing:-1.5px;font-size:25px;color:#ffd51a}.logo span{color:#ff3d8d}.header-right{display:flex;gap:8px;align-items:center;position:relative}.profile-pill,.admin-badge,.ghost{background:#171717;border:1px solid #333;border-radius:999px;padding:9px 12px;display:flex;align-items:center;gap:7px}.admin-badge{color:#ff3d8d;font-size:11px;font-weight:800}.admin-menu{position:absolute;right:0;top:48px;background:#161616;border:1px solid #333;border-radius:14px;padding:6px;min-width:160px;z-index:30;box-shadow:0 15px 40px #000}.admin-menu button{width:100%;padding:10px;background:transparent;text-align:left;display:flex;gap:8px;align-items:center;border-radius:8px}.admin-menu button:hover{background:#242424}.hero{min-height:270px;background-size:cover;background-position:center;display:flex;align-items:end;border-bottom:1px solid #242424}.hero-content{padding:30px 6%;max-width:600px}.eyebrow{color:#ff3d8d;font-size:11px;font-weight:900;letter-spacing:2px}.hero h1{font-size:42px;margin:6px 0}.hero p{color:#ccc;margin:0 0 14px}.ghost{font-size:13px}main{max-width:1250px;margin:auto;padding:18px 20px 50px}.switch{display:flex;background:#151515;border:1px solid #292929;border-radius:14px;padding:4px;margin-bottom:18px}.switch button{flex:1;background:transparent;padding:12px;border-radius:10px;color:#aaa;font-weight:700}.switch button.active{background:#ff3d8d;color:#fff}.toolbar{display:flex;gap:12px;justify-content:space-between;align-items:center}.filters,.format{display:flex;gap:6px}.filters button,.format button{background:#161616;border:1px solid #292929;padding:8px 12px;border-radius:999px;color:#aaa;display:flex;gap:5px;align-items:center}.filters .selected,.format .selected{color:#fff;border-color:#ff3d8d}.search{background:#151515;border:1px solid #292929;border-radius:12px;display:flex;align-items:center;gap:8px;padding:0 12px;color:#888;min-width:220px}.search input{background:transparent;border:0;outline:0;color:#fff;padding:10px 0;width:100%}.format{margin:12px 0 18px}.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:18px}.card{background:#121212;border:1px solid #252525;border-radius:14px;overflow:hidden}.poster-wrap{position:relative;aspect-ratio:2/3;background:#1b1b1b}.poster-wrap img{width:100%;height:100%;object-fit:cover;display:block}.kind{position:absolute;left:8px;top:8px;background:#090909d9;border-radius:6px;padding:4px 6px;font-size:9px;font-weight:900}.remove{position:absolute;right:8px;top:8px;background:#090909dd;border-radius:8px;padding:7px}.card-body{padding:10px}.card h3{font-size:14px;margin:0 0 3px}.card p{font-size:12px;color:#888;margin:0 0 9px}.actions{display:grid;grid-template-columns:1fr 1fr;gap:5px}.actions button,.small-actions button{background:#1c1c1c;border:1px solid #303030;border-radius:8px;padding:7px 5px;font-size:10px}.actions button.on{border-color:#ff3d8d;color:#ff8fba}.small-actions{display:flex;gap:5px;margin-top:5px}.small-actions button{flex:1;display:flex;justify-content:center;align-items:center;gap:4px}.empty{grid-column:1/-1;padding:50px;text-align:center;color:#777}.overlay{position:fixed;inset:0;background:#000b;display:flex;align-items:center;justify-content:center;padding:16px;z-index:100}.modal{background:#151515;border:1px solid #333;border-radius:18px;width:min(620px,100%);max-height:90vh;overflow:auto;padding:18px;box-shadow:0 20px 80px #000}.modal-head{display:flex;justify-content:space-between;align-items:center}.modal h2{margin:0 0 16px;font-size:20px}.icon{background:transparent;padding:5px;border-radius:8px}.modal label{display:block;font-size:12px;color:#aaa;margin:13px 0}.modal input,.modal select,.modal textarea{display:block;width:100%;margin-top:7px;background:#0d0d0d;border:1px solid #333;color:#fff;border-radius:10px;padding:11px;outline:none}.modal textarea{min-height:90px;resize:vertical}.pink{background:#ff3d8d;color:#fff;border-radius:10px;padding:11px 14px;font-weight:800}.full{width:100%;margin-top:12px}.danger{background:#31151f;color:#ff8eae;border:1px solid #6b263e;border-radius:10px;padding:11px;font-weight:700;margin-top:8px}.muted{color:#888;font-size:12px;line-height:1.5}.reco{display:grid;grid-template-columns:150px 1fr;gap:18px}.reco img{width:100%;border-radius:12px}.reco h2{margin-top:0}.profiles{display:flex;flex-direction:column;gap:7px}.profile-row{display:flex;gap:6px}.profile-row>button:first-child{flex:1;background:#101010;border:1px solid #292929;border-radius:12px;padding:12px;display:flex;align-items:center;gap:10px;text-align:left}.profile-row>button.current{border-color:#ff3d8d}.avatar{font-size:24px}.add-profile{background:#ff3d8d;border-radius:12px;padding:12px;margin-top:8px;font-weight:800;display:flex;gap:6px;justify-content:center}.emoji-grid{display:grid;grid-template-columns:repeat(8,1fr);gap:6px;margin-top:7px}.emoji-grid button{background:#0d0d0d;border:1px solid #333;border-radius:9px;padding:8px;font-size:22px}.emoji-grid button.picked{border-color:#ff3d8d}.result-list{display:flex;flex-direction:column;gap:8px;margin-top:14px}.result{display:flex;align-items:center;gap:10px;background:#0e0e0e;border:1px solid #292929;border-radius:12px;padding:8px}.result img{width:45px;height:65px;object-fit:cover;border-radius:6px}.result div{display:flex;flex-direction:column;gap:4px;flex:1}.result span{font-size:11px;color:#888}.add{padding:8px 10px;font-size:12px}footer{border-top:1px solid #222;padding:14px 20px;color:#777;font-size:11px;display:flex;gap:18px;justify-content:center;align-items:center}footer span,footer button{display:flex;gap:5px;align-items:center}footer button{background:transparent;color:#777}@media(max-width:650px){header{padding:0 12px}.logo{font-size:21px}.profile-pill{max-width:115px}.hero{min-height:220px}.hero-content{padding:24px 18px}.hero h1{font-size:31px}.toolbar{flex-direction:column-reverse;align-items:stretch}.search{min-width:0}.filters button,.format button{flex:1;justify-content:center}.grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}main{padding:12px 10px 40px}.card-body{padding:8px}.reco{grid-template-columns:110px 1fr}.reco h2{font-size:18px}.modal{padding:15px}.emoji-grid{grid-template-columns:repeat(4,1fr)}}
+/* =========================================================
+   STREAMIX — CLEAN PREMIUM UX OVERRIDES
+   Safe visual-only layer
+   ========================================================= */
+
+/* ---------- Overall spacing ---------- */
+
+main {
+  max-width: 1180px;
+  padding: 30px 28px 70px;
+}
+
+/* ---------- Library / Re-watch navigation ---------- */
+
+.switch {
+  background: transparent;
+  border: 0;
+  padding: 0;
+  margin: 0 0 26px;
+  gap: 8px;
+  width: fit-content;
+}
+
+.switch button {
+  flex: none;
+  background: transparent;
+  color: #858585;
+  padding: 10px 18px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: -0.1px;
+  transition: all .2s ease;
+}
+
+.switch button:hover {
+  color: #fff;
+  background: #151515;
+}
+
+.switch button.active {
+  background: #fff;
+  color: #090909;
+}
+
+/* ---------- Search ---------- */
+
+.toolbar {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
+.search {
+  width: 100%;
+  min-width: 0;
+  height: 52px;
+  background: #111;
+  border: 1px solid #292929;
+  border-radius: 13px;
+  padding: 0 16px;
+  transition: border-color .2s ease, background .2s ease;
+}
+
+.search:focus-within {
+  border-color: #555;
+  background: #141414;
+}
+
+.search svg {
+  color: #777;
+  flex-shrink: 0;
+}
+
+.search input {
+  font-size: 14px;
+}
+
+.search input::placeholder {
+  color: #666;
+}
+
+/* ---------- All / Watchlist / Watched ---------- */
+
+.filters {
+  display: inline-flex;
+  align-self: flex-start;
+  background: #111;
+  border: 1px solid #272727;
+  border-radius: 11px;
+  padding: 3px;
+  gap: 2px;
+}
+
+.filters button {
+  border: 0;
+  background: transparent;
+  border-radius: 8px;
+  padding: 9px 17px;
+  color: #777;
+  font-size: 12px;
+  font-weight: 700;
+  transition: all .2s ease;
+}
+
+.filters button:hover {
+  color: #fff;
+}
+
+.filters .selected {
+  background: #292929;
+  color: #fff;
+  border-color: transparent;
+}
+
+/* ---------- Movies / TV ---------- */
+
+.format {
+  margin: 18px 0 24px;
+  gap: 7px;
+}
+
+.format button {
+  background: transparent;
+  border: 1px solid #292929;
+  border-radius: 9px;
+  padding: 8px 13px;
+  color: #777;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.format button:hover {
+  color: #fff;
+  border-color: #444;
+}
+
+.format .selected {
+  background: #191919;
+  color: #fff;
+  border-color: #555;
+}
+
+/* ---------- Movie grid ---------- */
+
+.grid {
+  grid-template-columns: repeat(auto-fill, minmax(175px, 1fr));
+  gap: 22px;
+}
+
+.card {
+  background: #111;
+  border: 1px solid #242424;
+  border-radius: 15px;
+  transition:
+    transform .2s ease,
+    border-color .2s ease,
+    box-shadow .2s ease;
+}
+
+.card:hover {
+  transform: translateY(-3px);
+  border-color: #3a3a3a;
+  box-shadow: 0 14px 35px rgba(0,0,0,.28);
+}
+
+.poster-wrap {
+  border-radius: 14px 14px 0 0;
+}
+
+.card-body {
+  padding: 13px;
+}
+
+.card h3 {
+  font-size: 14px;
+  font-weight: 750;
+  letter-spacing: -.2px;
+}
+
+.card p {
+  color: #707070;
+  margin-bottom: 12px;
+}
+
+.kind {
+  background: rgba(0,0,0,.75);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255,255,255,.08);
+}
+
+.actions button,
+.small-actions button {
+  transition: all .18s ease;
+}
+
+.actions button:hover,
+.small-actions button:hover {
+  background: #252525;
+  border-color: #3d3d3d;
+}
+
+.actions button.on {
+  background: rgba(255,61,141,.09);
+  border-color: #ff3d8d;
+}
+
+/* ---------- Empty library ---------- */
+
+.empty {
+  min-height: 280px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 1px dashed #292929;
+  border-radius: 18px;
+  background: #0e0e0e;
+  color: #777;
+  font-size: 13px;
+  grid-column: 1 / -1;
+}
+
+/* ---------- Header refinement ---------- */
+
+header {
+  height: 72px;
+  padding: 0 28px;
+}
+
+.logo {
+  font-size: 24px;
+  letter-spacing: -1.8px;
+}
+
+.profile-pill {
+  background: #111;
+  border-color: #292929;
+  transition: all .2s ease;
+}
+
+.profile-pill:hover,
+.admin-badge:hover {
+  background: #1b1b1b;
+  border-color: #444;
+}
+
+/* ---------- Hero: intentionally untouched ---------- */
+
+
+/* ---------- Mobile ---------- */
+
+@media (max-width: 650px) {
+
+  header {
+    height: 64px;
+    padding: 0 14px;
+  }
+
+  main {
+    padding: 22px 14px 50px;
+  }
+
+  .switch {
+    width: 100%;
+  }
+
+  .switch button {
+    flex: 1;
+    text-align: center;
+  }
+
+  .filters {
+    width: 100%;
+  }
+
+  .filters button {
+    flex: 1;
+  }
+
+  .format {
+    margin-top: 16px;
+  }
+
+  .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .card-body {
+    padding: 9px;
+  }
+
+  .card h3 {
+    font-size: 13px;
+  }
+}
