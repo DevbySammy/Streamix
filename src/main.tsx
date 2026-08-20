@@ -2032,6 +2032,10 @@ function ScheduleModal({
    HERO EDITOR
 -------------------------------------------------- */
 
+/* --------------------------------------------------
+   HERO EDITOR
+-------------------------------------------------- */
+
 function HeroModal({
   hero,
   library,
@@ -2046,8 +2050,7 @@ function HeroModal({
   ) => void;
 }) {
   const initialTitle =
-    hero?.title ||
-    library[0];
+    hero?.title || library[0];
 
   const [id, setId] =
     useState(
@@ -2058,6 +2061,14 @@ function HeroModal({
     library.find(
       x => x.id === id
     ) || initialTitle;
+
+  /*
+    IMAGE SETTINGS
+
+    100% = automatic fit
+    Width / Height can then be
+    adjusted independently.
+  */
 
   const [width, setWidth] =
     useState(
@@ -2085,10 +2096,9 @@ function HeroModal({
         title="Edit Hero"
         onClose={onClose}
       >
-
         <p className="muted">
-          Add a movie or TV show
-          first to create a hero.
+          Add a movie or TV show first
+          to create a hero.
         </p>
 
         <button
@@ -2097,10 +2107,19 @@ function HeroModal({
         >
           Close
         </button>
-
       </Modal>
     );
   }
+
+  /*
+    IMPORTANT:
+
+    The preview uses the exact same
+    aspect ratio as the main hero.
+
+    The image starts at 100% / 100%
+    and is contained inside the preview.
+  */
 
   return (
     <Modal
@@ -2109,27 +2128,32 @@ function HeroModal({
     >
 
       <p className="muted">
-        The image automatically
-        fits the hero area first.
-        Adjust the size and crop
-        only if needed.
+        Your image automatically fits
+        the hero first. Adjust the size
+        if you want, then fine-tune the
+        crop and position.
       </p>
 
-      {/* LARGE PREVIEW */}
+      {/* --------------------------------------------
+         LARGE HERO PREVIEW
+      -------------------------------------------- */}
 
       <div
         style={{
           width: '100%',
-          aspectRatio: '8 / 3',
-          borderRadius: '14px',
+          aspectRatio: '16 / 6',
+          minHeight: '220px',
+          borderRadius: '16px',
           overflow: 'hidden',
           position: 'relative',
           background: '#111',
-          marginBottom: '24px'
+          marginBottom: '26px',
+          border: '1px solid rgba(255,255,255,.08)'
         }}
       >
 
         {selectedTitle.backdrop ? (
+
           <img
             src={
               selectedTitle.backdrop
@@ -2138,53 +2162,84 @@ function HeroModal({
               selectedTitle.name
             }
             style={{
+              position: 'absolute',
+
+              /*
+                At 100% the image fills
+                the preview nicely.
+              */
               width: `${width}%`,
               height: `${height}%`,
+
+              /*
+                Prevent the browser from
+                shrinking the image.
+              */
               maxWidth: 'none',
               maxHeight: 'none',
+
+              /*
+                Cover keeps the movie image
+                looking natural when its
+                proportions differ from
+                the hero.
+              */
               objectFit: 'cover',
-              position: 'absolute',
+
+              /*
+                Position controls become
+                the crop controls.
+              */
               left: `${positionX}%`,
               top: `${positionY}%`,
+
               transform:
                 'translate(-50%, -50%)',
+
               transition:
-                'all .15s ease'
+                'width .15s ease, height .15s ease, left .15s ease, top .15s ease'
             }}
           />
+
         ) : (
+
           <div
             style={{
               width: '100%',
               height: '100%',
               display: 'flex',
               alignItems: 'center',
-              justifyContent:
-                'center',
+              justifyContent: 'center',
               color: '#888'
             }}
           >
             No backdrop available
           </div>
+
         )}
+
+        {/* HERO OVERLAY */}
 
         <div
           style={{
             position: 'absolute',
             inset: 0,
             background:
-              'linear-gradient(90deg,rgba(0,0,0,.72),rgba(0,0,0,.05))',
+              'linear-gradient(90deg, rgba(0,0,0,.78), rgba(0,0,0,.08))',
             pointerEvents: 'none'
           }}
         />
 
+        {/* PREVIEW TITLE */}
+
         <div
           style={{
             position: 'absolute',
-            left: '24px',
-            bottom: '20px',
+            left: '26px',
+            bottom: '24px',
             color: '#fff',
-            pointerEvents: 'none'
+            pointerEvents: 'none',
+            maxWidth: '65%'
           }}
         >
 
@@ -2194,7 +2249,7 @@ function HeroModal({
               letterSpacing: '2px',
               fontWeight: 700,
               opacity: 0.75,
-              marginBottom: '5px'
+              marginBottom: '6px'
             }}
           >
             FEATURED
@@ -2203,7 +2258,8 @@ function HeroModal({
           <strong
             style={{
               fontSize:
-                'clamp(20px,3vw,34px)'
+                'clamp(20px, 3vw, 34px)',
+              lineHeight: 1.1
             }}
           >
             {selectedTitle.name}
@@ -2213,7 +2269,9 @@ function HeroModal({
 
       </div>
 
-      {/* TITLE */}
+      {/* --------------------------------------------
+         SELECT TITLE
+      -------------------------------------------- */}
 
       <label>
         Hero title
@@ -2221,14 +2279,21 @@ function HeroModal({
         <select
           value={id}
           onChange={e => {
+
             setId(
               e.target.value
             );
 
+            /*
+              Whenever a new title is
+              selected, start fresh with
+              the automatic fit.
+            */
             setWidth(100);
             setHeight(100);
             setPositionX(50);
             setPositionY(50);
+
           }}
         >
 
@@ -2244,11 +2309,13 @@ function HeroModal({
         </select>
       </label>
 
-      {/* SIZE */}
+      {/* --------------------------------------------
+         IMAGE SIZE
+      -------------------------------------------- */}
 
       <div
         style={{
-          marginTop: '22px'
+          marginTop: '24px'
         }}
       >
 
@@ -2257,21 +2324,24 @@ function HeroModal({
         </strong>
 
         <p className="muted">
-          The default is 100%,
-          which gives you the
-          automatic fit. Adjust
-          the sliders if you want
-          more or less of the
-          image visible.
+          Start with the automatic fit.
+          Increase or decrease the width
+          and height if you want to change
+          how much of the image fills the
+          hero.
         </p>
 
+        {/* WIDTH */}
+
         <label>
+
           Width
 
           <input
             type="range"
             min="80"
             max="160"
+            step="1"
             value={width}
             onChange={e =>
               setWidth(
@@ -2285,15 +2355,20 @@ function HeroModal({
           <span className="muted">
             {width}%
           </span>
+
         </label>
 
+        {/* HEIGHT */}
+
         <label>
+
           Height
 
           <input
             type="range"
             min="80"
             max="160"
+            step="1"
             value={height}
             onChange={e =>
               setHeight(
@@ -2307,15 +2382,18 @@ function HeroModal({
           <span className="muted">
             {height}%
           </span>
+
         </label>
 
       </div>
 
-      {/* CROP */}
+      {/* --------------------------------------------
+         CROP / POSITION
+      -------------------------------------------- */}
 
       <div
         style={{
-          marginTop: '22px'
+          marginTop: '26px'
         }}
       >
 
@@ -2324,17 +2402,23 @@ function HeroModal({
         </strong>
 
         <p className="muted">
-          Fine-tune where the image
-          sits inside the hero.
+          Once the size looks right,
+          use these controls to move
+          the image and choose which
+          part is visible.
         </p>
 
+        {/* HORIZONTAL */}
+
         <label>
+
           Horizontal
 
           <input
             type="range"
             min="0"
             max="100"
+            step="1"
             value={positionX}
             onChange={e =>
               setPositionX(
@@ -2344,15 +2428,24 @@ function HeroModal({
               )
             }
           />
+
+          <span className="muted">
+            {positionX}%
+          </span>
+
         </label>
 
+        {/* VERTICAL */}
+
         <label>
+
           Vertical
 
           <input
             type="range"
             min="0"
             max="100"
+            step="1"
             value={positionY}
             onChange={e =>
               setPositionY(
@@ -2362,25 +2455,36 @@ function HeroModal({
               )
             }
           />
+
+          <span className="muted">
+            {positionY}%
+          </span>
+
         </label>
 
       </div>
 
-      {/* RESET */}
+      {/* --------------------------------------------
+         RESET
+      -------------------------------------------- */}
 
       <button
         className="ghost full"
         onClick={() => {
+
           setWidth(100);
           setHeight(100);
           setPositionX(50);
           setPositionY(50);
+
         }}
       >
         Reset image
       </button>
 
-      {/* SAVE */}
+      {/* --------------------------------------------
+         SAVE
+      -------------------------------------------- */}
 
       <button
         className="pink full"
