@@ -786,7 +786,7 @@ const effectiveProfile =
                 }}
               >
                 <Plus />
-                Add title
+                Add media
               </button>
 
               <button
