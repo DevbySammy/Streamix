@@ -1,7 +1,5 @@
-# Complete `main.tsx`
-
 ```tsx
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import {
   Bell,
@@ -20,10 +18,6 @@ import {
   X
 } from 'lucide-react';
 import './styles.css';
-
-/* =========================================================
-   TYPES
-========================================================= */
 
 type Kind = 'movie' | 'tv';
 
@@ -71,18 +65,13 @@ type SortOption =
   | 'name-asc'
   | 'name-desc'
   | 'year-desc'
-  | 'year-asc'
-  | 'year-filter';
+  | 'year-asc';
 
 type HeroSettings = {
   titleId: string | null;
   positionX: number;
   positionY: number;
 };
-
-/* =========================================================
-   DEFAULT DATA
-========================================================= */
 
 const initialProfiles: Profile[] = [
   {
@@ -106,177 +95,110 @@ const initialHero: HeroSettings = {
   positionY: 50
 };
 
-/* =========================================================
-   HELPERS
-========================================================= */
-
 const uid = () =>
   Math.random().toString(36).slice(2) +
   Date.now().toString(36);
 
-const emptyState = (): State => ({
-  watched: [],
-  watchlist: [],
-  rewatch: []
-});
-
-/* =========================================================
-   SAFE LOCAL STORAGE
-========================================================= */
-
-function readStored<T>(
-  key: string,
-  fallback: T
-): T {
-  try {
-    const stored = localStorage.getItem(key);
-
-    if (!stored) {
-      return fallback;
-    }
-
-    const parsed = JSON.parse(stored);
-
-    return parsed ?? fallback;
-  } catch {
-    return fallback;
-  }
-}
-
-function useStored<T>(
-  key: string,
-  fallback: T
-) {
-  const [value, setValue] = useState<T>(() =>
-    readStored(key, fallback)
-  );
-
-  useEffect(() => {
+function useStored<T>(key: string, fallback: T) {
+  const [value, setValue] = useState<T>(() => {
     try {
-      localStorage.setItem(
-        key,
-        JSON.stringify(value)
+      return (
+        JSON.parse(localStorage.getItem(key) || 'null') ??
+        fallback
       );
     } catch {
-      // Ignore storage errors so they cannot crash the app.
+      return fallback;
     }
+  });
+
+  useEffect(() => {
+    localStorage.setItem(key, JSON.stringify(value));
   }, [key, value]);
 
   return [value, setValue] as const;
 }
 
-/* =========================================================
+/* --------------------------------------------------
    TMDB SERVICE
-========================================================= */
+-------------------------------------------------- */
 
-async function searchTMDB(
-  query: string
-): Promise<Title[]> {
-  if (!query.trim()) {
-    return [];
-  }
+async function searchTMDB(query: string): Promise<Title[]> {
+  if (!query.trim()) return [];
 
   const response = await fetch(
-    `/api/tmdb/search?query=${encodeURIComponent(
-      query.trim()
-    )}&type=multi`
+    `/api/tmdb/search?query=${encodeURIComponent(query)}&type=multi`
   );
 
   if (!response.ok) {
-    throw new Error(
-      `TMDB search failed: ${response.status}`
-    );
+    throw new Error('TMDB search failed');
   }
 
   const data = await response.json();
 
-  if (!data || !Array.isArray(data.results)) {
-    return [];
-  }
-
-  return data.results
+  return (data.results || [])
     .filter(
       (item: any) =>
-        item &&
-        (item.media_type === 'movie' ||
-          item.media_type === 'tv')
+        item.media_type === 'movie' ||
+        item.media_type === 'tv'
     )
     .map((item: any): Title => {
       const kind: Kind =
-        item.media_type === 'tv'
-          ? 'tv'
-          : 'movie';
+        item.media_type === 'tv' ? 'tv' : 'movie';
 
       const date =
         kind === 'movie'
           ? item.release_date
           : item.first_air_date;
 
-      const name =
-        kind === 'movie'
-          ? item.title
-          : item.name;
-
       return {
         id: `tmdb-${kind}-${item.id}`,
-        name: name || 'Untitled',
+        name:
+          kind === 'movie'
+            ? item.title
+            : item.name,
         kind,
-        year: date
-          ? Number(String(date).slice(0, 4))
-          : 0,
+        year: date ? Number(date.slice(0, 4)) : 0,
         poster: item.poster_path
           ? `https://image.tmdb.org/t/p/w500${item.poster_path}`
-          : `https://placehold.co/500x750/171717/ffffff?text=${encodeURIComponent(
-              name || 'No Poster'
-            )}`,
+          : 'https://placehold.co/500x750/171717/ffffff?text=No+Poster',
         backdrop: item.backdrop_path
           ? `https://image.tmdb.org/t/p/w1280${item.backdrop_path}`
           : '',
         overview: item.overview || '',
-        addedAt:
-          new Date().toISOString()
+        addedAt: new Date().toISOString()
       };
     });
 }
 
-/* =========================================================
+/* --------------------------------------------------
    APP
-========================================================= */
+-------------------------------------------------- */
 
 function App() {
-  /* -------------------------------------------------------
-     STORED DATA
-  ------------------------------------------------------- */
+  const [library, setLibrary] = useStored<Title[]>(
+    'sx-library',
+    []
+  );
 
-  const [library, setLibrary] =
-    useStored<Title[]>(
-      'sx-library',
-      []
-    );
+  const [profiles, setProfiles] = useStored<Profile[]>(
+    'sx-profiles',
+    initialProfiles
+  );
 
-  const [profiles, setProfiles] =
-    useStored<Profile[]>(
-      'sx-profiles',
-      initialProfiles
-    );
+  const [states, setStates] = useStored<Record<string, State>>(
+    'sx-states',
+    initialState
+  );
 
-  const [states, setStates] =
-    useStored<Record<string, State>>(
-      'sx-states',
-      initialState
-    );
+  const [reminders, setReminders] = useStored<Reminder[]>(
+    'sx-reminders',
+    []
+  );
 
-  const [reminders, setReminders] =
-    useStored<Reminder[]>(
-      'sx-reminders',
-      []
-    );
-
-  const [scheduled, setScheduled] =
-    useStored<Scheduled[]>(
-      'sx-scheduled',
-      []
-    );
+  const [scheduled, setScheduled] = useStored<Scheduled[]>(
+    'sx-scheduled',
+    []
+  );
 
   const [heroSettings, setHeroSettings] =
     useStored<HeroSettings>(
@@ -284,47 +206,26 @@ function App() {
       initialHero
     );
 
-  /* -------------------------------------------------------
-     UI STATE
-  ------------------------------------------------------- */
+  const [profileId, setProfileId] = useState('admin');
 
-  const [profileId, setProfileId] =
-    useState('admin');
+  const [tab, setTab] = useState<'library' | 'rewatch'>(
+    'library'
+  );
 
-  const [tab, setTab] =
-    useState<'library' | 'rewatch'>(
-      'library'
-    );
+  const [filter, setFilter] = useState<
+    'all' | 'watchlist' | 'watched'
+  >('all');
 
-  const [filter, setFilter] =
-    useState<
-      'all' | 'watchlist' | 'watched'
-    >('all');
-
-  const [kind, setKind] =
-    useState<'all' | Kind>('all');
+  const [kind, setKind] = useState<'all' | Kind>('all');
 
   const [sort, setSort] =
-    useState<SortOption>(
-      'name-asc'
-    );
-
-  const [filterYear, setFilterYear] =
-    useState('');
-
-  const [showFilter, setShowFilter] =
-    useState(false);
+    useState<SortOption>('name-asc');
 
   const [q, setQ] = useState('');
 
-  const [showProfile, setShowProfile] =
-    useState(false);
-
-  const [showAdd, setShowAdd] =
-    useState(false);
-
-  const [showReco, setShowReco] =
-    useState(false);
+  const [showProfile, setShowProfile] = useState(false);
+  const [showAdd, setShowAdd] = useState(false);
+  const [showReco, setShowReco] = useState(false);
 
   const [showReminder, setShowReminder] =
     useState<Title | null>(null);
@@ -332,251 +233,107 @@ function App() {
   const [showSchedule, setShowSchedule] =
     useState<Title | null>(null);
 
-  const [showHero, setShowHero] =
-    useState(false);
+  const [showHero, setShowHero] = useState(false);
 
   const [editing, setEditing] =
     useState<Profile | null>(null);
 
-  const [menu, setMenu] =
-    useState(false);
+  const [menu, setMenu] = useState(false);
 
-  const filterRef =
-    useRef<HTMLDivElement | null>(null);
-
-  /* -------------------------------------------------------
-     CLOSE FILTER WHEN CLICKING OUTSIDE
-  ------------------------------------------------------- */
-
-  useEffect(() => {
-    const handlePointerDown = (
-      event: PointerEvent
-    ) => {
-      if (
-        filterRef.current &&
-        !filterRef.current.contains(
-          event.target as Node
-        )
-      ) {
-        setShowFilter(false);
-      }
-    };
-
-    document.addEventListener(
-      'pointerdown',
-      handlePointerDown
-    );
-
-    return () => {
-      document.removeEventListener(
-        'pointerdown',
-        handlePointerDown
-      );
-    };
-  }, []);
-
-  /* -------------------------------------------------------
-     SAFETY: MAKE SURE ADMIN ALWAYS EXISTS
-  ------------------------------------------------------- */
-
-  useEffect(() => {
-    const adminExists = profiles.some(
-      profile => profile.id === 'admin'
-    );
-
-    if (!adminExists) {
-      setProfiles([
-        {
-          id: 'admin',
-          name: 'Admin',
-          avatar: '👑'
-        },
-        ...profiles
-      ]);
-    }
-
-    if (!states.admin) {
-      setStates({
-        ...states,
-        admin: emptyState()
-      });
-    }
-
-    // This effect intentionally runs once on startup.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  /* -------------------------------------------------------
-     CURRENT PROFILE
-  ------------------------------------------------------- */
-
-  const isAdmin =
-    profileId === 'admin';
+  const isAdmin = profileId === 'admin';
 
   const profile =
-    profiles.find(
-      item => item.id === profileId
-    ) || profiles[0];
-
-  const currentProfileId =
-    profile?.id || 'admin';
+    profiles.find(x => x.id === profileId) ||
+    profiles[0];
 
   const state =
-    states[currentProfileId] ||
-    emptyState();
+    states[profileId] || {
+      watched: [],
+      watchlist: [],
+      rewatch: []
+    };
 
-  /* -------------------------------------------------------
-     HERO
-  ------------------------------------------------------- */
+  const hero = heroSettings.titleId
+    ? library.find(
+        x => x.id === heroSettings.titleId
+      ) || null
+    : null;
 
-  const hero =
-    heroSettings.titleId
-      ? library.find(
-          title =>
-            title.id ===
-            heroSettings.titleId
-        ) || null
-      : null;
-
-  /* -------------------------------------------------------
+  /* --------------------------------------------------
      TODAY'S RECOMMENDATION
-  ------------------------------------------------------- */
+  -------------------------------------------------- */
 
   const recommendation = useMemo(() => {
-    const watchlistTitles =
-      library.filter(title => {
-        return (
-          state.watchlist.includes(
-            title.id
-          ) &&
-          !state.watched.includes(
-            title.id
-          )
-        );
-      });
-
-    return (
-      watchlistTitles[0] || null
+    const watchlistTitles = library.filter(
+      title =>
+        state.watchlist.includes(title.id) &&
+        !state.watched.includes(title.id)
     );
+
+    return watchlistTitles[0] || null;
   }, [library, state]);
 
   useEffect(() => {
-    if (
-      !currentProfileId ||
-      !recommendation
-    ) {
-      return;
-    }
+    if (!profileId || !recommendation) return;
 
-    const key =
-      `sx-reco-seen-${currentProfileId}`;
+    const key = `sx-reco-seen-${profileId}`;
+    const alreadySeen = localStorage.getItem(key);
 
-    try {
-      const alreadySeen =
-        localStorage.getItem(key);
-
-      if (!alreadySeen) {
-        setShowReco(true);
-      }
-    } catch {
+    if (!alreadySeen) {
       setShowReco(true);
     }
-  }, [
-    currentProfileId,
-    recommendation
-  ]);
+  }, [profileId, recommendation]);
 
   const closeRecommendation = () => {
-    try {
-      localStorage.setItem(
-        `sx-reco-seen-${currentProfileId}`,
-        'true'
-      );
-    } catch {
-      // Ignore storage errors.
-    }
+    localStorage.setItem(
+      `sx-reco-seen-${profileId}`,
+      'true'
+    );
 
     setShowReco(false);
   };
 
-  /* -------------------------------------------------------
-     VISIBLE LIBRARY
-  ------------------------------------------------------- */
+  /* --------------------------------------------------
+     SORTING + FILTERING
+  -------------------------------------------------- */
 
   const visible = useMemo(() => {
-    const filtered =
-      library
-        .filter(title =>
-          title.name
-            .toLowerCase()
-            .includes(
-              q.toLowerCase()
-            )
-        )
-        .filter(
-          title =>
-            kind === 'all' ||
-            title.kind === kind
-        )
-        .filter(title => {
-          if (sort !== 'year-filter') {
-            return true;
-          }
+    const filtered = library
+      .filter(title =>
+        title.name
+          .toLowerCase()
+          .includes(q.toLowerCase())
+      )
+      .filter(
+        title =>
+          kind === 'all' ||
+          title.kind === kind
+      )
+      .filter(title =>
+        tab === 'rewatch'
+          ? state.rewatch.includes(title.id)
+          : filter === 'all' ||
+            (filter === 'watched'
+              ? state.watched.includes(title.id)
+              : state.watchlist.includes(title.id))
+      );
 
-          if (!filterYear) {
-            return true;
-          }
+    return [...filtered].sort((a, b) => {
+      switch (sort) {
+        case 'name-desc':
+          return b.name.localeCompare(a.name);
 
-          return (
-            title.year ===
-            Number(filterYear)
-          );
-        })
-        .filter(title => {
-          if (tab === 'rewatch') {
-            return state.rewatch.includes(
-              title.id
-            );
-          }
+        case 'year-desc':
+          return b.year - a.year;
 
-          if (filter === 'all') {
-            return true;
-          }
+        case 'year-asc':
+          return a.year - b.year;
 
-          if (filter === 'watched') {
-            return state.watched.includes(
-              title.id
-            );
-          }
-
-          return state.watchlist.includes(
-            title.id
-          );
-        });
-
-    return [...filtered].sort(
-      (a, b) => {
-        switch (sort) {
-          case 'name-desc':
-            return b.name.localeCompare(
-              a.name
-            );
-
-          case 'year-desc':
-            return b.year - a.year;
-
-          case 'year-asc':
-            return a.year - b.year;
-
-          case 'year-filter':
-          case 'name-asc':
-          default:
-            return a.name.localeCompare(
-              b.name
-            );
-        }
+        case 'name-asc':
+        default:
+          return a.name.localeCompare(b.name);
       }
-    );
+    });
   }, [
     library,
     q,
@@ -584,183 +341,77 @@ function App() {
     tab,
     filter,
     sort,
-    filterYear,
     state
   ]);
 
-  /* -------------------------------------------------------
+  /* --------------------------------------------------
      STATE ACTIONS
-  ------------------------------------------------------- */
+  -------------------------------------------------- */
 
   const updateState = (
-    fn: (current: State) => State
+    fn: (s: State) => State
   ) => {
-    const current =
-      states[currentProfileId] ||
-      emptyState();
-
     setStates({
       ...states,
-      [currentProfileId]:
-        fn(current)
+      [profileId]: fn(state)
     });
   };
 
   const toggle = (
     array: keyof State,
-    titleId: string
+    id: string
   ) => {
-    updateState(current => {
-      const exists =
-        current[array].includes(
-          titleId
-        );
+    updateState(s => ({
+      ...s,
+      [array]: s[array].includes(id)
+        ? s[array].filter(x => x !== id)
+        : [...s[array], id]
+    }));
+  };
 
-      return {
-        ...current,
-        [array]: exists
-          ? current[array].filter(
-              id => id !== titleId
-            )
-          : [
-              ...current[array],
-              titleId
-            ]
+  /* --------------------------------------------------
+     REMOVE TITLE
+  -------------------------------------------------- */
+
+  const removeTitle = (id: string) => {
+    setLibrary(
+      library.filter(title => title.id !== id)
+    );
+
+    const nextStates = { ...states };
+
+    Object.keys(nextStates).forEach(profileKey => {
+      nextStates[profileKey] = {
+        watched:
+          nextStates[profileKey].watched.filter(
+            x => x !== id
+          ),
+        watchlist:
+          nextStates[profileKey].watchlist.filter(
+            x => x !== id
+          ),
+        rewatch:
+          nextStates[profileKey].rewatch.filter(
+            x => x !== id
+          )
       };
     });
-  };
-
-  /* -------------------------------------------------------
-     FILTER ACTIONS
-  ------------------------------------------------------- */
-
-  const selectSort = (
-    option: Exclude<
-      SortOption,
-      'year-filter'
-    >
-  ) => {
-    setSort(option);
-    setFilterYear('');
-    setShowFilter(false);
-  };
-
-  const updateYearFilter = (
-    value: string
-  ) => {
-    const numericValue =
-      value.replace(/\D/g, '');
-
-    setFilterYear(
-      numericValue.slice(0, 4)
-    );
-
-    setSort('year-filter');
-  };
-
-  const clearYearFilter = () => {
-    setFilterYear('');
-    setSort('name-asc');
-  };
-
-  /* -------------------------------------------------------
-     ADD TITLE
-  ------------------------------------------------------- */
-
-  const addTitle = (title: Title) => {
-    const alreadyExists =
-      library.some(
-        item => item.id === title.id
-      );
-
-    if (alreadyExists) {
-      return;
-    }
-
-    setLibrary([
-      ...library,
-      title
-    ]);
-
-    if (
-      library.length === 0 &&
-      !heroSettings.titleId
-    ) {
-      setHeroSettings({
-        ...heroSettings,
-        titleId: title.id
-      });
-    }
-  };
-
-  /* -------------------------------------------------------
-     REMOVE TITLE
-  ------------------------------------------------------- */
-
-  const removeTitle = (
-    titleId: string
-  ) => {
-    setLibrary(
-      library.filter(
-        title =>
-          title.id !== titleId
-      )
-    );
-
-    const nextStates: Record<
-      string,
-      State
-    > = {};
-
-    Object.entries(states).forEach(
-      ([profileKey, profileState]) => {
-        nextStates[profileKey] = {
-          watched:
-            profileState.watched.filter(
-              savedTitleId =>
-                savedTitleId !==
-                titleId
-            ),
-
-          watchlist:
-            profileState.watchlist.filter(
-              savedTitleId =>
-                savedTitleId !==
-                titleId
-            ),
-
-          rewatch:
-            profileState.rewatch.filter(
-              savedTitleId =>
-                savedTitleId !==
-                titleId
-            )
-        };
-      }
-    );
 
     setStates(nextStates);
 
     setReminders(
       reminders.filter(
-        reminder =>
-          reminder.titleId !==
-          titleId
+        reminder => reminder.titleId !== id
       )
     );
 
     setScheduled(
       scheduled.filter(
-        item =>
-          item.titleId !==
-          titleId
+        item => item.titleId !== id
       )
     );
 
-    if (
-      heroSettings.titleId ===
-      titleId
-    ) {
+    if (heroSettings.titleId === id) {
       setHeroSettings({
         ...heroSettings,
         titleId: null
@@ -768,9 +419,9 @@ function App() {
     }
   };
 
-  /* -------------------------------------------------------
+  /* --------------------------------------------------
      PROFILE MANAGEMENT
-  ------------------------------------------------------- */
+  -------------------------------------------------- */
 
   const addProfile = (
     name: string,
@@ -778,11 +429,8 @@ function App() {
   ) => {
     const newProfile: Profile = {
       id: uid(),
-      name:
-        name.trim() ||
-        'New Profile',
-      avatar:
-        avatar || '🙂'
+      name: name.trim() || 'New Profile',
+      avatar: avatar || '🙂'
     };
 
     setProfiles([
@@ -792,8 +440,11 @@ function App() {
 
     setStates({
       ...states,
-      [newProfile.id]:
-        emptyState()
+      [newProfile.id]: {
+        watched: [],
+        watchlist: [],
+        rewatch: []
+      }
     });
 
     setEditing(null);
@@ -804,33 +455,27 @@ function App() {
     direction: 'up' | 'down'
   ) => {
     if (
-      direction === 'up' &&
-      index === 0
+      index === 0 &&
+      direction === 'up'
     ) {
       return;
     }
 
     if (
-      direction === 'down' &&
-      index ===
-        profiles.length - 1
+      index === profiles.length - 1 &&
+      direction === 'down'
     ) {
       return;
     }
 
-    const next = [
-      ...profiles
-    ];
+    const next = [...profiles];
 
     const target =
       direction === 'up'
         ? index - 1
         : index + 1;
 
-    [
-      next[index],
-      next[target]
-    ] = [
+    [next[index], next[target]] = [
       next[target],
       next[index]
     ];
@@ -838,89 +483,37 @@ function App() {
     setProfiles(next);
   };
 
-  const deleteProfile = (
-    profileToDelete: Profile
-  ) => {
-    if (
-      profileToDelete.id ===
-      'admin'
-    ) {
-      return;
-    }
-
-    const nextProfiles =
-      profiles.filter(
-        item =>
-          item.id !==
-          profileToDelete.id
-      );
-
-    const nextStates = {
-      ...states
-    };
-
-    delete nextStates[
-      profileToDelete.id
-    ];
-
-    setProfiles(nextProfiles);
-    setStates(nextStates);
-
-    setEditing(null);
-
-    if (
-      profileId ===
-      profileToDelete.id
-    ) {
-      setProfileId('admin');
-    }
-  };
-
-  /* -------------------------------------------------------
+  /* --------------------------------------------------
      RENDER
-  ------------------------------------------------------- */
+  -------------------------------------------------- */
 
   return (
     <div className="app">
 
-      {/* ===================================================
-          HEADER
-      =================================================== */}
+      {/* HEADER */}
 
       <header>
-
         <div className="logo">
           STREAM<span>IX</span>
         </div>
 
         <div className="header-right">
-
           <button
             className="profile-pill"
             onClick={() =>
               setShowProfile(true)
             }
           >
-            <span>
-              {profile?.avatar ||
-                '👤'}
-            </span>
-
-            {profile?.name ||
-              'Profile'}
-
-            <ChevronDown
-              size={16}
-            />
+            <span>{profile.avatar}</span>
+            {profile.name}
+            <ChevronDown size={16} />
           </button>
 
           {isAdmin && (
             <button
               className="admin-badge"
               onClick={() =>
-                setMenu(
-                  current => !current
-                )
+                setMenu(!menu)
               }
             >
               ADMIN
@@ -929,14 +522,13 @@ function App() {
 
           {menu && isAdmin && (
             <div className="admin-menu">
-
               <button
                 onClick={() => {
                   setShowAdd(true);
                   setMenu(false);
                 }}
               >
-                <Plus size={17} />
+                <Plus />
                 Add title
               </button>
 
@@ -946,52 +538,40 @@ function App() {
                   setMenu(false);
                 }}
               >
-                <Settings
-                  size={17}
-                />
+                <Settings />
                 Edit hero
               </button>
-
             </div>
           )}
-
         </div>
-
       </header>
 
-      {/* ===================================================
-          HERO
-      =================================================== */}
+      {/* HERO */}
 
       <section
         className="hero"
         style={{
-          backgroundImage:
-            hero?.backdrop
-              ? `linear-gradient(
-                  90deg,
-                  rgba(0,0,0,.92),
-                  rgba(0,0,0,.15)
-                ),
-                url("${hero.backdrop}")`
-              : 'none',
+          backgroundImage: hero?.backdrop
+            ? `linear-gradient(
+                90deg,
+                rgba(0,0,0,.92),
+                rgba(0,0,0,.15)
+              ),
+              url(${hero.backdrop})`
+            : 'none',
 
           backgroundPosition:
             `${heroSettings.positionX}% ${heroSettings.positionY}%`
         }}
       >
-
         <div className="hero-content">
-
           <div className="eyebrow">
             FEATURED
           </div>
 
           {hero ? (
             <>
-              <h1>
-                {hero.name}
-              </h1>
+              <h1>{hero.name}</h1>
 
               <p>
                 {hero.year} ·{' '}
@@ -1029,21 +609,16 @@ function App() {
               )}
             </>
           )}
-
         </div>
-
       </section>
 
-      {/* ===================================================
-          MAIN
-      =================================================== */}
+      {/* MAIN */}
 
       <main>
 
         {/* PRIMARY NAVIGATION */}
 
         <div className="switch">
-
           <button
             className={
               tab === 'library'
@@ -1069,11 +644,9 @@ function App() {
                 setTab('rewatch')
               }
             >
-              ↻ {profile?.name}'s
-              Re-watch
+              ↻ {profile.name}'s Re-watch
             </button>
           )}
-
         </div>
 
         {/* LIBRARY CONTROLS */}
@@ -1083,7 +656,6 @@ function App() {
             <div className="toolbar">
 
               <div className="filters">
-
                 <button
                   className={
                     filter === 'all'
@@ -1099,15 +671,12 @@ function App() {
 
                 <button
                   className={
-                    filter ===
-                    'watchlist'
+                    filter === 'watchlist'
                       ? 'selected'
                       : ''
                   }
                   onClick={() =>
-                    setFilter(
-                      'watchlist'
-                    )
+                    setFilter('watchlist')
                   }
                 >
                   Watchlist
@@ -1115,40 +684,32 @@ function App() {
 
                 <button
                   className={
-                    filter ===
-                    'watched'
+                    filter === 'watched'
                       ? 'selected'
                       : ''
                   }
                   onClick={() =>
-                    setFilter(
-                      'watched'
-                    )
+                    setFilter('watched')
                   }
                 >
                   Watched
                 </button>
-
               </div>
 
               <div className="search">
-
                 <Search size={18} />
 
                 <input
                   value={q}
-                  onChange={event =>
-                    setQ(
-                      event.target
-                        .value
-                    )
+                  onChange={e =>
+                    setQ(e.target.value)
                   }
                   placeholder="Search library"
                 />
-
               </div>
-
             </div>
+
+            {/* FORMAT + SORT */}
 
             <div className="format">
 
@@ -1193,254 +754,77 @@ function App() {
                 TV
               </button>
 
-              {/* =========================================
-                  FILTER MENU
-              ========================================= */}
-
-              <div
-                className="filter-wrapper"
-                ref={filterRef}
+              <select
+                className="sort-select"
+                value={sort}
+                onChange={e =>
+                  setSort(
+                    e.target.value as SortOption
+                  )
+                }
+                aria-label="Sort library"
               >
+                <option value="name-asc">
+                  Name A–Z
+                </option>
 
-                <button
-                  type="button"
-                  className={
-                    sort ===
-                      'year-filter' &&
-                    filterYear
-                      ? 'filter-button active'
-                      : 'filter-button'
-                  }
-                  onClick={() =>
-                    setShowFilter(
-                      current =>
-                        !current
-                    )
-                  }
-                  aria-expanded={
-                    showFilter
-                  }
-                  aria-haspopup="menu"
-                >
-                  Filter
+                <option value="name-desc">
+                  Name Z–A
+                </option>
 
-                  <ChevronDown
-                    size={16}
-                    className={
-                      showFilter
-                        ? 'filter-chevron open'
-                        : 'filter-chevron'
-                    }
-                  />
-                </button>
+                <option value="year-desc">
+                  Newest release
+                </option>
 
-                {showFilter && (
-                  <div
-                    className="filter-menu"
-                    role="menu"
-                  >
-
-                    <button
-                      type="button"
-                      className={
-                        sort ===
-                        'name-asc'
-                          ? 'filter-option selected'
-                          : 'filter-option'
-                      }
-                      onClick={() =>
-                        selectSort(
-                          'name-asc'
-                        )
-                      }
-                    >
-                      <span>
-                        Name A–Z
-                      </span>
-
-                      {sort ===
-                        'name-asc' && (
-                        <Check
-                          size={15}
-                        />
-                      )}
-                    </button>
-
-                    <button
-                      type="button"
-                      className={
-                        sort ===
-                        'name-desc'
-                          ? 'filter-option selected'
-                          : 'filter-option'
-                      }
-                      onClick={() =>
-                        selectSort(
-                          'name-desc'
-                        )
-                      }
-                    >
-                      <span>
-                        Name Z–A
-                      </span>
-
-                      {sort ===
-                        'name-desc' && (
-                        <Check
-                          size={15}
-                        />
-                      )}
-                    </button>
-
-                    <button
-                      type="button"
-                      className={
-                        sort ===
-                        'year-desc'
-                          ? 'filter-option selected'
-                          : 'filter-option'
-                      }
-                      onClick={() =>
-                        selectSort(
-                          'year-desc'
-                        )
-                      }
-                    >
-                      <span>
-                        Newest release
-                      </span>
-
-                      {sort ===
-                        'year-desc' && (
-                        <Check
-                          size={15}
-                        />
-                      )}
-                    </button>
-
-                    <button
-                      type="button"
-                      className={
-                        sort ===
-                        'year-asc'
-                          ? 'filter-option selected'
-                          : 'filter-option'
-                      }
-                      onClick={() =>
-                        selectSort(
-                          'year-asc'
-                        )
-                      }
-                    >
-                      <span>
-                        Oldest release
-                      </span>
-
-                      {sort ===
-                        'year-asc' && (
-                        <Check
-                          size={15}
-                        />
-                      )}
-                    </button>
-
-                    <div className="filter-year-section">
-
-                      <span>
-                        Filter by year
-                      </span>
-
-                      <div className="filter-year-row">
-
-                        <input
-                          type="text"
-                          inputMode="numeric"
-                          pattern="[0-9]*"
-                          maxLength={4}
-                          placeholder="YYYY"
-                          value={
-                            filterYear
-                          }
-                          onChange={event =>
-                            updateYearFilter(
-                              event
-                                .target
-                                .value
-                            )
-                          }
-                          aria-label="Filter by year"
-                        />
-
-                        {filterYear && (
-                          <button
-                            type="button"
-                            className="clear-year"
-                            onClick={
-                              clearYearFilter
-                            }
-                            aria-label="Clear year"
-                          >
-                            <X
-                              size={15}
-                            />
-                          </button>
-                        )}
-
-                      </div>
-
-                    </div>
-
-                  </div>
-                )}
-
-              </div>
-
+                <option value="year-asc">
+                  Oldest release
+                </option>
+              </select>
             </div>
           </>
         )}
 
-        {/* LIBRARY GRID */}
+        {/* LIBRARY */}
 
         <div className="grid">
-
           {visible.map(title => (
             <Card
               key={title.id}
               t={title}
               st={state}
               isAdmin={isAdmin}
+
               onWatch={() =>
                 toggle(
                   'watched',
                   title.id
                 )
               }
+
               onList={() =>
                 toggle(
                   'watchlist',
                   title.id
                 )
               }
+
               onRewatch={() =>
                 toggle(
                   'rewatch',
                   title.id
                 )
               }
+
               onRemove={() =>
-                removeTitle(
-                  title.id
-                )
+                removeTitle(title.id)
               }
+
               onReminder={() =>
-                setShowReminder(
-                  title
-                )
+                setShowReminder(title)
               }
+
               onSchedule={() =>
-                setShowSchedule(
-                  title
-                )
+                setShowSchedule(title)
               }
             />
           ))}
@@ -1452,14 +836,10 @@ function App() {
                 : 'Nothing here yet.'}
             </div>
           )}
-
         </div>
-
       </main>
 
-      {/* ===================================================
-          TODAY'S RECOMMENDATION
-      =================================================== */}
+      {/* TODAY'S RECOMMENDATION */}
 
       {showReco &&
         recommendation && (
@@ -1469,20 +849,13 @@ function App() {
               closeRecommendation
             }
           >
-
             <div className="reco">
-
               <img
-                src={
-                  recommendation.poster
-                }
-                alt={
-                  recommendation.name
-                }
+                src={recommendation.poster}
+                alt={recommendation.name}
               />
 
               <div>
-
                 <div className="reco-label">
                   FROM YOUR WATCHLIST
                 </div>
@@ -1501,22 +874,15 @@ function App() {
 
                 {recommendation.overview && (
                   <p>
-                    {
-                      recommendation.overview
-                    }
+                    {recommendation.overview}
                   </p>
                 )}
-
               </div>
-
             </div>
-
           </Modal>
         )}
 
-      {/* ===================================================
-          PROFILES
-      =================================================== */}
+      {/* PROFILES */}
 
       {showProfile && (
         <Modal
@@ -1525,34 +891,28 @@ function App() {
             setShowProfile(false)
           }
         >
-
           <div className="profiles">
-
             {profiles.map(
               (item, index) => (
                 <div
                   className="profile-row"
                   key={item.id}
                 >
-
                   <button
                     onClick={() => {
                       setProfileId(
                         item.id
                       );
-
                       setShowProfile(
                         false
                       );
                     }}
                     className={
-                      item.id ===
-                      currentProfileId
+                      item.id === profileId
                         ? 'current'
                         : ''
                     }
                   >
-
                     <span className="avatar">
                       {item.avatar}
                     </span>
@@ -1562,12 +922,9 @@ function App() {
                     </span>
 
                     {item.id ===
-                      currentProfileId && (
-                      <Check
-                        size={18}
-                      />
+                      profileId && (
+                      <Check size={18} />
                     )}
-
                   </button>
 
                   {isAdmin &&
@@ -1576,30 +933,23 @@ function App() {
                       <button
                         className="icon"
                         onClick={() => {
-                          setEditing(
-                            item
-                          );
-
+                          setEditing(item);
                           setShowProfile(
                             false
                           );
                         }}
-                        aria-label={`Edit ${item.name}`}
                       >
                         ✎
                       </button>
                     )}
 
                   {isAdmin &&
-                    profiles.length >
-                      1 && (
+                    profiles.length > 1 && (
                       <div className="profile-order">
-
                         <button
                           className="icon"
                           disabled={
-                            index ===
-                            0
+                            index === 0
                           }
                           onClick={() =>
                             moveProfile(
@@ -1618,8 +968,7 @@ function App() {
                           className="icon"
                           disabled={
                             index ===
-                            profiles.length -
-                              1
+                            profiles.length - 1
                           }
                           onClick={() =>
                             moveProfile(
@@ -1633,10 +982,8 @@ function App() {
                             size={16}
                           />
                         </button>
-
                       </div>
                     )}
-
                 </div>
               )
             )}
@@ -1660,15 +1007,11 @@ function App() {
                 Add Profile
               </button>
             )}
-
           </div>
-
         </Modal>
       )}
 
-      {/* ===================================================
-          PROFILE EDITOR
-      =================================================== */}
+      {/* PROFILE EDITOR */}
 
       {editing && (
         <ProfileEditor
@@ -1677,54 +1020,67 @@ function App() {
               ? null
               : editing
           }
+
           onClose={() =>
             setEditing(null)
           }
-          onSave={(name, avatar) => {
-            if (
-              editing.id === 'new'
-            ) {
-              addProfile(
-                name,
-                avatar
-              );
-              return;
-            }
 
-            setProfiles(
-              profiles.map(
-                item =>
-                  item.id ===
-                  editing.id
-                    ? {
-                        ...item,
-                        name:
-                          name.trim() ||
-                          item.name,
-                        avatar:
-                          avatar ||
-                          item.avatar
-                      }
-                    : item
-              )
-            );
+          onSave={(name, avatar) =>
+            editing.id === 'new'
+              ? addProfile(
+                  name,
+                  avatar
+                )
+              : (
+                  setProfiles(
+                    profiles.map(
+                      item =>
+                        item.id ===
+                        editing.id
+                          ? {
+                              ...item,
+                              name,
+                              avatar
+                            }
+                          : item
+                    )
+                  ),
+                  setEditing(null)
+                )
+          }
 
-            setEditing(null);
-          }}
           onDelete={
             editing.id === 'new'
               ? undefined
-              : () =>
-                  deleteProfile(
-                    editing
-                  )
+              : () => {
+                  setProfiles(
+                    profiles.filter(
+                      item =>
+                        item.id !==
+                        editing.id
+                    )
+                  );
+
+                  const nextStates = {
+                    ...states
+                  };
+
+                  delete nextStates[
+                    editing.id
+                  ];
+
+                  setStates(
+                    nextStates
+                  );
+
+                  setEditing(null);
+                  setProfileId('admin');
+                }
           }
         />
       )}
 
-      {/* ===================================================
-          ADD TITLE
-      =================================================== */}
+      {/* ADD TITLE */}
 
       {showAdd && (
         <AddTitle
@@ -1732,13 +1088,16 @@ function App() {
           onClose={() =>
             setShowAdd(false)
           }
-          onAdd={addTitle}
+          onAdd={title =>
+            setLibrary([
+              ...library,
+              title
+            ])
+          }
         />
       )}
 
-      {/* ===================================================
-          REMINDER
-      =================================================== */}
+      {/* REMINDER */}
 
       {showReminder && (
         <ReminderModal
@@ -1751,8 +1110,7 @@ function App() {
               ...reminders,
               {
                 id: uid(),
-                profileId:
-                  currentProfileId,
+                profileId,
                 titleId:
                   showReminder.id,
                 date,
@@ -1765,9 +1123,7 @@ function App() {
         />
       )}
 
-      {/* ===================================================
-          SCHEDULE RECOMMENDATION
-      =================================================== */}
+      {/* SCHEDULE RECOMMENDATION */}
 
       {showSchedule &&
         isAdmin && (
@@ -1775,8 +1131,7 @@ function App() {
             title={showSchedule}
             profiles={profiles.filter(
               item =>
-                item.id !==
-                'admin'
+                item.id !== 'admin'
             )}
             onClose={() =>
               setShowSchedule(null)
@@ -1792,18 +1147,14 @@ function App() {
           />
         )}
 
-      {/* ===================================================
-          HERO EDITOR
-      =================================================== */}
+      {/* HERO EDITOR */}
 
       {showHero &&
         isAdmin && (
           <HeroModal
             hero={hero}
             library={library}
-            settings={
-              heroSettings
-            }
+            settings={heroSettings}
             onClose={() =>
               setShowHero(false)
             }
@@ -1817,12 +1168,9 @@ function App() {
           />
         )}
 
-      {/* ===================================================
-          FOOTER
-      =================================================== */}
+      {/* FOOTER */}
 
       <footer>
-
         <span>
           <Clock size={14} />
 
@@ -1830,10 +1178,9 @@ function App() {
             reminders.filter(
               reminder =>
                 reminder.profileId ===
-                currentProfileId
+                profileId
             ).length
-          }
-
+          }{' '}
           reminder(s)
         </span>
 
@@ -1854,16 +1201,14 @@ function App() {
           <LogOut size={14} />
           Sign out
         </button>
-
       </footer>
-
     </div>
   );
 }
 
-/* =========================================================
+/* --------------------------------------------------
    CARD
-========================================================= */
+-------------------------------------------------- */
 
 function Card({
   t,
@@ -1886,37 +1231,14 @@ function Card({
   onReminder: () => void;
   onSchedule: () => void;
 }) {
-  const watched =
-    st.watched.includes(t.id);
-
-  const watchlisted =
-    st.watchlist.includes(t.id);
-
-  const rewatches =
-    st.rewatch.includes(t.id);
-
   return (
     <article className="card">
-
       <div className="poster-wrap">
-
         <img
           src={t.poster}
           alt={t.name}
-          onError={event => {
-            const image =
-              event.currentTarget;
-
-            if (
-              image.dataset.fallback
-            ) {
-              return;
-            }
-
-            image.dataset.fallback =
-              'true';
-
-            image.src =
+          onError={e => {
+            e.currentTarget.src =
               'https://placehold.co/500x750/171717/ffffff?text=' +
               encodeURIComponent(
                 t.name
@@ -1935,25 +1257,20 @@ function Card({
             className="remove"
             onClick={onRemove}
             title="Remove title"
-            aria-label={`Remove ${t.name}`}
           >
             <Trash2 size={16} />
           </button>
         )}
-
       </div>
 
       <div className="card-body">
-
         <h3>{t.name}</h3>
-
         <p>{t.year}</p>
 
         <div className="actions">
-
           <button
             className={
-              watchlisted
+              st.watchlist.includes(t.id)
                 ? 'on'
                 : ''
             }
@@ -1964,25 +1281,23 @@ function Card({
 
           <button
             className={
-              watched
+              st.watched.includes(t.id)
                 ? 'on'
                 : ''
             }
             onClick={onWatch}
           >
-            {watched
+            {st.watched.includes(t.id)
               ? '✓ Watched'
               : 'Mark watched'}
           </button>
-
         </div>
 
         <div className="small-actions">
-
           {!isAdmin && (
             <button
               className={
-                rewatches
+                st.rewatch.includes(t.id)
                   ? 'rewatch-action on'
                   : 'rewatch-action'
               }
@@ -1992,9 +1307,7 @@ function Card({
             </button>
           )}
 
-          <button
-            onClick={onReminder}
-          >
+          <button onClick={onReminder}>
             <Bell size={14} />
             Remind me
           </button>
@@ -2006,18 +1319,15 @@ function Card({
               Schedule reco
             </button>
           )}
-
         </div>
-
       </div>
-
     </article>
   );
 }
 
-/* =========================================================
+/* --------------------------------------------------
    MODAL
-========================================================= */
+-------------------------------------------------- */
 
 function Modal({
   title,
@@ -2031,43 +1341,35 @@ function Modal({
   return (
     <div
       className="overlay"
-      onMouseDown={event => {
+      onMouseDown={e => {
         if (
-          event.currentTarget ===
-          event.target
+          e.currentTarget === e.target
         ) {
           onClose();
         }
       }}
     >
-
       <div className="modal">
-
         <div className="modal-head">
-
           <h2>{title}</h2>
 
           <button
             className="icon"
             onClick={onClose}
-            aria-label="Close"
           >
             <X />
           </button>
-
         </div>
 
         {children}
-
       </div>
-
     </div>
   );
 }
 
-/* =========================================================
+/* --------------------------------------------------
    PROFILE EDITOR
-========================================================= */
+-------------------------------------------------- */
 
 function ProfileEditor({
   profile,
@@ -2084,14 +1386,10 @@ function ProfileEditor({
   onDelete?: () => void;
 }) {
   const [name, setName] =
-    useState(
-      profile?.name || ''
-    );
+    useState(profile?.name || '');
 
   const [avatar, setAvatar] =
-    useState(
-      profile?.avatar || '🙂'
-    );
+    useState(profile?.avatar || '🙂');
 
   return (
     <Modal
@@ -2102,17 +1400,14 @@ function ProfileEditor({
       }
       onClose={onClose}
     >
-
       <label>
         Profile Name
 
         <input
           autoFocus
           value={name}
-          onChange={event =>
-            setName(
-              event.target.value
-            )
+          onChange={e =>
+            setName(e.target.value)
           }
         />
       </label>
@@ -2121,7 +1416,6 @@ function ProfileEditor({
         Profile Photo
 
         <div className="emoji-grid">
-
           {[
             '🙂',
             '🌸',
@@ -2133,7 +1427,6 @@ function ProfileEditor({
             '🔥'
           ].map(item => (
             <button
-              type="button"
               className={
                 avatar === item
                   ? 'picked'
@@ -2147,9 +1440,7 @@ function ProfileEditor({
               {item}
             </button>
           ))}
-
         </div>
-
       </label>
 
       <label>
@@ -2158,12 +1449,6 @@ function ProfileEditor({
         <input
           type="file"
           accept="image/*"
-          onChange={() => {
-            /*
-             * Upload functionality can be
-             * connected later.
-             */
-          }}
         />
       </label>
 
@@ -2184,7 +1469,7 @@ function ProfileEditor({
           className="danger full"
           onClick={() => {
             if (
-              window.confirm(
+              confirm(
                 'Delete this profile?'
               )
             ) {
@@ -2195,14 +1480,13 @@ function ProfileEditor({
           Delete Profile
         </button>
       )}
-
     </Modal>
   );
 }
 
-/* =========================================================
+/* --------------------------------------------------
    ADD TITLE
-========================================================= */
+-------------------------------------------------- */
 
 function AddTitle({
   library,
@@ -2226,54 +1510,34 @@ function AddTitle({
     useState('');
 
   useEffect(() => {
-    const trimmed =
-      query.trim();
-
-    if (!trimmed) {
+    if (!query.trim()) {
       setResults([]);
-      setLoading(false);
-      setError('');
       return;
     }
 
-    let cancelled = false;
+    const timer = setTimeout(
+      async () => {
+        setLoading(true);
+        setError('');
 
-    const timer =
-      window.setTimeout(
-        async () => {
-          setLoading(true);
-          setError('');
+        try {
+          const data =
+            await searchTMDB(query);
 
-          try {
-            const data =
-              await searchTMDB(
-                trimmed
-              );
+          setResults(data);
+        } catch {
+          setError(
+            'Unable to search TMDB right now.'
+          );
+        } finally {
+          setLoading(false);
+        }
+      },
+      400
+    );
 
-            if (!cancelled) {
-              setResults(data);
-            }
-          } catch {
-            if (!cancelled) {
-              setResults([]);
-
-              setError(
-                'Unable to search TMDB right now.'
-              );
-            }
-          } finally {
-            if (!cancelled) {
-              setLoading(false);
-            }
-          }
-        },
-        400
-      );
-
-    return () => {
-      cancelled = true;
-      window.clearTimeout(timer);
-    };
+    return () =>
+      clearTimeout(timer);
   }, [query]);
 
   const available =
@@ -2290,27 +1554,24 @@ function AddTitle({
       title="Add Movie / TV Show"
       onClose={onClose}
     >
-
       <p className="muted">
         Search TMDB for movies
         and TV shows.
       </p>
 
       <div className="search wide">
-
         <Search size={18} />
 
         <input
           autoFocus
           value={query}
-          onChange={event =>
+          onChange={e =>
             setQuery(
-              event.target.value
+              e.target.value
             )
           }
           placeholder="Search movies and TV shows"
         />
-
       </div>
 
       {loading && (
@@ -2325,46 +1586,26 @@ function AddTitle({
         </p>
       )}
 
-      {!loading &&
-        !error &&
-        query.trim() &&
-        available.length === 0 && (
-          <p className="muted">
-            No results found.
-          </p>
-        )}
-
       <div className="result-list">
-
         {available.map(title => (
           <div
             className="result"
             key={title.id}
           >
-
             <img
               src={title.poster}
               alt={title.name}
-              onError={event => {
-                event.currentTarget.src =
-                  'https://placehold.co/500x750/171717/ffffff?text=No+Poster';
-              }}
             />
 
             <div>
-
-              <b>
-                {title.name}
-              </b>
+              <b>{title.name}</b>
 
               <span>
                 {title.year} ·{' '}
-                {title.kind ===
-                'movie'
+                {title.kind === 'movie'
                   ? 'Movie'
                   : 'TV Show'}
               </span>
-
             </div>
 
             <button
@@ -2373,30 +1614,26 @@ function AddTitle({
                 onAdd(title);
 
                 setResults(
-                  current =>
-                    current.filter(
-                      item =>
-                        item.id !==
-                        title.id
-                    )
+                  results.filter(
+                    item =>
+                      item.id !==
+                      title.id
+                  )
                 );
               }}
             >
               + Add
             </button>
-
           </div>
         ))}
-
       </div>
-
     </Modal>
   );
 }
 
-/* =========================================================
+/* --------------------------------------------------
    REMINDER
-========================================================= */
+-------------------------------------------------- */
 
 function ReminderModal({
   title,
@@ -2421,7 +1658,6 @@ function ReminderModal({
       title="Remind Me"
       onClose={onClose}
     >
-
       <p>
         Set a reminder for{' '}
         <b>{title.name}</b>.
@@ -2433,9 +1669,9 @@ function ReminderModal({
         <input
           type="date"
           value={date}
-          onChange={event =>
+          onChange={e =>
             setDate(
-              event.target.value
+              e.target.value
             )
           }
         />
@@ -2447,9 +1683,9 @@ function ReminderModal({
         <input
           type="time"
           value={time}
-          onChange={event =>
+          onChange={e =>
             setTime(
-              event.target.value
+              e.target.value
             )
           }
         />
@@ -2474,14 +1710,13 @@ function ReminderModal({
         Streamix notification
         system.
       </p>
-
     </Modal>
   );
 }
 
-/* =========================================================
+/* --------------------------------------------------
    SCHEDULE RECOMMENDATION
-========================================================= */
+-------------------------------------------------- */
 
 function ScheduleModal({
   title,
@@ -2517,110 +1752,96 @@ function ScheduleModal({
       title="Schedule Personal Recommendation"
       onClose={onClose}
     >
+      <label>
+        Profile
 
-      {profiles.length === 0 ? (
-        <>
-          <p className="muted">
-            Add a profile first
-            before scheduling a
-            recommendation.
-          </p>
-        </>
-      ) : (
-        <>
-          <label>
-            Profile
-
-            <select
-              value={profileId}
-              onChange={event =>
-                setProfileId(
-                  event.target.value
-                )
-              }
+        <select
+          value={profileId}
+          onChange={e =>
+            setProfileId(
+              e.target.value
+            )
+          }
+        >
+          {profiles.map(profile => (
+            <option
+              value={profile.id}
+              key={profile.id}
             >
-              {profiles.map(profile => (
-                <option
-                  value={profile.id}
-                  key={profile.id}
-                >
-                  {profile.name}
-                </option>
-              ))}
-            </select>
-          </label>
+              {profile.name}
+            </option>
+          ))}
+        </select>
+      </label>
 
-          <label>
-            Date
+      <label>
+        Date
 
-            <input
-              type="date"
-              value={date}
-              onChange={event =>
-                setDate(
-                  event.target.value
-                )
-              }
-            />
-          </label>
+        <input
+          type="date"
+          value={date}
+          onChange={e =>
+            setDate(
+              e.target.value
+            )
+          }
+        />
+      </label>
 
-          <label>
-            Time
+      <label>
+        Time
 
-            <input
-              type="time"
-              value={time}
-              onChange={event =>
-                setTime(
-                  event.target.value
-                )
-              }
-            />
-          </label>
+        <input
+          type="time"
+          value={time}
+          onChange={e =>
+            setTime(
+              e.target.value
+            )
+          }
+        />
+      </label>
 
-          <label>
-            Message
+      <label>
+        Message
 
-            <textarea
-              value={message}
-              onChange={event =>
-                setMessage(
-                  event.target.value
-                )
-              }
-            />
-          </label>
+        <textarea
+          value={message}
+          onChange={e =>
+            setMessage(
+              e.target.value
+            )
+          }
+        />
+      </label>
 
-          <button
-            className="pink full"
-            disabled={
-              !profileId ||
-              !date
-            }
-            onClick={() =>
-              onSave({
-                id: uid(),
-                profileId,
-                titleId:
-                  title.id,
-                date,
-                time,
-                message
-              })
-            }
-          >
-            Schedule
-          </button>
-        </>
-      )}
-
+      <button
+        className="pink full"
+        disabled={
+          !profileId ||
+          !date
+        }
+        onClick={() =>
+          onSave({
+            id: uid(),
+            profileId,
+            titleId:
+              title.id,
+            date,
+            time,
+            message
+          })
+        }
+      >
+        Schedule
+      </button>
     </Modal>
   );
 }
 
-/* =========================================================
+/* --------------------------------------------------
    HERO EDITOR
-========================================================= */
+-------------------------------------------------- */
 
 function HeroModal({
   hero,
@@ -2665,7 +1886,6 @@ function HeroModal({
       title="Edit Hero"
       onClose={onClose}
     >
-
       <p>
         Choose which title
         appears in the featured
@@ -2684,9 +1904,9 @@ function HeroModal({
 
             <select
               value={titleId}
-              onChange={event =>
+              onChange={e =>
                 setTitleId(
-                  event.target.value
+                  e.target.value
                 )
               }
             >
@@ -2706,7 +1926,8 @@ function HeroModal({
               className="hero-preview"
               style={{
                 backgroundImage:
-                  `url("${selectedTitle.backdrop}")`,
+                  `url(${selectedTitle.backdrop})`,
+
                 backgroundPosition:
                   `${positionX}% ${positionY}%`
               }}
@@ -2725,10 +1946,10 @@ function HeroModal({
               min="0"
               max="100"
               value={positionX}
-              onChange={event =>
+              onChange={e =>
                 setPositionX(
                   Number(
-                    event.target.value
+                    e.target.value
                   )
                 )
               }
@@ -2747,10 +1968,10 @@ function HeroModal({
               min="0"
               max="100"
               value={positionY}
-              onChange={event =>
+              onChange={e =>
                 setPositionY(
                   Number(
-                    event.target.value
+                    e.target.value
                   )
                 )
               }
@@ -2775,27 +1996,15 @@ function HeroModal({
           </button>
         </>
       )}
-
     </Modal>
   );
 }
 
-/* =========================================================
+/* --------------------------------------------------
    START APP
-========================================================= */
+-------------------------------------------------- */
 
-const rootElement =
-  document.getElementById('root');
-
-if (!rootElement) {
-  throw new Error(
-    'Streamix could not start: #root element was not found.'
-  );
-}
-
-createRoot(rootElement).render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>
-);
+createRoot(
+  document.getElementById('root')!
+).render(<App />);
 ```
