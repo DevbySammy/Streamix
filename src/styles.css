@@ -178,9 +178,9 @@ border: 1px solid #292929;
 }
 
 .switch button.active {
-background: #fff;
-color: #090909;
-border: 1px solid #fff;
+  background: #ff3d8d;
+  color: #090909;
+  border: 1px solid #ff3d8d;
 }
 
 /* Toolbar */
