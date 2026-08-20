@@ -39,6 +39,7 @@ type Profile = {
   id: string;
   name: string;
   avatar: string;
+  password?: string;
 };
 
 type State = {
@@ -84,7 +85,8 @@ const initialProfiles: Profile[] = [
   {
     id: "admin",
     name: "Admin",
-    avatar: "👑"
+    avatar: "👑",
+    password: ""
   }
 ];
 
@@ -321,11 +323,14 @@ const [kindClicked, setKindClicked] =
 
   const [q, setQ] = useState("");
 
-  const [showProfile, setShowProfile] =
-    useState(false);
+const [showProfile, setShowProfile] =
+  useState(false);
 
-  const [showAdd, setShowAdd] =
-    useState(false);
+const [loginProfile, setLoginProfile] =
+  useState<Profile | null>(null);
+
+const [showAdd, setShowAdd] =
+  useState(false);
 
   const [showReco, setShowReco] =
     useState(false);
@@ -698,22 +703,24 @@ const [kindClicked, setKindClicked] =
 
         <div className="header-right">
 
-          <button
-            className="profile-pill"
-            onClick={() =>
-              setShowProfile(true)
-            }
-          >
-            <span>
-              {profile.avatar}
-            </span>
+   <button
+  className="profile-pill"
+  onClick={() =>
+    setShowProfile(true)
+  }
+>
+  <span>
+    {profile.avatar}
+  </span>
 
-            {profile.name}
+  <span>
+    {profile.name}
+  </span>
 
-            <ChevronDown
-              size={16}
-            />
-          </button>
+  <ChevronDown
+    size={16}
+  />
+</button>
 
           {isAdmin && (
             <button
@@ -1171,15 +1178,15 @@ const [kindClicked, setKindClicked] =
                 >
 
                   <button
-                    onClick={() => {
-                      setProfileId(
-                        item.id
-                      );
+                onClick={() => {
+  if (item.id === profileId) {
+    setShowProfile(false);
+    return;
+  }
 
-                      setShowProfile(
-                        false
-                      );
-                    }}
+  setLoginProfile(item);
+  setShowProfile(false);
+}}
                     className={
                       item.id ===
                       profileId
@@ -1300,6 +1307,126 @@ const [kindClicked, setKindClicked] =
         </Modal>
       )}
 
+  {/* PROFILE LOGIN */}
+
+{loginProfile && (
+  <ProfileLogin
+    profile={loginProfile}
+    onClose={() =>
+      setLoginProfile(null)
+    }
+    onSuccess={() => {
+      setProfileId(
+        loginProfile.id
+      );
+
+      setLoginProfile(null);
+    }}
+  />
+)}
+
+      /* =========================================================
+   PROFILE LOGIN
+========================================================= */
+
+function ProfileLogin({
+  profile,
+  onClose,
+  onSuccess
+}: {
+  profile: Profile;
+  onClose: () => void;
+  onSuccess: () => void;
+}) {
+  const [password, setPassword] =
+    useState("");
+
+  const [error, setError] =
+    useState("");
+
+  function handleLogin() {
+    /*
+      Temporary local profile lock.
+
+      If no password has been set yet,
+      allow access so you don't get
+      locked out of the app.
+    */
+
+    if (
+      !profile.password ||
+      password === profile.password
+    ) {
+      onSuccess();
+      return;
+    }
+
+    setError(
+      "Incorrect password. Please try again."
+    );
+  }
+
+  return (
+    <Modal
+      title="Profile Login"
+      onClose={onClose}
+    >
+      <div className="profile-login">
+
+        <div className="profile-login-avatar">
+          {profile.avatar}
+        </div>
+
+        <h3>
+          {profile.name}'s Profile
+        </h3>
+
+        <p className="muted">
+          Enter your password to continue.
+        </p>
+
+        <label>
+          Password
+
+          <input
+            autoFocus
+            type="password"
+            value={password}
+            onChange={event => {
+              setPassword(
+                event.target.value
+              );
+              setError("");
+            }}
+            onKeyDown={event => {
+              if (
+                event.key === "Enter"
+              ) {
+                handleLogin();
+              }
+            }}
+            placeholder="Enter password"
+          />
+        </label>
+
+        {error && (
+          <p className="login-error">
+            {error}
+          </p>
+        )}
+
+        <button
+          className="pink full"
+          onClick={handleLogin}
+        >
+          Continue
+        </button>
+
+      </div>
+    </Modal>
+  );
+}
+      
       {/* PROFILE EDITOR */}
 
       {editing && (
