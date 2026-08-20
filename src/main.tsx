@@ -780,28 +780,42 @@ title.id
 
 
 useEffect(() => {
-if (
-!profileId ||
-!recommendation
-) {
-return;
-}
+  if (
+    !profileId ||
+    !recommendation
+  ) {
+    return;
+  }
 
+  async function checkRecommendationStatus() {
+    try {
+      const response = await fetch(
+        "/api/recommendation-status"
+      );
 
-const key =
-  "sx-reco-seen-" +
-  profileId;
+      if (!response.ok) {
+        throw new Error(
+          "Failed to load recommendation status"
+        );
+      }
 
-const alreadySeen = false;
+      const data = await response.json();
 
-if (!alreadySeen) {
-  setShowReco(true);
-}
+      if (!data.seen_at) {
+        setShowReco(true);
+      }
+    } catch (error) {
+      console.error(
+        "Failed to load recommendation status:",
+        error
+      );
+    }
+  }
 
-
+  checkRecommendationStatus();
 }, [
-profileId,
-recommendation
+  profileId,
+  recommendation
 ]);
 
 /* =======================================================
