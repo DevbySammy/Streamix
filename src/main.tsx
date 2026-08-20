@@ -232,24 +232,19 @@ async function searchTMDB(
           kind +
           "-" +
           String(item.id),
-
         name,
         kind,
         year,
-
         poster: getPosterUrl(
           item.poster_path
         ),
-
         backdrop: getBackdropUrl(
           item.backdrop_path
         ),
-
         overview:
           typeof item.overview === "string"
             ? item.overview
             : "",
-
         addedAt: new Date().toISOString()
       };
     });
@@ -296,14 +291,9 @@ function App() {
       initialHero
     );
 
-  /*
-   * =======================================================
-   * AUTHENTICATION / SESSION
-   *
-   * sx-session stores the ID of the profile currently
-   * signed in. If it is null, nobody is signed in.
-   * =======================================================
-   */
+  /* =======================================================
+     AUTHENTICATION / SESSION
+  ======================================================= */
 
   const [profileId, setProfileId] =
     useStored<string | null>(
@@ -367,8 +357,12 @@ function App() {
 
   const [draggedProfileId, setDraggedProfileId] =
     useState<string | null>(null);
-  
-   const orderedProfiles = useMemo(() => {
+
+  /* =======================================================
+     PROFILE ORDER
+  ======================================================= */
+
+  const orderedProfiles = useMemo(() => {
     const adminProfile = profiles.find(
       profile => profile.id === "admin"
     );
@@ -382,10 +376,10 @@ function App() {
       : regularProfiles;
   }, [profiles]);
 
-  /*
-   * If the saved session points to a profile that no longer
-   * exists, automatically clear the invalid session.
-   */
+  /* =======================================================
+     VALIDATE SESSION
+  ======================================================= */
+
   useEffect(() => {
     if (
       profileId !== null &&
@@ -403,11 +397,9 @@ function App() {
     setProfileId
   ]);
 
-  /*
-   * =======================================================
-   * AUTHENTICATION ACTIONS
-   * =======================================================
-   */
+  /* =======================================================
+     AUTHENTICATION ACTIONS
+  ======================================================= */
 
   function handleLoginSuccess(
     loggedInProfileId: string
@@ -425,20 +417,9 @@ function App() {
   }
 
   function signOut() {
-    /*
-     * Clear the actual signed-in session.
-     */
     setProfileId(null);
-
-    /*
-     * Clear Admin's "view as" state too.
-     */
     setViewingAs(null);
 
-    /*
-     * Close any open UI that shouldn't survive
-     * a sign-out.
-     */
     setShowProfile(false);
     setLoginProfile(null);
     setEditing(null);
@@ -449,20 +430,15 @@ function App() {
     setShowSchedule(null);
     setShowHero(false);
 
-    /*
-     * Reset navigation/filter state.
-     */
     setTab("library");
     setFilter("all");
     setKind("all");
     setQ("");
   }
 
-  /*
-   * =======================================================
-   * CURRENT USER / PERMISSIONS
-   * =======================================================
-   */
+  /* =======================================================
+     CURRENT USER / PERMISSIONS
+  ======================================================= */
 
   const isAdminUser =
     profileId === "admin";
@@ -511,7 +487,7 @@ function App() {
       ) || null
     : null;
 
-    /* =======================================================
+  /* =======================================================
      RECOMMENDATION
   ======================================================= */
 
@@ -566,38 +542,36 @@ function App() {
     setShowReco(false);
   }
 
-  /*
-   * =======================================================
-   * LOGIN SCREEN
-   *
-   * This is shown whenever nobody is authenticated.
-   * =======================================================
-   */
+  /* =======================================================
+     LOGIN SCREEN
+  ======================================================= */
 
   if (profileId === null) {
     return (
       <div className="app">
 
-    <header>
-  <div className="logo">
-    STREAM<span>IX</span>
-  </div>
+        <header>
+          <div className="logo">
+            STREAM<span>IX</span>
+          </div>
 
-  <div className="header-right">
-    <button
-      className="profile-pill"
-      onClick={() => {
-        if (profiles.length > 0) {
-          setLoginProfile(profiles[0]);
-        }
-      }}
-    >
-      <span>👤</span>
-      <span>Sign in</span>
-      <ChevronDown size={16} />
-    </button>
-  </div>
-</header>
+          <div className="header-right">
+            <button
+              className="profile-pill"
+              onClick={() => {
+                if (profiles.length > 0) {
+                  setLoginProfile(
+                    profiles[0]
+                  );
+                }
+              }}
+            >
+              <span>👤</span>
+              <span>Sign in</span>
+              <ChevronDown size={16} />
+            </button>
+          </div>
+        </header>
 
         <main>
           <div
@@ -633,8 +607,7 @@ function App() {
               </div>
 
               <div className="profiles">
-
-              {orderedProfiles.map(
+                {orderedProfiles.map(
                   item => (
                     <div
                       className="profile-row"
@@ -661,7 +634,6 @@ function App() {
                     </div>
                   )
                 )}
-
               </div>
 
               <p
@@ -690,9 +662,7 @@ function App() {
                 loginProfile.id
               );
 
-              setLoginProfile(
-                null
-              );
+              setLoginProfile(null);
             }}
             onSetPassword={password => {
               setProfiles(
@@ -715,7 +685,6 @@ function App() {
       </div>
     );
   }
-
 
   /* =======================================================
      FILTERING + SORTING
@@ -871,12 +840,10 @@ function App() {
               profileState.watched.filter(
                 item => item !== id
               ),
-
             watchlist:
               profileState.watchlist.filter(
                 item => item !== id
               ),
-
             rewatch:
               profileState.rewatch.filter(
                 item => item !== id
@@ -948,64 +915,61 @@ function App() {
     setEditing(null);
   }
 
-function reorderProfiles(
-  draggedId: string,
-  targetId: string
-) {
-  if (
-    draggedId === targetId ||
-    !isAdmin ||
-    draggedId === "admin" ||
-    targetId === "admin"
+  function reorderProfiles(
+    draggedId: string,
+    targetId: string
   ) {
-    return;
-  }
-
-  setProfiles(current => {
-    const draggedIndex =
-      current.findIndex(
-        profile =>
-          profile.id === draggedId
-      );
-
-    const targetIndex =
-      current.findIndex(
-        profile =>
-          profile.id === targetId
-      );
-
     if (
-      draggedIndex === -1 ||
-      targetIndex === -1
+      draggedId === targetId ||
+      !isAdmin ||
+      draggedId === "admin" ||
+      targetId === "admin"
     ) {
-      return current;
+      return;
     }
 
-    const next = [...current];
+    setProfiles(current => {
+      const draggedIndex =
+        current.findIndex(
+          profile =>
+            profile.id === draggedId
+        );
 
-    const [draggedProfile] =
+      const targetIndex =
+        current.findIndex(
+          profile =>
+            profile.id === targetId
+        );
+
+      if (
+        draggedIndex === -1 ||
+        targetIndex === -1
+      ) {
+        return current;
+      }
+
+      const next = [...current];
+
+      const [draggedProfile] =
+        next.splice(
+          draggedIndex,
+          1
+        );
+
       next.splice(
-        draggedIndex,
-        1
+        targetIndex,
+        0,
+        draggedProfile
       );
 
-    next.splice(
-      targetIndex,
-      0,
-      draggedProfile
-    );
-
-    return next;
-  });
-}
-
- 
+      return next;
+    });
+  }
 
   /* =======================================================
      RENDER
   ======================================================= */
-  
-  
+
   return (
     <div className="app">
 
@@ -1036,9 +1000,7 @@ function reorderProfiles(
                 : profile?.name}
             </span>
 
-            <ChevronDown
-              size={16}
-            />
+            <ChevronDown size={16} />
           </button>
 
           {isViewingAs && (
@@ -1049,6 +1011,7 @@ function reorderProfiles(
                 setProfileId("admin");
                 setTab("library");
                 setFilter("all");
+                setKind("all");
                 setMenu(false);
               }}
               aria-label="Back to Admin"
@@ -1111,7 +1074,6 @@ function reorderProfiles(
                   "linear-gradient(90deg, rgba(0,0,0,.92), rgba(0,0,0,.15)), url(" +
                   hero.backdrop +
                   ")",
-
                 backgroundPosition:
                   String(
                     heroSettings.positionX
@@ -1139,14 +1101,11 @@ function reorderProfiles(
 
           {hero ? (
             <>
-              <h1>
-                {hero.name}
-              </h1>
+              <h1>{hero.name}</h1>
 
               <p>
                 {hero.year} ·{" "}
-                {hero.kind ===
-                "movie"
+                {hero.kind === "movie"
                   ? "Movie"
                   : "TV Show"}
               </p>
@@ -1281,9 +1240,7 @@ function reorderProfiles(
 
               <div className="search">
 
-                <Search
-                  size={18}
-                />
+                <Search size={18} />
 
                 <input
                   value={q}
@@ -1329,9 +1286,7 @@ function reorderProfiles(
                   setKindClicked(true);
                 }}
               >
-                <Film
-                  size={15}
-                />
+                <Film size={15} />
                 Movies
               </button>
 
@@ -1346,9 +1301,7 @@ function reorderProfiles(
                   setKindClicked(true);
                 }}
               >
-                <Tv
-                  size={15}
-                />
+                <Tv size={15} />
                 TV
               </button>
 
@@ -1475,8 +1428,7 @@ function reorderProfiles(
                 </h2>
 
                 <p>
-                  {recommendation.year}{" "}
-                  ·{" "}
+                  {recommendation.year} ·{" "}
                   {recommendation.kind ===
                   "movie"
                     ? "Movie"
@@ -1510,12 +1462,13 @@ function reorderProfiles(
 
           <div className="profiles">
 
-{orderedProfiles.map(
+            {orderedProfiles.map(
               item => (
                 <div
                   className={
                     "profile-row" +
-                    (draggedProfileId === item.id
+                    (draggedProfileId ===
+                    item.id
                       ? " dragging"
                       : "")
                   }
@@ -1529,7 +1482,9 @@ function reorderProfiles(
                     }
 
                     event.preventDefault();
-                    event.dataTransfer.dropEffect = "move";
+
+                    event.dataTransfer.dropEffect =
+                      "move";
                   }}
                   onDrop={event => {
                     if (
@@ -1567,12 +1522,9 @@ function reorderProfiles(
                       }
 
                       /*
-                       * Admin can view any profile
-                       * without entering that profile's
-                       * password.
-                       *
-                       * This is "View As", not a new
-                       * authentication session.
+                       * Admin stays authenticated
+                       * as Admin while viewing another
+                       * profile.
                        */
                       if (isAdminUser) {
                         if (
@@ -1582,6 +1534,7 @@ function reorderProfiles(
                           setViewingAs(
                             null
                           );
+
                           setProfileId(
                             "admin"
                           );
@@ -1589,6 +1542,7 @@ function reorderProfiles(
                           setViewingAs(
                             item.id
                           );
+
                           setProfileId(
                             "admin"
                           );
@@ -1597,16 +1551,18 @@ function reorderProfiles(
                         setShowProfile(
                           false
                         );
+
                         return;
                       }
 
                       /*
-                       * Regular users must enter the
-                       * selected profile's password.
+                       * Regular users must log into
+                       * another profile normally.
                        */
                       setLoginProfile(
                         item
                       );
+
                       setShowProfile(
                         false
                       );
@@ -1629,14 +1585,12 @@ function reorderProfiles(
 
                     {item.id ===
                       effectiveProfileId && (
-                      <Check
-                        size={18}
-                      />
+                      <Check size={18} />
                     )}
 
                   </button>
 
-                  {/* PERSONAL PROFILE SETTINGS */}
+                  {/* PROFILE SETTINGS */}
 
                   <button
                     className="icon"
@@ -1674,41 +1628,41 @@ function reorderProfiles(
                         : "Switch to this profile to edit settings"
                     }
                   >
-                    <Settings
-                      size={17}
-                    />
+                    <Settings size={17} />
                   </button>
 
                   {/* ADMIN PROFILE REORDER */}
 
-{isAdmin && item.id !== "admin" && (
-                    <div
-                      className="profile-drag-handle"
-                      draggable
-                      onDragStart={event => {
-                        event.dataTransfer.effectAllowed =
-                          "move";
+                  {isAdmin &&
+                    item.id !==
+                      "admin" && (
+                      <div
+                        className="profile-drag-handle"
+                        draggable
+                        onDragStart={event => {
+                          event.dataTransfer.effectAllowed =
+                            "move";
 
-                        setDraggedProfileId(
-                          item.id
-                        );
-                      }}
-                      onDragEnd={() =>
-                        setDraggedProfileId(
-                          null
-                        )
-                      }
-                      role="button"
-                      tabIndex={0}
-                      aria-label={
-                        "Drag to reorder " +
-                        item.name
-                      }
-                      title="Drag to reorder"
-                    >
-                      <GripVertical size={20} />
-                    </div>
-                  )}
+                          setDraggedProfileId(
+                            item.id
+                          );
+                        }}
+                        onDragEnd={() =>
+                          setDraggedProfileId(
+                            null
+                          )
+                        }
+                        role="button"
+                        tabIndex={0}
+                        aria-label={
+                          "Drag to reorder " +
+                          item.name
+                        }
+                        title="Drag to reorder"
+                      >
+                        <GripVertical size={20} />
+                      </div>
+                    )}
 
                 </div>
               )
@@ -1731,25 +1685,27 @@ function reorderProfiles(
                 Add Profile
               </button>
             )}
-{/* SIGN OUT */}
 
-<div
-  style={{
-    marginTop: "20px",
-    paddingTop: "20px",
-    borderTop:
-      "1px solid rgba(255,255,255,.08)"
-  }}
->
-  <button
-    className="danger full"
-    onClick={signOut}
-  >
-    <LogOut size={17} />
-    Sign out
-  </button>
+            {/* SIGN OUT */}
+
+            <div
+              style={{
+                marginTop: "20px",
+                paddingTop: "20px",
+                borderTop:
+                  "1px solid rgba(255,255,255,.08)"
+              }}
+            >
+              <button
+                className="danger full"
+                onClick={signOut}
+              >
+                <LogOut size={17} />
+                Sign out
+              </button>
+            </div>
+
           </div>
-                     </div> {/* CLOSES .profiles */}
 
         </Modal>
       )}
@@ -1767,9 +1723,7 @@ function reorderProfiles(
               loginProfile.id
             );
 
-            setLoginProfile(
-              null
-            );
+            setLoginProfile(null);
           }}
           onSetPassword={password => {
             setProfiles(current =>
@@ -1878,13 +1832,6 @@ function reorderProfiles(
                     }
                   );
 
-                  /*
-                   * If the currently signed-in user
-                   * deletes their own profile, sign out.
-                   *
-                   * Do NOT automatically switch them
-                   * into Admin.
-                   */
                   if (
                     deletedProfileId ===
                     profileId
@@ -1998,9 +1945,7 @@ function reorderProfiles(
       <footer>
 
         <span>
-          <Clock
-            size={14}
-          />
+          <Clock size={14} />
 
           {
             reminders.filter(
@@ -2018,8 +1963,6 @@ function reorderProfiles(
             scheduled reco(s)
           </span>
         )}
-
-       
 
       </footer>
 
@@ -2429,7 +2372,9 @@ function Card({
             className="remove"
             onClick={onRemove}
             title="Remove title"
-            aria-label={"Remove " + t.name}
+            aria-label={
+              "Remove " + t.name
+            }
           >
             <Trash2 size={16} />
           </button>
@@ -2537,7 +2482,8 @@ function Modal({
         style={
           compact
             ? {
-                width: "min(560px, calc(100vw - 32px))",
+                width:
+                  "min(560px, calc(100vw - 32px))",
                 maxWidth: "560px"
               }
             : undefined
@@ -2567,7 +2513,7 @@ function Modal({
 }
 
 /* =========================================================
-   PROFILE EDITOR / PROFILE SETTINGS
+   PROFILE EDITOR
 ========================================================= */
 
 function ProfileEditor({
@@ -2600,23 +2546,35 @@ function ProfileEditor({
       profile?.avatar || "🙂"
     );
 
-  const [showPasswordSection, setShowPasswordSection] =
-    useState(false);
+  const [
+    showPasswordSection,
+    setShowPasswordSection
+  ] = useState(false);
 
-  const [currentPassword, setCurrentPassword] =
-    useState("");
+  const [
+    currentPassword,
+    setCurrentPassword
+  ] = useState("");
 
-  const [newPassword, setNewPassword] =
-    useState("");
+  const [
+    newPassword,
+    setNewPassword
+  ] = useState("");
 
-  const [showCurrentPassword, setShowCurrentPassword] =
-    useState(false);
+  const [
+    showCurrentPassword,
+    setShowCurrentPassword
+  ] = useState(false);
 
-  const [showNewPassword, setShowNewPassword] =
-    useState(false);
+  const [
+    showNewPassword,
+    setShowNewPassword
+  ] = useState(false);
 
-  const [passwordError, setPasswordError] =
-    useState("");
+  const [
+    passwordError,
+    setPasswordError
+  ] = useState("");
 
   const avatars = [
     "🙂",
@@ -2999,9 +2957,7 @@ function AddTitle({
 
       <div className="search wide">
 
-        <Search
-          size={18}
-        />
+        <Search size={18} />
 
         <input
           autoFocus
@@ -3049,8 +3005,7 @@ function AddTitle({
 
               <span>
                 {title.year} ·{" "}
-                {title.kind ===
-                "movie"
+                {title.kind === "movie"
                   ? "Movie"
                   : "TV Show"}
               </span>
@@ -3403,7 +3358,6 @@ function HeroModal({
                   "url(" +
                   selectedTitle.backdrop +
                   ")",
-
                 backgroundPosition:
                   String(positionX) +
                   "% " +
