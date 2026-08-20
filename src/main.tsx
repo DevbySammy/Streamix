@@ -958,16 +958,29 @@ current[array].includes(id);
 REMOVE TITLE
 ======================================================= */
 
-function removeTitle(
-id: string
+async function removeTitle(
+  id: string
 ) {
-setLibrary(currentLibrary =>
-currentLibrary.filter(
-title =>
-title.id !== id
-)
-);
+try {
+  await fetch(
+    `/api/library?id=${encodeURIComponent(id)}`,
+    {
+      method: "DELETE"
+    }
+  );
+} catch (error) {
+  console.error(
+    "Failed to delete media:",
+    error
+  );
+}
 
+setLibrary(currentLibrary =>
+  currentLibrary.filter(
+    title =>
+      title.id !== id
+  )
+);
 
 setStates(currentStates => {
   const nextStates = {
