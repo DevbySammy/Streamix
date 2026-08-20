@@ -1703,9 +1703,7 @@ function App() {
                     avatar: "🙂"
                   });
 
-                  setShowProfile(
-                    false
-                  );
+                  setShowProfile(false);
                 }}
               >
                 <Plus />
@@ -1730,6 +1728,7 @@ function App() {
     Sign out
   </button>
           </div>
+                     </div> {/* CLOSES .profiles */}
 
         </Modal>
       )}
