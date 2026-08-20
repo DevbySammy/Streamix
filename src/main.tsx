@@ -84,14 +84,6 @@ positionY: number;
 DEFAULT DATA
 ========================================================= */
 
-const initialProfiles: Profile[] = [
-{
-id: "admin",
-name: "Admin",
-avatar: "👑",
-password: ""
-}
-];
 
 const initialState: Record<string, State> = {
 admin: {
@@ -118,44 +110,7 @@ Date.now().toString(36)
 );
 }
 
-function useStored<T>(
-key: string,
-fallback: T
-): [
-T,
-React.Dispatch<React.SetStateAction<T>>
-] {
-const [value, setValue] = useState<T>(() => {
-try {
-const stored =
-localStorage.getItem(key);
 
-
-  if (!stored) {
-    return fallback;
-  }
-
-  return JSON.parse(stored) as T;
-} catch {
-  return fallback;
-}
-
-
-});
-
-useEffect(() => {
-try {
-localStorage.setItem(
-key,
-JSON.stringify(value)
-);
-} catch {
-// Ignore localStorage errors.
-}
-}, [key, value]);
-
-return [value, setValue];
-}
 
 function getPosterUrl(
 path: string | null | undefined
@@ -198,6 +153,52 @@ return [];
 
 const API_BASE_URL = "https://streamix.gaintrainstrong.workers.dev";
 
+  const API_BASE_URL =
+  "https://streamix.gaintrainstrong.workers.dev";
+
+async function apiFetch(
+  path: string,
+  options: RequestInit = {}
+) {
+  const sessionId =
+    localStorage.getItem("sx-session-token");
+
+  const headers = new Headers(
+    options.headers || {}
+  );
+
+  headers.set(
+    "Content-Type",
+    "application/json"
+  );
+
+  if (sessionId) {
+    headers.set(
+      "Authorization",
+      `Bearer ${sessionId}`
+    );
+  }
+
+  const response = await fetch(
+    API_BASE_URL + path,
+    {
+      ...options,
+      headers
+    }
+  );
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(
+      data?.error ||
+      "Something went wrong."
+    );
+  }
+
+  return data;
+}
+  
 const url =
   API_BASE_URL +
   "/api/tmdb/search?query=" +
@@ -280,41 +281,54 @@ APP
 ========================================================= */
 
 function App() {
-const [library, setLibrary] =
-useStored<Title[]>(
-"sx-library",
-[]
-);
+const [library, setLibrary] = useState<Title[]>([]);
+  useEffect(() => {
+  async function loadLibrary() {
+    try {
+      const response = await fetch("/api/library");
 
-const [profiles, setProfiles] =
-useStored<Profile[]>(
-"sx-profiles",
-initialProfiles
-);
+      if (!response.ok) {
+        throw new Error("Failed to load library");
+      }
 
-const [states, setStates] =
-useStored<Record<string, State>>(
-"sx-states",
-initialState
-);
+      const data = await response.json();
+      setLibrary(data);
+    } catch (error) {
+      console.error("Failed to load library:", error);
+    }
+  }
 
-const [reminders, setReminders] =
-useStored<Reminder[]>(
-"sx-reminders",
-[]
-);
+  loadLibrary();
+}, []);
+const [profiles, setProfiles] = useState<Profile[]>([]);
+const [profilesLoading, setProfilesLoading] = useState(true);
+  useEffect(() => {
+  async function loadProfiles() {
+    try {
+      const response = await fetch("/api/profiles");
 
-const [scheduled, setScheduled] =
-useStored<Scheduled[]>(
-"sx-scheduled",
-[]
-);
+      if (!response.ok) {
+        throw new Error("Failed to load profiles");
+      }
 
+      const data = await response.json();
+      setProfiles(data);
+    } catch (error) {
+      console.error("Failed to load profiles:", error);
+    } finally {
+      setProfilesLoading(false);
+    }
+  }
+
+  loadProfiles();
+}, []);
+
+const [states, setStates] = useState<Record<string, State>>(initialState);
+
+const [reminders, setReminders] = useState<Reminder[]>([]);
+const [scheduled, setScheduled] = useState<Scheduled[]>([]);
 const [heroSettings, setHeroSettings] =
-useStored<HeroSettings>(
-"sx-hero-settings",
-initialHero
-);
+  useState<HeroSettings>(initialHero);
 
 /* =======================================================
 AUTHENTICATION / SESSION
@@ -947,8 +961,7 @@ REMOVE TITLE
 function removeTitle(
 id: string
 ) {
-setLibrary(
-currentLibrary =>
+setLibrary(currentLibrary =>
 currentLibrary.filter(
 title =>
 title.id !== id
@@ -2261,14 +2274,30 @@ return ( <div className="app">
       onClose={() =>
         setShowAdd(false)
       }
-      onAdd={title =>
-        setLibrary(
-          current => [
-            ...current,
-            title
-          ]
-        )
-      }
+   onAdd={async title => {
+  try {
+    const response = await fetch("/api/library", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(title)
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to save media");
+    }
+
+    const savedTitle = await response.json();
+
+    setLibrary(current => [
+      ...current,
+      savedTitle
+    ]);
+  } catch (error) {
+    console.error("Failed to save media:", error);
+  }
+}}
     />
   )}
 
