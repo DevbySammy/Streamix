@@ -3242,7 +3242,7 @@ const avatars = [
 "🔥"
 ];
 
-function handlePasswordChange() {
+function handlePasswordChange()function handlePasswordChange() {
   if (!profile) {
     return;
   }
