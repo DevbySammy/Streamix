@@ -311,6 +311,11 @@ APP
 
 function App() {
 const [library, setLibrary] = useState<Title[]>([]);
+ const [
+  justAdded,
+  setJustAdded
+] = useState<Title[]>([]);
+
   useEffect(() => {
   async function loadLibrary() {
     try {
@@ -389,8 +394,120 @@ useState<"all" | Kind>("all");
 const [kindClicked, setKindClicked] =
 useState(false);
 
-const [sort, setSort] =
-useState<SortOption>("name-asc");
+ const [sort, setSort] =
+  useState<SortOption>("name-asc");
+
+useEffect(() => {
+  if (sort !== "just-added") {
+    return;
+  }
+
+  async function loadJustAdded() {
+    try {
+      const sessionId =
+        localStorage.getItem(
+          "sx-session-token"
+        );
+
+      const response = await fetch(
+        "https://streamix.gaintrainstrong.workers.dev/api/tmdb/just-added",
+        {
+          headers: sessionId
+            ? {
+                Authorization:
+                  `Bearer ${sessionId}`
+              }
+            : {}
+        }
+      );
+
+      const data =
+        await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          data?.error ||
+            "Unable to load Just Added."
+        );
+      }
+
+      const results =
+        Array.isArray(data.results)
+          ? data.results
+          : [];
+
+      const titles: Title[] =
+        results.map(
+          (item: any): Title => {
+            const kind: Kind =
+              item.media_type === "tv"
+                ? "tv"
+                : "movie";
+
+            const releaseDate =
+              kind === "movie"
+                ? item.release_date
+                : item.first_air_date;
+
+            const year =
+              releaseDate &&
+              typeof releaseDate ===
+                "string"
+                ? Number(
+                    releaseDate.slice(0, 4)
+                  )
+                : 0;
+
+            const name =
+              kind === "movie"
+                ? item.title ||
+                  "Untitled"
+                : item.name ||
+                  "Untitled";
+
+            return {
+              id:
+                "tmdb-" +
+                kind +
+                "-" +
+                String(item.id),
+              name,
+              kind,
+              year,
+              poster:
+                getPosterUrl(
+                  item.poster_path
+                ),
+              backdrop:
+                getBackdropUrl(
+                  item.backdrop_path
+                ),
+              overview:
+                typeof item.overview ===
+                "string"
+                  ? item.overview
+                  : "",
+              addedAt:
+                releaseDate || ""
+            };
+          }
+        );
+
+      setJustAdded(
+        titles
+      );
+    } catch (error) {
+      console.error(
+        "Failed to load Just Added:",
+        error
+      );
+
+      setJustAdded([]);
+    }
+  }
+
+  loadJustAdded();
+}, [sort]);
 
 const [q, setQ] = useState("");
 
@@ -782,8 +899,14 @@ FILTERING + SORTING
 ======================================================= */
 
 const visible = useMemo(() => {
+const source =
+  sort === "just-added"
+    ? justAdded
+    : library;
+
 const filtered =
-library
+source
+ 
 .filter(title =>
 title.name
 .toLowerCase()
@@ -855,6 +978,7 @@ return [...filtered].sort(
 
 }, [
 library,
+justAdded,
 q,
 kind,
 tab,
