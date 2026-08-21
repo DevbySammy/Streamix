@@ -302,7 +302,7 @@ header {
 
 .search {
   min-height: 42px;
-  width: min(330px, 100%);
+  width: 100%;
   display: flex;
   align-items: center;
   gap: 9px;
