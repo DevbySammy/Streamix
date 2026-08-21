@@ -1423,6 +1423,50 @@ if (
     success: true
   });
 }
+
+    // ==================================================
+// PROFILES - DELETED
+// ==================================================
+
+if (
+  url.pathname === "/api/profiles/deleted" &&
+  request.method === "GET"
+) {
+  const admin =
+    await requireAdmin();
+
+  if (admin instanceof Response) {
+    return admin;
+  }
+
+  const result =
+    await env.DB
+      .prepare(`
+        SELECT
+          id,
+          name,
+          avatar,
+          sort_order,
+          created_at,
+          deleted_at
+        FROM profiles
+        WHERE deleted_at IS NOT NULL
+        ORDER BY
+          deleted_at DESC
+      `)
+      .all<{
+        id: string;
+        name: string;
+        avatar: string | null;
+        sort_order: number;
+        created_at: string;
+        deleted_at: string;
+      }>();
+
+  return json(
+    result.results
+  );
+}
     // ==================================================
     // LIBRARY - GET
     // ==================================================
