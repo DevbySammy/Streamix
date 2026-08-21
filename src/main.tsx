@@ -556,7 +556,17 @@ if (hiddenResponse.ok) {
     profilesLoading,
     setProfilesLoading
   ] = useState(true);
- 
+
+   const [
+  deletedProfiles,
+  setDeletedProfiles
+] = useState<Profile[]>([]);
+
+const [
+  deletedProfilesLoading,
+  setDeletedProfilesLoading
+] = useState(false);
+   
   useEffect(() => {
     async function loadProfiles() {
       try {
@@ -599,6 +609,64 @@ const response =
 
     loadProfiles();
   }, []);
+
+
+useEffect(() => {
+  async function loadDeletedProfiles() {
+    if (!isAdminUser) {
+      return;
+    }
+
+    try {
+      setDeletedProfilesLoading(true);
+
+      const sessionId =
+        localStorage.getItem(
+          "sx-session-token"
+        );
+
+      const response =
+        await fetch(
+          "https://streamix.gaintrainstrong.workers.dev/api/profiles/deleted",
+          {
+            headers: sessionId
+              ? {
+                  Authorization:
+                    `Bearer ${sessionId}`
+                }
+              : {}
+          }
+        );
+
+      if (!response.ok) {
+        throw new Error(
+          "Failed to load deleted profiles"
+        );
+      }
+
+      const data =
+        await response.json();
+
+      setDeletedProfiles(
+        Array.isArray(data)
+          ? data
+          : []
+      );
+    } catch (error) {
+      console.error(
+        "Failed to load deleted profiles:",
+        error
+      );
+    } finally {
+      setDeletedProfilesLoading(
+        false
+      );
+    }
+  }
+
+  loadDeletedProfiles();
+}, [isAdminUser]);
+
 
 useEffect(() => {
   async function restoreSession() {
