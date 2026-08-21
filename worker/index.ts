@@ -2331,6 +2331,73 @@ if (
         success: true
       });
     }
+// ==================================================
+// TMDB - HIDE JUST ADDED
+// ==================================================
+
+if (
+  url.pathname ===
+    "/api/tmdb/just-added/hide" &&
+  request.method === "POST"
+) {
+  const admin =
+    await requireAdmin();
+
+  if (admin instanceof Response) {
+    return admin;
+  }
+
+  const body =
+    await request.json<{
+      tmdbId?: number;
+      mediaType?: "movie" | "tv";
+    }>();
+
+  if (
+    !body.tmdbId ||
+    !body.mediaType
+  ) {
+    return json(
+      {
+        error:
+          "tmdbId and mediaType are required."
+      },
+      400
+    );
+  }
+
+  await env.DB
+    .prepare(`
+      CREATE TABLE IF NOT EXISTS just_added_hidden (
+        tmdb_id INTEGER NOT NULL,
+        media_type TEXT NOT NULL,
+        hidden_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (
+          tmdb_id,
+          media_type
+        )
+      )
+    `)
+    .run();
+
+  await env.DB
+    .prepare(`
+      INSERT OR IGNORE INTO just_added_hidden (
+        tmdb_id,
+        media_type
+      )
+      VALUES (?, ?)
+    `)
+    .bind(
+      body.tmdbId,
+      body.mediaType
+    )
+    .run();
+
+  return json({
+    success: true
+  });
+}
 
 // ==================================================
 // TMDB - JUST ADDED
@@ -2462,42 +2529,70 @@ if (
       discover("tv")
     ]);
 
-    const results = [
-      ...movies.map(
-        (item: any) => ({
-          ...item,
-          media_type:
-            "movie"
-        })
-      ),
-      ...tvShows.map(
-        (item: any) => ({
-          ...item,
-          media_type:
-            "tv"
-        })
-      )
-    ].sort(
-      (a: any, b: any) => {
-        const aDate =
-          a.media_type ===
-          "movie"
-            ? a.release_date
-            : a.first_air_date;
+   const hidden =
+  await env.DB
+    .prepare(`
+      SELECT
+        tmdb_id,
+        media_type
+      FROM just_added_hidden
+    `)
+    .all<{
+      tmdb_id: number;
+      media_type: "movie" | "tv";
+    }>();
 
-        const bDate =
-          b.media_type ===
-          "movie"
-            ? b.release_date
-            : b.first_air_date;
+const hiddenKeys =
+  new Set(
+    hidden.results.map(
+      item =>
+        `${item.media_type}-${item.tmdb_id}`
+    )
+  );
 
-        return String(
-          bDate || ""
-        ).localeCompare(
-          String(aDate || "")
-        );
-      }
+const results = [
+  ...movies.map(
+    (item: any) => ({
+      ...item,
+      media_type:
+        "movie"
+    })
+  ),
+  ...tvShows.map(
+    (item: any) => ({
+      ...item,
+      media_type:
+        "tv"
+    })
+  )
+]
+.filter(
+  (item: any) =>
+    !hiddenKeys.has(
+      `${item.media_type}-${item.id}`
+    )
+)
+.sort(
+  (a, b) => {
+    const aDate =
+      a.media_type ===
+      "movie"
+        ? a.release_date
+        : a.first_air_date;
+
+    const bDate =
+      b.media_type ===
+      "movie"
+        ? b.release_date
+        : b.first_air_date;
+
+    return String(
+      bDate || ""
+    ).localeCompare(
+      String(aDate || "")
     );
+  }
+);
 
     return json({
       results
