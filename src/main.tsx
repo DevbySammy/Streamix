@@ -2356,28 +2356,49 @@ return ( <div className="app">
       onClose={() =>
         setShowAdd(false)
       }
-   onAdd={async title => {
+ onAdd={async title => {
   try {
-    const response = await fetch("/api/library", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify(title)
-    });
+    const sessionId =
+      localStorage.getItem(
+        "sx-session-token"
+      );
+
+    const response = await fetch(
+      "/api/library",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type":
+            "application/json",
+          ...(sessionId
+            ? {
+                Authorization:
+                  `Bearer ${sessionId}`
+              }
+            : {})
+        },
+        body: JSON.stringify(title)
+      }
+    );
 
     if (!response.ok) {
-      throw new Error("Failed to save media");
+      throw new Error(
+        "Failed to save media"
+      );
     }
 
-    const savedTitle = await response.json();
+    const savedTitle =
+      await response.json();
 
     setLibrary(current => [
       ...current,
       savedTitle
     ]);
   } catch (error) {
-    console.error("Failed to save media:", error);
+    console.error(
+      "Failed to save media:",
+      error
+    );
   }
 }}
     />
