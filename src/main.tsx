@@ -407,6 +407,46 @@ const [scheduled, setScheduled] = useState<Scheduled[]>([]);
 const [heroSettings, setHeroSettings] =
   useState<HeroSettings>(initialHero);
 
+  useEffect(() => {
+  async function loadHeroSettings() {
+    try {
+      const response =
+        await fetch(
+          "/api/hero-settings"
+        );
+
+      if (!response.ok) {
+        throw new Error(
+          "Failed to load hero settings"
+        );
+      }
+
+      const data =
+        await response.json();
+
+      setHeroSettings({
+        titleId:
+          data.library_item_id ??
+          null,
+        positionX:
+          Number(
+            data.position_x ?? 50
+          ),
+        positionY:
+          Number(
+            data.position_y ?? 50
+          )
+      });
+    } catch (error) {
+      console.error(
+        "Failed to load hero settings:",
+        error
+      );
+    }
+  }
+
+  loadHeroSettings();
+}, []);
 /* =======================================================
 AUTHENTICATION / SESSION
 ======================================================= */
@@ -2864,15 +2904,63 @@ onAdd={async title => {
             false
           )
         }
-        onSave={settings => {
-          setHeroSettings(
-            settings
-          );
+   onSave={async settings => {
+  try {
+    const sessionId =
+      localStorage.getItem(
+        "sx-session-token"
+      );
 
-          setShowHero(
-            false
-          );
-        }}
+    const response =
+      await fetch(
+        "/api/hero-settings",
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type":
+              "application/json",
+            ...(sessionId
+              ? {
+                  Authorization:
+                    `Bearer ${sessionId}`
+                }
+              : {})
+          },
+          body: JSON.stringify({
+            libraryItemId:
+              settings.titleId,
+            positionX:
+              settings.positionX,
+            positionY:
+              settings.positionY
+          })
+        }
+      );
+
+    const data =
+      await response.json();
+
+    if (!response.ok) {
+      throw new Error(
+        data?.error ||
+          "Failed to save hero settings."
+      );
+    }
+
+    setHeroSettings(
+      settings
+    );
+
+    setShowHero(
+      false
+    );
+  } catch (error) {
+    console.error(
+      "Failed to save hero settings:",
+      error
+    );
+  }
+}}
       />
     )}
 
