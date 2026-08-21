@@ -4032,6 +4032,7 @@ async function handleTestingLogin() {
 
                 <input
                   autoFocus
+                  autoComplete="current-password"
                   type={
                     showPassword
                       ? "text"
@@ -4123,6 +4124,7 @@ async function handleTestingLogin() {
     </Modal>
   );
 }
+
 /* =========================================================
 CARD
 ========================================================= */
