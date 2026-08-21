@@ -2104,38 +2104,44 @@ return ( <div className="app"> <main> <div className="login-screen"> <div classN
 
           <div className="profiles">
 
-            {orderedProfiles.map(
-              item => (
-                <div
-                  className="profile-row"
-                  key={item.id}
-                >
-
-                  <button
-                    onClick={() =>
-                      setLoginProfile(
-                        item
-                      )
-                    }
-                    style={{
-                      width:
-                        "100%"
-                    }}
+            {orderedProfiles
+              .filter(
+                item =>
+                  item.id !==
+                  "testing"
+              )
+              .map(
+                item => (
+                  <div
+                    className="profile-row"
+                    key={item.id}
                   >
 
-                    <span className="avatar">
-                      {item.avatar}
-                    </span>
+                    <button
+                      onClick={() =>
+                        setLoginProfile(
+                          item
+                        )
+                      }
+                      style={{
+                        width:
+                          "100%"
+                      }}
+                    >
 
-                    <span>
-                      {item.name}
-                    </span>
+                      <span className="avatar">
+                        {item.avatar}
+                      </span>
 
-                  </button>
+                      <span>
+                        {item.name}
+                      </span>
 
-                </div>
-              )
-            )}
+                    </button>
+
+                  </div>
+                )
+              )}
 
           </div>
 
@@ -2190,7 +2196,6 @@ return ( <div className="app"> <main> <div className="login-screen"> <div classN
 
 
 }
-
 /* =======================================================
 MAIN APP
 ======================================================= */
