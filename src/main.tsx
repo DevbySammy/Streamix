@@ -1232,6 +1232,8 @@ setMenu(false);
 }
 
 function signOut() {
+     // Remove the saved login session
+  localStorage.removeItem("sx-session-token");
 setProfileId(null);
 setViewingAs(null);
 
