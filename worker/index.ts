@@ -1078,8 +1078,8 @@ if (
         FROM profiles
         ${
           isAdmin
-            ? ""
-            : "WHERE id != 'testing'"
+            ? "WHERE deleted_at IS NULL"
+            : "WHERE deleted_at IS NULL AND id != 'testing'"
         }
         ORDER BY
           sort_order ASC,
@@ -1096,7 +1096,6 @@ if (
     result.results
   );
 }
-
 
 // ==================================================
 // PROFILES - POST
