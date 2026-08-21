@@ -2743,6 +2743,7 @@ async function discover(
       "?include_adult=false" +
       "&include_video=false" +
       "&language=en-US" +
+      "&with_original_language=en" +
       "&page=" +
       page +
       "&sort_by=" +
