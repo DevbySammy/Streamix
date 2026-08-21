@@ -2358,125 +2358,108 @@ if (
     );
   }
 
-const today =
-  new Date();
+  const today =
+    new Date();
 
-const endDate =
-  today
-    .toISOString()
-    .slice(0, 10);
+  const endDate =
+    today
+      .toISOString()
+      .slice(0, 10);
 
-const startDate =
-  new Date(today);
+  const startDate =
+    new Date(today);
 
-startDate.setDate(
-  startDate.getDate() - 30
-);
-
-const currentYear =
-  today.getFullYear();
-
-const januaryFirst =
-  new Date(
-    currentYear,
-    0,
-    1
+  startDate.setDate(
+    startDate.getDate() - 30
   );
 
-const effectiveStart =
-  startDate < januaryFirst
-    ? januaryFirst
-    : startDate;
+  const currentYear =
+    today.getFullYear();
 
-const start =
-  effectiveStart
-    .toISOString()
-    .slice(0, 10);
+  const januaryFirst =
+    new Date(
+      currentYear,
+      0,
+      1
+    );
 
-const fetchTMDB =
-  async (
+  const effectiveStart =
+    startDate < januaryFirst
+      ? januaryFirst
+      : startDate;
+
+  const startDateString =
+    effectiveStart
+      .toISOString()
+      .slice(0, 10);
+
+  async function discover(
     type: "movie" | "tv"
-  ) => {
-    const dateField =
+  ) {
+    const dateFilter =
       type === "movie"
         ? "primary_release_date"
         : "first_air_date";
 
-    const allResults: any[] = [];
+    const tmdbUrl =
+      "https://api.themoviedb.org/3/discover/" +
+      type +
+      "?include_adult=false" +
+      "&include_video=false" +
+      "&language=en-US" +
+      "&page=1" +
+      "&sort_by=" +
+      dateFilter +
+      ".desc" +
+      "&" +
+      dateFilter +
+      ".gte=" +
+      startDateString +
+      "&" +
+      dateFilter +
+      ".lte=" +
+      endDate;
 
-    let page = 1;
-    let totalPages = 1;
-
-    do {
-      const tmdbUrl =
-        `https://api.themoviedb.org/3/discover/${type}` +
-        `?include_adult=false` +
-        `&include_video=false` +
-        `&language=en-US` +
-        `&page=${page}` +
-        `&sort_by=${dateField}.desc` +
-        `&${dateField}.gte=${start}` +
-        `&${dateField}.lte=${endDate}`;
-
-      const response =
-        await fetch(
-          tmdbUrl,
-          {
-            headers: {
-              Authorization:
-                "Bearer " +
-                env.TMDB_READ_ACCESS_TOKEN,
-              Accept:
-                "application/json"
-            }
+    const response =
+      await fetch(
+        tmdbUrl,
+        {
+          headers: {
+            Authorization:
+              "Bearer " +
+              env.TMDB_READ_ACCESS_TOKEN,
+            accept:
+              "application/json"
           }
-        );
+        }
+      );
 
-      const data =
-        await response.json();
+    const data =
+      await response.json();
 
-   if (!response.ok) {
-  const errorText =
-    typeof data?.status_message ===
-    "string"
-      ? data.status_message
-      : "TMDB request failed.";
+    if (!response.ok) {
+      throw new Error(
+        typeof data?.status_message ===
+        "string"
+          ? data.status_message
+          : "TMDB request failed."
+      );
+    }
 
-  throw new Error(
-    errorText
-  );
-}
-
-      if (
-        Array.isArray(
-          data.results
-        )
-      ) {
-        allResults.push(
-          ...data.results
-        );
-      }
-
-      totalPages =
-        Number(
-          data.total_pages || 1
-        );
-
-      page += 1;
-    } while (
-      page <= totalPages
-    );
-
-    return allResults;
-  };
+    return Array.isArray(
+      data.results
+    )
+      ? data.results
+      : [];
+  }
 
   try {
     const [
       movies,
       tvShows
     ] = await Promise.all([
-      fetchTMDB("movie"),
-      fetchTMDB("tv")
+      discover("movie"),
+      discover("tv")
     ]);
 
     const results = [
@@ -2495,7 +2478,7 @@ const fetchTMDB =
         })
       )
     ].sort(
-      (a, b) => {
+      (a: any, b: any) => {
         const aDate =
           a.media_type ===
           "movie"
@@ -2517,27 +2500,25 @@ const fetchTMDB =
     );
 
     return json({
-      results,
-      startDate: start,
-      endDate
+      results
     });
-    } catch (error) {
-      console.error(
-        "TMDB JUST ADDED ERROR:",
-        error
-      );
+  } catch (error) {
+    console.error(
+      "TMDB JUST ADDED ERROR:",
+      error
+    );
 
-      return json(
-        {
-          error:
-            error instanceof Error
-              ? error.message
-              : "Unable to load Just Added titles.",
-          results: []
-        },
-        500
-      );
-    }
+    return json(
+      {
+        error:
+          error instanceof Error
+            ? error.message
+            : "Unable to load Just Added titles.",
+        results: []
+      },
+      500
+    );
+  }
 }
 
   
