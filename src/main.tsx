@@ -386,9 +386,9 @@ if (hiddenResponse.ok) {
   const hiddenData =
     await hiddenResponse.json();
 
-  if (Array.isArray(hiddenData)) {
-    setHiddenJustAdded(hiddenData);
-  }
+if (Array.isArray(hiddenData.results)) {
+  setHiddenJustAdded(hiddenData.results);
+}
 }
     } catch (error) {
       console.error(
