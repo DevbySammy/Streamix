@@ -3574,6 +3574,7 @@ function Card({
 t,
 st,
 isAdmin,
+hiddenJustAdded,
 onWatch,
 onList,
 onRewatch,
@@ -3630,11 +3631,11 @@ return ( <article className="card">
         : "TV"}
     </span>
 
-     {isAdmin && (
+{isAdmin && (
   <button
     type="button"
     className="remove"
-onClick={event => {
+    onClick={event => {
       event.preventDefault();
       event.stopPropagation();
       onRemove();
