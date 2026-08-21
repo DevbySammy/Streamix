@@ -201,10 +201,23 @@ const url =
   encodeURIComponent(cleanQuery) +
   "&type=multi";
 
-const response = await fetch(url);
+const sessionId =
+  localStorage.getItem("sx-session-token");
+
+const response = await fetch(
+  url,
+  {
+    headers: sessionId
+      ? {
+          Authorization:
+            `Bearer ${sessionId}`
+        }
+      : {}
+  }
+);
 
 if (!response.ok) {
-throw new Error("TMDB search failed");
+  throw new Error("TMDB search failed");
 }
 
 const data = await response.json();
