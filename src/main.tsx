@@ -387,7 +387,56 @@ if (hiddenResponse.ok) {
     await hiddenResponse.json();
 
 if (Array.isArray(hiddenData.results)) {
-  setHiddenJustAdded(hiddenData.results);
+  const hiddenTitles: Title[] =
+    hiddenData.results.map(
+      (item: any): Title => {
+        const kind: Kind =
+          item.media_type === "tv"
+            ? "tv"
+            : "movie";
+
+        const releaseDate =
+          kind === "movie"
+            ? item.release_date
+            : item.first_air_date;
+
+        return {
+          id:
+            "tmdb-" +
+            kind +
+            "-" +
+            String(item.id),
+
+          name:
+            kind === "movie"
+              ? item.title || "Untitled"
+              : item.name || "Untitled",
+
+          kind,
+
+          year:
+            releaseDate
+              ? Number(
+                  String(releaseDate).slice(0, 4)
+                )
+              : 0,
+
+          poster:
+            getPosterUrl(item.poster_path),
+
+          backdrop:
+            getBackdropUrl(item.backdrop_path),
+
+          overview:
+            item.overview || "",
+
+          addedAt:
+            item.hidden_at || ""
+        };
+      }
+    );
+
+  setHiddenJustAdded(hiddenTitles);
 }
 }
     } catch (error) {
