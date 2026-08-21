@@ -2592,7 +2592,7 @@ const start =
                 env.TMDB_READ_ACCESS_TOKEN,
               Accept:
                 "application/json"
-            }
+            } 
           }
         );
 
