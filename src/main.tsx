@@ -3680,14 +3680,16 @@ function ProfileLogin({
         adminSession
       );
 
-      const response = await fetch(
-        "https://streamix.gaintrainstrong.workers.dev/api/auth/login",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type":
-              "application/json"
-          },
+  const response = await fetch(
+  "https://streamix.gaintrainstrong.workers.dev/api/auth/login",
+  {
+    method: "POST",
+    headers: {
+      "Content-Type":
+        "application/json",
+      Authorization:
+        `Bearer ${adminSession}`
+    },
           body: JSON.stringify({
             profileId: "testing"
           })
