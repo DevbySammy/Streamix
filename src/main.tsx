@@ -292,283 +292,351 @@ APP
 ========================================================= */
 
 function App() {
-const [library, setLibrary] = useState<Title[]>([]);
- const [
-  justAdded,
-  setJustAdded
-] = useState<Title[]>([]);
+  const [library, setLibrary] = useState<Title[]>([]);
 
-const [
-  hiddenJustAdded,
-  setHiddenJustAdded
-] = useState<Title[]>([]);
+  const [
+    justAdded,
+    setJustAdded
+  ] = useState<Title[]>([]);
 
-const [
-  justAddedView,
-  setJustAddedView
-] = useState<
-  "visible" | "hidden"
->("visible");
-  
- useEffect(() => {
-  async function loadLibrary() {
-    try {
-      const response =
-        await fetch("/api/library");
+  const [
+    hiddenJustAdded,
+    setHiddenJustAdded
+  ] = useState<Title[]>([]);
 
-      if (!response.ok) {
-        throw new Error(
-          "Failed to load library"
-        );
-      }
+  const [
+    justAddedView,
+    setJustAddedView
+  ] = useState<
+    "visible" | "hidden"
+  >("visible");
 
-      const data =
-        await response.json();
+  useEffect(() => {
+    async function loadLibrary() {
+      try {
+        const response =
+          await fetch("/api/library");
 
-      const titles: Title[] =
-        Array.isArray(data)
-          ? data.map(
-              (item: any): Title => {
-                const kind: Kind =
-                  item.media_type === "tv"
-                    ? "tv"
-                    : "movie";
+        if (!response.ok) {
+          throw new Error(
+            "Failed to load library"
+          );
+        }
 
-                const releaseDate =
-                  item.release_date || "";
+        const data =
+          await response.json();
 
-                return {
-                  id:
-                    item.id ||
-                    (
+        const titles: Title[] =
+          Array.isArray(data)
+            ? data.map(
+                (item: any): Title => {
+                  const kind: Kind =
+                    item.media_type === "tv"
+                      ? "tv"
+                      : "movie";
+
+                  const releaseDate =
+                    item.release_date || "";
+
+                  return {
+                    id:
+                      item.id ||
+                      (
+                        "tmdb-" +
+                        kind +
+                        "-" +
+                        String(
+                          item.tmdb_id
+                        )
+                      ),
+
+                    name:
+                      item.title ||
+                      "Untitled",
+
+                    kind,
+
+                    year:
+                      releaseDate
+                        ? Number(
+                            String(
+                              releaseDate
+                            ).slice(0, 4)
+                          )
+                        : 0,
+
+                    poster:
+                      getPosterUrl(
+                        item.poster_path
+                      ),
+
+                    backdrop:
+                      getBackdropUrl(
+                        item.backdrop_path
+                      ),
+
+                    overview:
+                      item.overview || "",
+
+                    addedAt:
+                      item.created_at || ""
+                  };
+                }
+              )
+            : [];
+
+        setLibrary(titles);
+
+        /* =================================================
+        LOAD HIDDEN JUST ADDED
+        ================================================= */
+
+        const sessionId =
+          localStorage.getItem(
+            "sx-session-token"
+          );
+
+        const hiddenResponse =
+          await fetch(
+            "https://streamix.gaintrainstrong.workers.dev/api/tmdb/just-added/hidden",
+            {
+              headers: sessionId
+                ? {
+                    Authorization:
+                      `Bearer ${sessionId}`
+                  }
+                : {}
+            }
+          );
+
+        if (hiddenResponse.ok) {
+          const hiddenData =
+            await hiddenResponse.json();
+
+          if (
+            Array.isArray(
+              hiddenData.results
+            )
+          ) {
+            const hiddenTitles: Title[] =
+              hiddenData.results.map(
+                (item: any): Title => {
+                  const kind: Kind =
+                    item.media_type === "tv"
+                      ? "tv"
+                      : "movie";
+
+                  const releaseDate =
+                    kind === "movie"
+                      ? item.release_date
+                      : item.first_air_date;
+
+                  return {
+                    id:
                       "tmdb-" +
                       kind +
                       "-" +
-                      String(
-                        item.tmdb_id
-                      )
-                    ),
-                  name:
-                    item.title ||
-                    "Untitled",
-                  kind,
-                  year:
-                    releaseDate
-                      ? Number(
-                          String(
-                            releaseDate
-                          ).slice(0, 4)
-                        )
-                      : 0,
-                  poster:
-                    getPosterUrl(
-                      item.poster_path
-                    ),
-                  backdrop:
-                    getBackdropUrl(
-                      item.backdrop_path
-                    ),
-                  overview:
-                    item.overview || "",
-                  addedAt:
-                    item.created_at || ""
-                };
-              }
-            )
-          : [];
+                      String(item.id),
 
-      setLibrary(titles);
-     const sessionId =
-  localStorage.getItem(
-    "sx-session-token"
-  );
+                    name:
+                      kind === "movie"
+                        ? item.title ||
+                          "Untitled"
+                        : item.name ||
+                          "Untitled",
 
-const hiddenResponse = await fetch(
-  "https://streamix.gaintrainstrong.workers.dev/api/tmdb/just-added/hidden",
-  {
-    headers: sessionId
-      ? {
-          Authorization:
-            `Bearer ${sessionId}`
+                    kind,
+
+                    year:
+                      releaseDate
+                        ? Number(
+                            String(
+                              releaseDate
+                            ).slice(0, 4)
+                          )
+                        : 0,
+
+                    poster:
+                      getPosterUrl(
+                        item.poster_path
+                      ),
+
+                    backdrop:
+                      getBackdropUrl(
+                        item.backdrop_path
+                      ),
+
+                    overview:
+                      item.overview || "",
+
+                    addedAt:
+                      item.hidden_at || ""
+                  };
+                }
+              );
+
+            setHiddenJustAdded(
+              hiddenTitles
+            );
+          }
         }
-      : {}
-  }
-);
-
-if (hiddenResponse.ok) {
-  const hiddenData =
-    await hiddenResponse.json();
-
-if (Array.isArray(hiddenData.results)) {
-  const hiddenTitles: Title[] =
-    hiddenData.results.map(
-      (item: any): Title => {
-        const kind: Kind =
-          item.media_type === "tv"
-            ? "tv"
-            : "movie";
-
-        const releaseDate =
-          kind === "movie"
-            ? item.release_date
-            : item.first_air_date;
-
-        return {
-          id:
-            "tmdb-" +
-            kind +
-            "-" +
-            String(item.id),
-
-          name:
-            kind === "movie"
-              ? item.title || "Untitled"
-              : item.name || "Untitled",
-
-          kind,
-
-          year:
-            releaseDate
-              ? Number(
-                  String(releaseDate).slice(0, 4)
-                )
-              : 0,
-
-          poster:
-            getPosterUrl(item.poster_path),
-
-          backdrop:
-            getBackdropUrl(item.backdrop_path),
-
-          overview:
-            item.overview || "",
-
-          addedAt:
-            item.hidden_at || ""
-        };
+      } catch (error) {
+        console.error(
+          "Failed to load library:",
+          error
+        );
       }
+    }
+
+    loadLibrary();
+  }, []);
+
+  const [
+    profiles,
+    setProfiles
+  ] = useState<Profile[]>([]);
+
+  const [
+    profilesLoading,
+    setProfilesLoading
+  ] = useState(true);
+
+  useEffect(() => {
+    async function loadProfiles() {
+      try {
+        const response =
+          await fetch(
+            "/api/profiles"
+          );
+
+        if (!response.ok) {
+          throw new Error(
+            "Failed to load profiles"
+          );
+        }
+
+        const data =
+          await response.json();
+
+        setProfiles(data);
+      } catch (error) {
+        console.error(
+          "Failed to load profiles:",
+          error
+        );
+      } finally {
+        setProfilesLoading(false);
+      }
+    }
+
+    loadProfiles();
+  }, []);
+
+  useEffect(() => {
+    async function restoreSession() {
+      try {
+        const response =
+          await fetch(
+            "/api/auth/session",
+            {
+              credentials:
+                "include"
+            }
+          );
+
+        if (!response.ok) {
+          return;
+        }
+
+        const data =
+          await response.json();
+
+        if (
+          data.authenticated &&
+          data.profile
+        ) {
+          setProfileId(
+            data.profile.id
+          );
+        }
+      } catch (error) {
+        console.error(
+          "Failed to restore session:",
+          error
+        );
+      }
+    }
+
+    restoreSession();
+  }, []);
+
+  const [
+    states,
+    setStates
+  ] = useState<
+    Record<string, State>
+  >({});
+
+  const [
+    reminders,
+    setReminders
+  ] = useState<Reminder[]>([]);
+
+  const [
+    scheduled,
+    setScheduled
+  ] = useState<Scheduled[]>([]);
+
+  const [
+    heroSettings,
+    setHeroSettings
+  ] =
+    useState<HeroSettings>(
+      initialHero
     );
 
-  setHiddenJustAdded(hiddenTitles);
-}
-}
-    } catch (error) {
-      console.error(
-        "Failed to load library:",
-        error
-      );
-    }
-  }
-
-  loadLibrary();
-}, []);
-const [profiles, setProfiles] = useState<Profile[]>([]);
-const [profilesLoading, setProfilesLoading] = useState(true);
   useEffect(() => {
-  async function loadProfiles() {
-    try {
-      const response = await fetch("/api/profiles");
+    async function loadHeroSettings() {
+      try {
+        const response =
+          await fetch(
+            "/api/hero-settings"
+          );
 
-      if (!response.ok) {
-        throw new Error("Failed to load profiles");
-      }
+        if (!response.ok) {
+          throw new Error(
+            "Failed to load hero settings"
+          );
+        }
 
-      const data = await response.json();
-      setProfiles(data);
-    } catch (error) {
-      console.error("Failed to load profiles:", error);
-    } finally {
-      setProfilesLoading(false);
-    }
-  }
+        const data =
+          await response.json();
 
-  loadProfiles();
-}, []);
+        setHeroSettings({
+          titleId:
+            data.library_item_id ??
+            null,
 
-   useEffect(() => {
-  async function restoreSession() {
-    try {
-     const response =
-  await fetch("/api/auth/session", {
-    credentials: "include"
-  });
+          positionX:
+            Number(
+              data.position_x ?? 50
+            ),
 
-      if (!response.ok) {
-        return;
-      }
-
-      const data =
-        await response.json();
-
-      if (
-        data.authenticated &&
-        data.profile
-      ) {
-        setProfileId(
-          data.profile.id
+          positionY:
+            Number(
+              data.position_y ?? 50
+            )
+        });
+      } catch (error) {
+        console.error(
+          "Failed to load hero settings:",
+          error
         );
       }
-    } catch (error) {
-      console.error(
-        "Failed to restore session:",
-        error
-      );
     }
-  }
 
-  restoreSession();
-}, []);
-   
-const [states, setStates] =
-  useState<Record<string, State>>({});
-
-const [reminders, setReminders] = useState<Reminder[]>([]);
-const [scheduled, setScheduled] = useState<Scheduled[]>([]);
-const [heroSettings, setHeroSettings] =
-  useState<HeroSettings>(initialHero);
-
-  useEffect(() => {
-  async function loadHeroSettings() {
-    try {
-      const response =
-        await fetch(
-          "/api/hero-settings"
-        );
-
-      if (!response.ok) {
-        throw new Error(
-          "Failed to load hero settings"
-        );
-      }
-
-      const data =
-        await response.json();
-
-      setHeroSettings({
-        titleId:
-          data.library_item_id ??
-          null,
-        positionX:
-          Number(
-            data.position_x ?? 50
-          ),
-        positionY:
-          Number(
-            data.position_y ?? 50
-          )
-      });
-    } catch (error) {
-      console.error(
-        "Failed to load hero settings:",
-        error
-      );
-    }
-  }
-
-  loadHeroSettings();
-}, []);
-
-
+    loadHeroSettings();
+  }, []);
 /* =======================================================
 AUTHENTICATION / SESSION
 ======================================================= */
