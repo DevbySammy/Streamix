@@ -2508,120 +2508,120 @@ const start =
 }
 
   
-    // ==================================================
-    // TMDB SEARCH
-    // ==================================================
+// ==================================================
+// TMDB SEARCH
+// ==================================================
 
-    if (
-      url.pathname ===
-        "/api/tmdb/search" &&
-      request.method === "GET"
-    ) {
-      const auth =
-        await requireSession();
+if (
+  url.pathname ===
+    "/api/tmdb/search" &&
+  request.method === "GET"
+) {
+  const auth =
+    await requireSession();
 
-      if (auth instanceof Response) {
-        return auth;
-      }
+  if (auth instanceof Response) {
+    return auth;
+  }
 
-      const query =
-        url.searchParams
-          .get("query")
-          ?.trim() || "";
+  const query =
+    url.searchParams
+      .get("query")
+      ?.trim() || "";
 
-      const type =
-        url.searchParams.get(
-          "type"
-        ) || "multi";
+  const type =
+    url.searchParams.get(
+      "type"
+    ) || "multi";
 
-      if (!query) {
-        return json(
-          {
-            results: []
-          },
-          400
-        );
-      }
+  if (!query) {
+    return json(
+      {
+        results: []
+      },
+      400
+    );
+  }
 
-      if (
-        !env.TMDB_READ_ACCESS_TOKEN
-      ) {
-        return json(
-          {
-            error:
-              "TMDB_READ_ACCESS_TOKEN is not configured."
-          },
-          500
-        );
-      }
-
-      const allowedTypes = [
-        "multi",
-        "movie",
-        "tv"
-      ];
-
-      if (
-        !allowedTypes.includes(
-          type
-        )
-      ) {
-        return json(
-          {
-            error:
-              "Invalid TMDB search type."
-          },
-          400
-        );
-      }
-
-      const tmdbUrl =
-        "https://api.themoviedb.org/3/search/" +
-        encodeURIComponent(type) +
-        "?query=" +
-        encodeURIComponent(query) +
-        "&include_adult=false";
-
-      const tmdbResponse =
-        await fetch(
-          tmdbUrl,
-          {
-            headers: {
-              Authorization:
-                "Bearer " +
-                env.TMDB_READ_ACCESS_TOKEN,
-              Accept:
-                "application/json"
-            } 
-          }
-        );
-
-      const data =
-        await tmdbResponse.json();
-
-      if (!tmdbResponse.ok) {
-        return json(
-          {
-            error:
-              "TMDB search failed."
-          },
-          tmdbResponse.status
-        );
-      }
-
-      return json(data);
-    }
-
-    // ==================================================
-    // NOT FOUND
-    // ==================================================
-
+  if (
+    !env.TMDB_READ_ACCESS_TOKEN
+  ) {
     return json(
       {
         error:
-          "Route not found."
+          "TMDB_READ_ACCESS_TOKEN is not configured."
       },
-      404
+      500
     );
+  }
+
+  const allowedTypes = [
+    "multi",
+    "movie",
+    "tv"
+  ];
+
+  if (
+    !allowedTypes.includes(
+      type
+    )
+  ) {
+    return json(
+      {
+        error:
+          "Invalid TMDB search type."
+      },
+      400
+    );
+  }
+
+  const tmdbUrl =
+    "https://api.themoviedb.org/3/search/" +
+    encodeURIComponent(type) +
+    "?query=" +
+    encodeURIComponent(query) +
+    "&include_adult=false";
+
+  const tmdbResponse =
+    await fetch(
+      tmdbUrl,
+      {
+        headers: {
+          Authorization:
+            "Bearer " +
+            env.TMDB_READ_ACCESS_TOKEN,
+          Accept:
+            "application/json"
+        }
+      }
+    );
+
+  const data =
+    await tmdbResponse.json();
+
+  if (!tmdbResponse.ok) {
+    return json(
+      {
+        error:
+          "TMDB search failed."
+      },
+      tmdbResponse.status
+    );
+  }
+
+  return json(data);
+}
+
+// ==================================================
+// NOT FOUND
+// ==================================================
+
+return json(
+  {
+    error:
+      "Route not found."
+  },
+  404
+);
   }
 };
