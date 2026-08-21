@@ -595,7 +595,6 @@ const response =
   }, []);
 
 useEffect(() => {
-useEffect(() => {
   async function restoreSession() {
     try {
       const sessionId =
