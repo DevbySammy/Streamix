@@ -3959,7 +3959,6 @@ return ( <article className="card">
     }}
   >
     {hiddenJustAdded ? (
-      <>
         <Eye size={16} />
           ) : (
       <EyeOff size={16} />
