@@ -1336,7 +1336,8 @@ if (
 
   await env.DB
     .prepare(`
-      DELETE FROM profiles
+      UPDATE profiles
+      SET deleted_at = CURRENT_TIMESTAMP
       WHERE id = ?
     `)
     .bind(id)
