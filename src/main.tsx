@@ -668,59 +668,6 @@ useEffect(() => {
   loadDeletedProfiles();
 }, [isAdminUser]);
 
-
-useEffect(() => {
-  async function restoreSession() {
-    try {
-      const sessionId =
-        localStorage.getItem(
-          "sx-session-token"
-        );
-
-      const response =
-        await fetch(
-          "/api/auth/session",
-          {
-            credentials:
-              "include",
-            headers: sessionId
-              ? {
-                  Authorization:
-                    `Bearer ${sessionId}`
-                }
-              : {}
-          }
-        );
-
-      if (!response.ok) {
-        return;
-      }
-
-      const data =
-        await response.json();
-
-      if (
-        data.authenticated &&
-        data.profile
-      ) {
-        setProfileId(
-          data.profile.id
-        );
-      }
-    } catch (error) {
-      console.error(
-        "Failed to restore session:",
-        error
-      );
-    } finally {
-      setSessionLoading(
-        false
-      );
-    }
-  }
-
-  restoreSession();
-}, []);
   const [
     states,
     setStates
