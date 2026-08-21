@@ -1163,23 +1163,28 @@ VALIDATE SESSION
 ======================================================= */
 
 useEffect(() => {
-if (
-profileId !== null &&
-!profiles.some(
-profile =>
-profile.id === profileId
-)
-) {
-setProfileId(null);
-setViewingAs(null);
-}
-}, [
-profileId,
-profiles,
-setProfileId,
-setViewingAs
-]);
+  if (
+    profileId === null ||
+    profilesLoading
+  ) {
+    return;
+  }
 
+  if (
+    !profiles.some(
+      profile =>
+        profile.id === profileId
+    )
+  ) {
+    setProfileId(null);
+    setViewingAs(null);
+  }
+}, [
+  profileId,
+  profiles,
+  profilesLoading
+]);
+   
 /* =======================================================
 CURRENT USER / PERMISSIONS
 ======================================================= */
