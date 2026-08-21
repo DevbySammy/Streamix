@@ -1784,6 +1784,12 @@ async function showJustAddedAgain(
       );
     }
 
+      const title =
+      hiddenJustAdded.find(
+        item =>
+          item.id === id
+      );
+     
     setHiddenJustAdded(
       current =>
         current.filter(
@@ -1791,6 +1797,26 @@ async function showJustAddedAgain(
             title.id !== id
         )
     );
+      if (title) {
+      setJustAdded(
+        current => {
+          const alreadyExists =
+            current.some(
+              item =>
+                item.id === id
+            );
+
+          if (alreadyExists) {
+            return current;
+          }
+
+          return [
+            ...current,
+            title
+          ];
+        }
+      );
+    }
   } catch (error) {
     console.error(
       "Failed to show Just Added title again:",
