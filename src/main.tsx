@@ -1436,21 +1436,79 @@ AUTHENTICATION ACTIONS
 ======================================================= */
 
 function handleLoginSuccess(
-loggedInProfileId: string
+  loggedInProfileId: string
 ) {
-setProfileId(
-loggedInProfileId
-);
+  setProfileId(
+    loggedInProfileId
+  );
 
+  setViewingAs(null);
+  setTab("library");
+  setFilter("all");
+  setKind("all");
+  setQ("");
+  setMenu(false);
+}
 
-setViewingAs(null);
-setTab("library");
-setFilter("all");
-setKind("all");
-setQ("");
-setMenu(false);
+async function handleTestingLogin() {
+  try {
+    const adminSession =
+      localStorage.getItem(
+        "sx-session-token"
+      );
 
+    if (!adminSession) {
+      return;
+    }
 
+    localStorage.setItem(
+      "sx-admin-session-token",
+      adminSession
+    );
+
+    const response = await fetch(
+      "https://streamix.gaintrainstrong.workers.dev/api/auth/login",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type":
+            "application/json",
+          Authorization:
+            `Bearer ${adminSession}`
+        },
+        body: JSON.stringify({
+          profileId: "testing"
+        })
+      }
+    );
+
+    const data =
+      await response.json();
+
+    if (!response.ok) {
+      console.error(
+        "Unable to enter TESTING mode:",
+        data?.error
+      );
+      return;
+    }
+
+    if (data.sessionId) {
+      localStorage.setItem(
+        "sx-session-token",
+        data.sessionId
+      );
+    }
+
+    handleLoginSuccess(
+      "testing"
+    );
+  } catch (error) {
+    console.error(
+      "Unable to enter TESTING mode:",
+      error
+    );
+  }
 }
 
 function signOut() {
