@@ -488,7 +488,8 @@ useState<"all" | Kind>("all");
 const [kindClicked, setKindClicked] =
 useState(false);
 
- const [sort, setSort] =
+
+const [sort, setSort] =
   useState<SortOption>("name-asc");
 
 useEffect(() => {
@@ -496,34 +497,14 @@ useEffect(() => {
     return;
   }
 
-
-  // your existing loadJustAdded() code
-  // ...
-}, [sort]);
-
-useEffect(() => {
-  if (
-    sort !== "just-added" ||
-    !isAdminUser ||
-    justAddedView !== "hidden"
-  ) {
-    return;
-  }
-
-  // new loadHiddenJustAdded() code
-  // ...
-}, [
-  sort,
-  isAdminUser,
-  justAddedView
-]);
-
   async function loadJustAdded() {
     try {
       const sessionId =
         localStorage.getItem(
           "sx-session-token"
         );
+
+   
 
       const response = await fetch(
         "https://streamix.gaintrainstrong.workers.dev/api/tmdb/just-added",
