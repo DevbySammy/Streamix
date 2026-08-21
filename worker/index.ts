@@ -299,7 +299,7 @@ if (
 
     
 
-  // ==================================================
+ // ==================================================
 // AUTH - LOGIN
 // ==================================================
 
@@ -339,7 +339,8 @@ if (
             avatar,
             password_hash,
             sort_order,
-            created_at
+            created_at,
+            deleted_at
           FROM profiles
           WHERE id = ?
         `)
@@ -351,6 +352,7 @@ if (
           password_hash: string | null;
           sort_order: number;
           created_at: string;
+          deleted_at: string | null;
         }>();
 
     if (!profile) {
@@ -360,6 +362,23 @@ if (
             "Profile not found."
         },
         404
+      );
+    }
+
+    /*
+     * DELETED PROFILE
+     *
+     * Deleted profiles remain in the database
+     * so they can be restored later, but they
+     * cannot be logged into while deleted.
+     */
+    if (profile.deleted_at) {
+      return json(
+        {
+          error:
+            "This profile has been deleted."
+        },
+        403
       );
     }
 
