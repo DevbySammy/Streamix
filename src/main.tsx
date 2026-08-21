@@ -2309,30 +2309,56 @@ return ( <div className="app">
       adminOverride={
         isAdminUser
       }
-      onChangePassword={
-        password => {
-          if (
-            editing.id ===
-            "new"
-          ) {
-            return;
-          }
+   onChangePassword={async password => {
+  if (editing.id === "new") {
+    return;
+  }
 
-          setProfiles(
-            current =>
-              current.map(
-                item =>
-                  item.id ===
-                  editing.id
-                    ? {
-                        ...item,
-                        password
-                      }
-                    : item
-              )
-          );
-        }
+  if (!isAdminUser) {
+    throw new Error(
+      "Only Admin can reset a profile password."
+    );
+  }
+
+  const sessionId =
+    localStorage.getItem(
+      "sx-session-token"
+    );
+
+  const response =
+    await fetch(
+      "https://streamix.gaintrainstrong.workers.dev/api/auth/admin-reset-password",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type":
+            "application/json",
+          ...(sessionId
+            ? {
+                Authorization:
+                  `Bearer ${sessionId}`
+              }
+            : {})
+        },
+        body: JSON.stringify({
+          profileId:
+            editing.id,
+          newPassword:
+            password
+        })
       }
+    );
+
+  const data =
+    await response.json();
+
+  if (!response.ok) {
+    throw new Error(
+      data?.error ||
+        "Unable to reset password."
+    );
+  }
+}}
       onDelete={
         editing.id ===
         "new"
@@ -3258,7 +3284,7 @@ onDelete?: () => void;
 adminOverride?: boolean;
 onChangePassword?: (
 password: string
-) => void;
+) => Promise<void>;
 }) {
 const [name, setName] =
 useState(
@@ -3311,7 +3337,7 @@ const avatars = [
 "🔥"
 ];
 
-function handlePasswordChange() {
+async function handlePasswordChange() {
   if (!profile) {
     return;
   }
@@ -3324,27 +3350,38 @@ function handlePasswordChange() {
     return;
   }
 
-  onChangePassword?.(
-    newPassword
-  );
+  try {
+    await onChangePassword?.(
+      newPassword
+    );
 
-  setCurrentPassword("");
-  setNewPassword("");
-  setPasswordError("");
-  setShowPasswordSection(
-    false
-  );
-  setShowCurrentPassword(
-    false
-  );
-  setShowNewPassword(
-    false
-  );
+    setCurrentPassword("");
+    setNewPassword("");
+    setPasswordError("");
+    setShowPasswordSection(
+      false
+    );
+    setShowCurrentPassword(
+      false
+    );
+    setShowNewPassword(
+      false
+    );
 
-  alert(
-    "Password updated successfully."
-  );
+    alert(
+      adminOverride
+        ? "Password reset successfully."
+        : "Password updated successfully."
+    );
+  } catch (error) {
+    setPasswordError(
+      error instanceof Error
+        ? error.message
+        : "Unable to update password."
+    );
+  }
 }
+
   
 return (
 <Modal
