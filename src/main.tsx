@@ -3680,7 +3680,7 @@ return ( <Modal
 
 
   <p className="muted">
-    Search TMDB for movies
+    Search for movies
     and TV shows.
   </p>
 
