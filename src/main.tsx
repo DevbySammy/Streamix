@@ -3630,6 +3630,10 @@ return ( <article className="card">
         : "TV"}
     </span>
 
+     {isAdmin && (
+  <button
+    type="button"
+    className="remove"
 onClick={event => {
       event.preventDefault();
       event.stopPropagation();
