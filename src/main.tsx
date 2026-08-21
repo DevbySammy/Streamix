@@ -3935,9 +3935,7 @@ return ( <article className="card">
     {hiddenJustAdded ? (
       <>
         <Eye size={16} />
-        <span>Show Again</span>
-      </>
-    ) : (
+          ) : (
       <EyeOff size={16} />
     )}
   </button>
