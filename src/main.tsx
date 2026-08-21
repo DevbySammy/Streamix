@@ -551,11 +551,6 @@ if (hiddenResponse.ok) {
     setProfilesLoading
   ] = useState(true);
  
-   const [
-  sessionLoading,
-  setSessionLoading
-] = useState(true);
-
   useEffect(() => {
     async function loadProfiles() {
       try {
@@ -600,14 +595,26 @@ const response =
   }, []);
 
 useEffect(() => {
+useEffect(() => {
   async function restoreSession() {
     try {
+      const sessionId =
+        localStorage.getItem(
+          "sx-session-token"
+        );
+
       const response =
         await fetch(
           "/api/auth/session",
           {
             credentials:
-              "include"
+              "include",
+            headers: sessionId
+              ? {
+                  Authorization:
+                    `Bearer ${sessionId}`
+                }
+              : {}
           }
         );
 
@@ -640,7 +647,6 @@ useEffect(() => {
 
   restoreSession();
 }, []);
-
   const [
     states,
     setStates
