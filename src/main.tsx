@@ -2742,14 +2742,15 @@ setProfileId(
 
     {sort === "just-added" &&
       visible.length < justAdded.length && (
-        <button
-          type="button"
-          onClick={() =>
-            setJustAddedLimit(
-              current => current + 30
-            )
-          }
-        >
+<button
+  type="button"
+  className="show-more-button"
+  onClick={() =>
+    setJustAddedLimit(
+      current => current + 30
+    )
+  }
+>
           Show more
         </button>
       )}
