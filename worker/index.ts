@@ -914,6 +914,44 @@ if (
       });
     }
 
+
+// ==================================================
+// AUTH - RESTORE SESSION
+// ==================================================
+
+if (
+  url.pathname === "/api/auth/session" &&
+  request.method === "GET"
+) {
+  const auth = await requireSession();
+
+  if (auth instanceof Response) {
+    return auth;
+  }
+
+  const profile = await getProfile(
+    auth.profileId
+  );
+
+  if (!profile) {
+    return json(
+      {
+        authenticated: false
+      },
+      401
+    );
+  }
+
+  return json({
+    authenticated: true,
+    profile: {
+      id: profile.id,
+      name: profile.name,
+      avatar: profile.avatar
+    }
+  });
+}
+
     // ==================================================
     // AUTH - LOGOUT
     // ==================================================
