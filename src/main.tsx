@@ -2784,7 +2784,8 @@ setProfileId(
       </Modal>
     )}
 
- /* PROFILES */
+{/* PROFILES */}
+
 
 {showProfile && (
   <Modal
