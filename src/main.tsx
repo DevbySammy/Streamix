@@ -2424,97 +2424,89 @@ return ( <div className="app">
 
     </div>
 
-    {/* LIBRARY CONTROLS */}
+  {/* LIBRARY CONTROLS */}
 
-    {tab === "library" && (
-      <>
+{tab === "library" && (
+  <>
 
-        <div className="toolbar">
+    <div className="toolbar">
 
-          {!isAdmin && (
-            <div className="filters">
+      {!isAdmin && (
+        <div
+          className="filters"
+          style={{
+            display: "flex",
+            flexWrap: "nowrap",
+            alignItems: "center",
+            flexShrink: 0
+          }}
+        >
 
-              <button
-                className={
-                  filter ===
-                    "all" &&
-                  filterClicked
-                    ? "selected"
-                    : ""
-                }
-                onClick={() => {
-                  setFilter(
-                    "all"
-                  );
-                  setFilterClicked(
-                    true
-                  );
-                }}
-              >
-                All
-              </button>
+          <button
+            className={
+              filter === "all" &&
+              filterClicked
+                ? "selected"
+                : ""
+            }
+            onClick={() => {
+              setFilter("all");
+              setFilterClicked(true);
+            }}
+          >
+            All
+          </button>
 
-              <button
-                className={
-                  filter ===
-                  "watchlist"
-                    ? "selected"
-                    : ""
-                }
-                onClick={() => {
-                  setFilter(
-                    "watchlist"
-                  );
-                  setFilterClicked(
-                    true
-                  );
-                }}
-              >
-                Watchlist
-              </button>
+          <button
+            className={
+              filter === "watchlist"
+                ? "selected"
+                : ""
+            }
+            onClick={() => {
+              setFilter("watchlist");
+              setFilterClicked(true);
+            }}
+          >
+            Watchlist
+          </button>
 
-              <button
-                className={
-                  filter ===
-                  "watched"
-                    ? "selected"
-                    : ""
-                }
-                onClick={() => {
-                  setFilter(
-                    "watched"
-                  );
-                  setFilterClicked(
-                    true
-                  );
-                }}
-              >
-                Watched
-              </button>
-
-            </div>
-          )}
-
-          <div className="search">
-
-            <Search
-              size={18}
-            />
-
-            <input
-              value={q}
-              onChange={event =>
-                setQ(
-                  event.target
-                    .value
-                )
-              }
-              placeholder="Search library"
-            />
-
-          </div>
+          <button
+            className={
+              filter === "watched"
+                ? "selected"
+                : ""
+            }
+            onClick={() => {
+              setFilter("watched");
+              setFilterClicked(true);
+            }}
+          >
+            Watched
+          </button>
 
         </div>
+      )}
+
+      <div className="search">
+
+        <Search
+          size={18}
+        />
+
+        <input
+          value={q}
+          onChange={event =>
+            setQ(
+              event.target.value
+            )
+          }
+          placeholder="Search library"
+        />
+
+      </div>
+
+    </div>
 
         {/* FORMAT + SORT */}
 
