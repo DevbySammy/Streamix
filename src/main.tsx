@@ -996,11 +996,15 @@ FILTERING + SORTING
 ======================================================= */
 
 const visible = useMemo(() => {
- ? isAdmin &&
-      justAddedView === "hidden"
-      ? hiddenJustAdded
-      : justAdded
-    : library;
+  const source =
+    sort === "just-added"
+      ? (
+          isAdmin &&
+          justAddedView === "hidden"
+            ? hiddenJustAdded
+            : justAdded
+        )
+      : library;
 
 const filtered =
 source
