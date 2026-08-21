@@ -924,9 +924,7 @@ const visible = useMemo(() => {
       );
     });
 
-  if (
-    sort !== "just-added"
-  ) {
+  if (sort !== "just-added") {
     filtered =
       filtered.filter(title => {
         if (
