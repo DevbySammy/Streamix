@@ -978,7 +978,7 @@ if (
       });
     }
 
-    // ==================================================
+// ==================================================
 // PROFILES - GET
 // ==================================================
 
@@ -986,6 +986,41 @@ if (
   url.pathname === "/api/profiles" &&
   request.method === "GET"
 ) {
+  /*
+   * Make sure the TESTING profile exists.
+   * It is intentionally created here so it is
+   * available even if it does not already exist
+   * in the database.
+   */
+  await env.DB
+    .prepare(`
+      INSERT OR IGNORE INTO profiles (
+        id,
+        name,
+        avatar,
+        sort_order
+      )
+      VALUES (
+        'testing',
+        'TESTING',
+        '🧪',
+        9998
+      )
+    `)
+    .run();
+
+  /*
+   * Check whether the current request is from Admin.
+   * Normal users are still allowed to load profiles,
+   * but they will not receive the TESTING profile.
+   */
+  const session =
+    await requireSession();
+
+  const isAdmin =
+    !(session instanceof Response) &&
+    session.profileId === "admin";
+
   const result =
     await env.DB
       .prepare(`
@@ -995,6 +1030,11 @@ if (
           avatar,
           sort_order
         FROM profiles
+        ${
+          isAdmin
+            ? ""
+            : "WHERE id != 'testing'"
+        }
         ORDER BY
           sort_order ASC,
           name ASC
@@ -1011,249 +1051,255 @@ if (
   );
 }
 
-    // ==================================================
-    // PROFILES - POST
-    // ==================================================
 
-    if (
-      url.pathname === "/api/profiles" &&
-      request.method === "POST"
-    ) {
-      const admin =
-        await requireAdmin();
+// ==================================================
+// PROFILES - POST
+// ==================================================
 
-      if (admin instanceof Response) {
-        return admin;
-      }
+if (
+  url.pathname === "/api/profiles" &&
+  request.method === "POST"
+) {
+  const admin =
+    await requireAdmin();
 
-      const body =
-        await request.json<{
-          id?: string;
-          name?: string;
-          avatar?: string;
-          sort_order?: number;
-        }>();
+  if (admin instanceof Response) {
+    return admin;
+  }
 
-      const id =
-        body.id ||
-        crypto.randomUUID();
+  const body =
+    await request.json<{
+      id?: string;
+      name?: string;
+      avatar?: string;
+      sort_order?: number;
+    }>();
 
-      const name =
-        body.name?.trim() ||
-        "New Profile";
+  const id =
+    body.id ||
+    crypto.randomUUID();
 
-      const avatar =
-        body.avatar ||
-        "🙂";
+  const name =
+    body.name?.trim() ||
+    "New Profile";
 
-      const sortOrder =
-        typeof body.sort_order ===
-        "number"
-          ? body.sort_order
-          : 9999;
+  const avatar =
+    body.avatar ||
+    "🙂";
 
-      await env.DB
-        .prepare(`
-          INSERT INTO profiles (
-            id,
-            name,
-            avatar,
-            sort_order
-          )
-          VALUES (?, ?, ?, ?)
-        `)
-        .bind(
+  const sortOrder =
+    typeof body.sort_order ===
+    "number"
+      ? body.sort_order
+      : 9999;
+
+  await env.DB
+    .prepare(`
+      INSERT INTO profiles (
+        id,
+        name,
+        avatar,
+        sort_order
+      )
+      VALUES (?, ?, ?, ?)
+    `)
+    .bind(
+      id,
+      name,
+      avatar,
+      sortOrder
+    )
+    .run();
+
+  const result =
+    await getProfile(id);
+
+  return json(
+    result,
+    201
+  );
+}
+
+
+// ==================================================
+// PROFILES - PUT
+// ==================================================
+
+if (
+  url.pathname === "/api/profiles" &&
+  request.method === "PUT"
+) {
+  const auth =
+    await requireSession();
+
+  if (auth instanceof Response) {
+    return auth;
+  }
+
+  const body =
+    await request.json<{
+      id: string;
+      name?: string;
+      avatar?: string;
+      sort_order?: number;
+    }>();
+
+  if (!body.id) {
+    return json(
+      {
+        error:
+          "Profile id is required."
+      },
+      400
+    );
+  }
+
+  const isAdmin =
+    auth.profileId ===
+    "admin";
+
+  if (
+    !isAdmin &&
+    body.id !==
+      auth.profileId
+  ) {
+    return json(
+      {
+        error:
+          "You can only edit your own profile."
+      },
+      403
+    );
+  }
+
+  const existing =
+    await env.DB
+      .prepare(`
+        SELECT
           id,
           name,
           avatar,
-          sortOrder
-        )
-        .run();
+          sort_order
+        FROM profiles
+        WHERE id = ?
+      `)
+      .bind(body.id)
+      .first<{
+        id: string;
+        name: string;
+        avatar: string | null;
+        sort_order: number;
+      }>();
 
-      const result =
-        await getProfile(id);
+  if (!existing) {
+    return json(
+      {
+        error:
+          "Profile not found."
+      },
+      404
+    );
+  }
 
-      return json(
-        result,
-        201
-      );
-    }
+  const name =
+    body.name !== undefined
+      ? body.name.trim()
+      : existing.name;
 
-    // ==================================================
-    // PROFILES - PUT
-    // ==================================================
+  const avatar =
+    body.avatar !== undefined
+      ? body.avatar
+      : existing.avatar;
 
-    if (
-      url.pathname === "/api/profiles" &&
-      request.method === "PUT"
-    ) {
-      const auth =
-        await requireSession();
+  /*
+   * Only Admin can change profile order.
+   */
+  const sortOrder =
+    isAdmin &&
+    body.sort_order !==
+      undefined
+      ? body.sort_order
+      : existing.sort_order;
 
-      if (auth instanceof Response) {
-        return auth;
-      }
+  await env.DB
+    .prepare(`
+      UPDATE profiles
+      SET
+        name = ?,
+        avatar = ?,
+        sort_order = ?
+      WHERE id = ?
+    `)
+    .bind(
+      name,
+      avatar,
+      sortOrder,
+      body.id
+    )
+    .run();
 
-      const body =
-        await request.json<{
-          id: string;
-          name?: string;
-          avatar?: string;
-          sort_order?: number;
-        }>();
+  const result =
+    await getProfile(
+      body.id
+    );
 
-      if (!body.id) {
-        return json(
-          {
-            error:
-              "Profile id is required."
-          },
-          400
-        );
-      }
+  return json(result);
+}
 
-      const isAdmin =
-        auth.profileId ===
-        "admin";
 
-      if (
-        !isAdmin &&
-        body.id !==
-          auth.profileId
-      ) {
-        return json(
-          {
-            error:
-              "You can only edit your own profile."
-          },
-          403
-        );
-      }
+// ==================================================
+// PROFILES - DELETE
+// ==================================================
 
-      const existing =
-        await env.DB
-          .prepare(`
-            SELECT
-              id,
-              name,
-              avatar,
-              sort_order
-            FROM profiles
-            WHERE id = ?
-          `)
-          .bind(body.id)
-          .first<{
-            id: string;
-            name: string;
-            avatar: string | null;
-            sort_order: number;
-          }>();
+if (
+  url.pathname === "/api/profiles" &&
+  request.method === "DELETE"
+) {
+  const admin =
+    await requireAdmin();
 
-      if (!existing) {
-        return json(
-          {
-            error:
-              "Profile not found."
-          },
-          404
-        );
-      }
+  if (admin instanceof Response) {
+    return admin;
+  }
 
-      const name =
-        body.name !== undefined
-          ? body.name.trim()
-          : existing.name;
+  const id =
+    url.searchParams.get("id");
 
-      const avatar =
-        body.avatar !== undefined
-          ? body.avatar
-          : existing.avatar;
+  if (!id) {
+    return json(
+      {
+        error:
+          "Profile id is required."
+      },
+      400
+    );
+  }
 
-      /*
-       * Only Admin can change profile order.
-       */
-      const sortOrder =
-        isAdmin &&
-        body.sort_order !==
-          undefined
-          ? body.sort_order
-          : existing.sort_order;
+  if (
+    id === "admin" ||
+    id === "testing"
+  ) {
+    return json(
+      {
+        error:
+          "The admin and testing profiles cannot be deleted."
+      },
+      400
+    );
+  }
 
-      await env.DB
-        .prepare(`
-          UPDATE profiles
-          SET
-            name = ?,
-            avatar = ?,
-            sort_order = ?
-          WHERE id = ?
-        `)
-        .bind(
-          name,
-          avatar,
-          sortOrder,
-          body.id
-        )
-        .run();
+  await env.DB
+    .prepare(`
+      DELETE FROM profiles
+      WHERE id = ?
+    `)
+    .bind(id)
+    .run();
 
-      const result =
-        await getProfile(
-          body.id
-        );
-
-      return json(result);
-    }
-
-    // ==================================================
-    // PROFILES - DELETE
-    // ==================================================
-
-    if (
-      url.pathname === "/api/profiles" &&
-      request.method === "DELETE"
-    ) {
-      const admin =
-        await requireAdmin();
-
-      if (admin instanceof Response) {
-        return admin;
-      }
-
-      const id =
-        url.searchParams.get("id");
-
-      if (!id) {
-        return json(
-          {
-            error:
-              "Profile id is required."
-          },
-          400
-        );
-      }
-
-      if (id === "admin") {
-        return json(
-          {
-            error:
-              "The admin profile cannot be deleted."
-          },
-          400
-        );
-      }
-
-      await env.DB
-        .prepare(`
-          DELETE FROM profiles
-          WHERE id = ?
-        `)
-        .bind(id)
-        .run();
-
-      return json({
-        success: true
-      });
-    }
+  return json({
+    success: true
+  });
+}
 
     // ==================================================
     // LIBRARY - GET
