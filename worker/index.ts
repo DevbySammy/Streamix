@@ -2726,92 +2726,105 @@ if (
       .toISOString()
       .slice(0, 10);
 
-  async function discover(
-    type: "movie" | "tv"
-  ) {
-    const dateFilter =
-      type === "movie"
-        ? "primary_release_date"
-        : "first_air_date";
+async function discover(
+  type: "movie" | "tv"
+) {
+  const dateFilter =
+    type === "movie"
+      ? "primary_release_date"
+      : "first_air_date";
 
-    const allResults: any[] = [];
+  const allResults: any[] = [];
 
-    for (
-      let page = 1;
-      page <= 5;
-      page++
-    ) {
-      const tmdbUrl =
-        "https://api.themoviedb.org/3/discover/" +
-        type +
-        "?include_adult=false" +
-        "&include_video=false" +
-        "&language=en-US" +
-        "&with_original_language=en" +
-        "&page=" +
-        page +
-        "&sort_by=" +
-        dateFilter +
-        ".desc" +
-        "&" +
-        dateFilter +
-        ".gte=" +
-        startDateString +
-        "&" +
-        dateFilter +
-        ".lte=" +
-        endDate;
+  for (let page = 1; page <= 5; page++) {
+    const tmdbUrl =
+      "https://api.themoviedb.org/3/discover/" +
+      type +
+      "?include_adult=false" +
+      "&include_video=false" +
+      "&language=en-US" +
+      "&with_original_language=en" +
+      "&page=" +
+      page +
+      "&sort_by=" +
+      dateFilter +
+      ".desc" +
+      "&" +
+      dateFilter +
+      ".gte=" +
+      startDateString +
+      "&" +
+      dateFilter +
+      ".lte=" +
+      endDate;
 
-      const response =
-        await fetch(
-          tmdbUrl,
-          {
-            headers: {
-              Authorization:
-                "Bearer " +
-                env.TMDB_READ_ACCESS_TOKEN,
-              accept:
-                "application/json"
-            }
+    const response =
+      await fetch(
+        tmdbUrl,
+        {
+          headers: {
+            Authorization:
+              "Bearer " +
+              env.TMDB_READ_ACCESS_TOKEN,
+            accept:
+              "application/json"
           }
-        );
+        }
+      );
 
-      const data =
-        await response.json();
+    const data =
+      await response.json();
 
-      if (!response.ok) {
-        throw new Error(
-          typeof data?.status_message ===
-          "string"
-            ? data.status_message
-            : "TMDB request failed."
-        );
-      }
-
-      if (
-        Array.isArray(
-          data.results
-        )
-      ) {
-        allResults.push(
-          ...data.results.filter(
-            (item: any) =>
-              item.original_language ===
-              "en"
-          )
-        );
-      }
-
-      if (
-        !data.total_pages ||
-        page >= data.total_pages
-      ) {
-        break;
-      }
+    if (!response.ok) {
+      throw new Error(
+        typeof data?.status_message ===
+        "string"
+          ? data.status_message
+          : "TMDB request failed."
+      );
     }
 
-    return allResults;
+    if (
+      Array.isArray(
+        data.results
+      )
+    ) {
+      allResults.push(
+        ...data.results.filter(
+          (item: any) => {
+            const title =
+              type === "movie"
+                ? item.title || ""
+                : item.name || "";
+
+            const isEnglishOriginal =
+              item.original_language ===
+              "en";
+
+            const hasOnlyLatinCharacters =
+              /^[\x00-\x7F]*$/.test(
+                title
+              );
+
+            return (
+              isEnglishOriginal &&
+              hasOnlyLatinCharacters
+            );
+          }
+        )
+      );
+    }
+
+    if (
+      !data.total_pages ||
+      page >= data.total_pages
+    ) {
+      break;
+    }
   }
+
+  return allResults;
+}
 
   try {
     const [
