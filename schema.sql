@@ -12,9 +12,9 @@ CREATE TABLE IF NOT EXISTS profiles (
   id TEXT PRIMARY KEY,
   name TEXT NOT NULL,
   avatar TEXT,
-  password_hash TEXT,
   sort_order INTEGER NOT NULL DEFAULT 9999,
-  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  deleted_at TEXT
 );
 
 CREATE INDEX IF NOT EXISTS idx_profiles_sort_order
