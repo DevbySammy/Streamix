@@ -2529,7 +2529,21 @@ if (
       discover("tv")
     ]);
 
-   const hidden =
+await env.DB
+  .prepare(`
+    CREATE TABLE IF NOT EXISTS just_added_hidden (
+      tmdb_id INTEGER NOT NULL,
+      media_type TEXT NOT NULL,
+      hidden_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      PRIMARY KEY (
+        tmdb_id,
+        media_type
+      )
+    )
+  `)
+  .run();
+
+const hidden =
   await env.DB
     .prepare(`
       SELECT
@@ -2541,7 +2555,6 @@ if (
       tmdb_id: number;
       media_type: "movie" | "tv";
     }>();
-
 const hiddenKeys =
   new Set(
     hidden.results.map(
