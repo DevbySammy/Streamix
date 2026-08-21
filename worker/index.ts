@@ -2572,7 +2572,7 @@ const results = [
       `${item.media_type}-${item.id}`
     )
 )
-.sort(
+.sort( 
   (a, b) => {
     const aDate =
       a.media_type ===
