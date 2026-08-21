@@ -2868,41 +2868,67 @@ setProfileId(
                       return;
                     }
 
-                    if (
-                      isAdminUser
-                    ) {
-                      if (
-                        item.id ===
-                        "admin"
-                      ) {
-                        setViewingAs(
-                          null
-                        );
+                 if (
+  profileId === "testing" &&
+  item.id === "admin"
+) {
+  const adminSession =
+    localStorage.getItem(
+      "sx-admin-session-token"
+    );
 
-                        setProfileId(
-                          "admin"
-                        );
-                      } else {
-                        setViewingAs(
-                          item.id
-                        );
+  if (adminSession) {
+    localStorage.setItem(
+      "sx-session-token",
+      adminSession
+    );
 
-                        localStorage.setItem(
-                          "sx-viewing-as",
-                          item.id
-                        );
+    localStorage.removeItem(
+      "sx-admin-session-token"
+    );
 
-                        setProfileId(
-                          "admin"
-                        );
-                      }
+    setProfileId("admin");
+    setViewingAs(null);
+    setShowProfile(false);
 
-                      setShowProfile(
-                        false
-                      );
+    return;
+  }
+}
 
-                      return;
-                    }
+if (
+  isAdminUser
+) {
+  if (
+    item.id ===
+    "admin"
+  ) {
+    setViewingAs(
+      null
+    );
+    setProfileId(
+      "admin"
+    );
+  } else {
+    setViewingAs(
+      item.id
+    );
+
+    localStorage.setItem(
+      "sx-viewing-as",
+      item.id
+    );
+
+    setProfileId(
+      "admin"
+    );
+  }
+
+  setShowProfile(
+    false
+  );
+
+  return;
+}
 
                     setLoginProfile(
                       item
@@ -3632,34 +3658,66 @@ function ProfileLogin({
     }
   }
 
-  async function handleTestingLogin() {
+async function handleTestingLogin() {
   try {
-    const sessionId =
+    const adminSession =
       localStorage.getItem(
         "sx-session-token"
       );
 
-    const response =
-      await fetch(
-        "https://streamix.gaintrainstrong.workers.dev/api/auth/login",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type":
-              "application/json",
-            ...(sessionId
-              ? {
-                  Authorization:
-                    `Bearer ${sessionId}`
-                }
-              : {})
-          },
-          body: JSON.stringify({
-            profileId:
-              "testing"
-          })
-        }
+    if (!adminSession) {
+      throw new Error(
+        "Admin session could not be found."
       );
+    }
+
+    // Save the Admin session before
+    // switching into TESTING mode.
+    localStorage.setItem(
+      "sx-admin-session-token",
+      adminSession
+    );
+
+    const response = await fetch(
+      "https://streamix.gaintrainstrong.workers.dev/api/auth/login",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type":
+            "application/json"
+        },
+        body: JSON.stringify({
+          profileId: "testing"
+        })
+      }
+    );
+
+    const data =
+      await response.json();
+
+    if (!response.ok) {
+      throw new Error(
+        data?.error ||
+          "Unable to enter TESTING mode."
+      );
+    }
+
+    if (data.sessionId) {
+      localStorage.setItem(
+        "sx-session-token",
+        data.sessionId
+      );
+    }
+
+    onSuccess();
+  } catch (error) {
+    setError(
+      error instanceof Error
+        ? error.message
+        : "Unable to enter TESTING mode."
+    );
+  }
+}
 
     const data =
       await response.json();
