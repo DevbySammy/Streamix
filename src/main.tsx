@@ -413,7 +413,12 @@ function App() {
   hiddenResponse.status
 );
 
-        if (hiddenResponse.ok) {
+console.log(
+  "HIDDEN RESPONSE BODY:",
+  await hiddenResponse.clone().text()
+);
+
+if (hiddenResponse.ok) {
           const hiddenData =
             await hiddenResponse.json();
 
