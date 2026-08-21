@@ -288,7 +288,7 @@ header {
   justify-content: center;
   gap: 6px;
   padding: 8px 13px;
-  border-radius: 9px;
+  border-radius: 15px;
   background: #171719;
   border: 1px solid #28282c;
   color: #aaa;
@@ -297,7 +297,7 @@ header {
 
 .filters button.selected,
 .format button.selected {
-  border-color: #ff4f9a;
+  border-color: #ff3d8d;
   color: #fff;
 }
 
@@ -309,8 +309,8 @@ header {
   gap: 9px;
   padding: 0 13px;
   background: #171719;
-  border: 1px solid #29292d;
-  border-radius: 10px;
+  border: 1px solid #ff3d8d;
+  border-radius: 15px;
   color: #777;
 }
 
@@ -338,7 +338,7 @@ header {
 .sort-select {
   min-height: 40px;
   padding: 8px 32px 8px 11px;
-  border-radius: 9px;
+  border-radius: 15px;
   border: 1px solid #28282c;
   background: #171719;
   color: #ccc;
