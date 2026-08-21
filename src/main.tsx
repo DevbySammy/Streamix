@@ -298,6 +298,18 @@ const [library, setLibrary] = useState<Title[]>([]);
   setJustAdded
 ] = useState<Title[]>([]);
 
+const [
+  hiddenJustAdded,
+  setHiddenJustAdded
+] = useState<Title[]>([]);
+
+const [
+  justAddedView,
+  setJustAddedView
+] = useState<
+  "visible" | "hidden"
+>("visible");
+  
  useEffect(() => {
   async function loadLibrary() {
     try {
@@ -483,6 +495,28 @@ useEffect(() => {
   if (sort !== "just-added") {
     return;
   }
+
+
+  // your existing loadJustAdded() code
+  // ...
+}, [sort]);
+
+useEffect(() => {
+  if (
+    sort !== "just-added" ||
+    !isAdminUser ||
+    justAddedView !== "hidden"
+  ) {
+    return;
+  }
+
+  // new loadHiddenJustAdded() code
+  // ...
+}, [
+  sort,
+  isAdminUser,
+  justAddedView
+]);
 
   async function loadJustAdded() {
     try {
@@ -981,9 +1015,10 @@ FILTERING + SORTING
 ======================================================= */
 
 const visible = useMemo(() => {
-const source =
-  sort === "just-added"
-    ? justAdded
+ ? isAdmin &&
+      justAddedView === "hidden"
+      ? hiddenJustAdded
+      : justAdded
     : library;
 
 const filtered =
@@ -1069,14 +1104,16 @@ return [...filtered].sort(
 
 
 }, [
-library,
-justAdded,
-q,
-kind,
-tab,
-filter,
-sort,
-state
+  library,
+  justAdded,
+  hiddenJustAdded,
+  q,
+  kind,
+  tab,
+  filter,
+  sort,
+  justAddedView,
+  state
 ]);
 
 /* =======================================================
@@ -1431,6 +1468,78 @@ setHeroSettings(current => {
 
 }
 
+async function showJustAddedAgain(
+  id: string
+) {
+  const sessionId =
+    localStorage.getItem(
+      "sx-session-token"
+    );
+
+  const parts =
+    id.split("-");
+
+  const mediaType =
+    parts[1] === "tv"
+      ? "tv"
+      : "movie";
+
+  const tmdbId =
+    Number(
+      parts.slice(2).join("-")
+    );
+
+  if (!Number.isFinite(tmdbId)) {
+    return;
+  }
+
+  try {
+    const response =
+      await fetch(
+        "https://streamix.gaintrainstrong.workers.dev/api/tmdb/just-added/show",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type":
+              "application/json",
+            ...(sessionId
+              ? {
+                  Authorization:
+                    `Bearer ${sessionId}`
+                }
+              : {})
+          },
+          body: JSON.stringify({
+            tmdbId,
+            mediaType
+          })
+        }
+      );
+
+    const data =
+      await response.json();
+
+    if (!response.ok) {
+      throw new Error(
+        data?.error ||
+          "Unable to show this title again."
+      );
+    }
+
+    setHiddenJustAdded(
+      current =>
+        current.filter(
+          title =>
+            title.id !== id
+        )
+    );
+  } catch (error) {
+    console.error(
+      "Failed to show Just Added title again:",
+      error
+    );
+  }
+}
 /* =======================================================
 PROFILE MANAGEMENT
 ======================================================= */
@@ -2122,6 +2231,30 @@ return ( <div className="app">
             TV
           </button>
 
+          {isAdmin &&
+  sort === "just-added" && (
+    <button
+      type="button"
+      className={
+        justAddedView === "hidden"
+          ? "selected"
+          : ""
+      }
+      onClick={() =>
+        setJustAddedView(
+          current =>
+            current === "visible"
+              ? "hidden"
+              : "visible"
+        )
+      }
+    >
+      {justAddedView === "hidden"
+        ? "Back to Just Added"
+        : "View Hidden"}
+    </button>
+  )}
+          
           <select
             className="sort-select"
             value={sort}
@@ -2172,6 +2305,11 @@ return ( <div className="app">
             t={title}
             st={state}
             isAdmin={isAdmin}
+            hiddenJustAdded={
+  isAdmin &&
+  sort === "just-added" &&
+  justAddedView === "hidden"
+}
             onWatch={() =>
               toggle(
                 "watched",
@@ -2190,11 +2328,15 @@ return ( <div className="app">
                 title.id
               )
             }
-         onRemove={() =>
+        onRemove={() =>
   sort === "just-added"
-    ? hideJustAddedTitle(
-        title.id
-      )
+    ? justAddedView === "hidden"
+      ? showJustAddedAgain(
+          title.id
+        )
+      : hideJustAddedTitle(
+          title.id
+        )
     : removeTitle(
         title.id
       )
@@ -3457,6 +3599,7 @@ onSchedule
 t: Title;
 st: State;
 isAdmin: boolean;
+hiddenJustAdded?: boolean;
 onWatch: () => void;
 onList: () => void;
 onRewatch: () => void;
@@ -3502,24 +3645,22 @@ return ( <article className="card">
         : "TV"}
     </span>
 
-{isAdmin && (
-  <button
-    type="button"
-    className="remove"
-    onClick={event => {
+onClick={event => {
       event.preventDefault();
       event.stopPropagation();
       onRemove();
     }}
     title={
-      "Hide " +
-      t.name +
-      " from Just Added"
+      hiddenJustAdded
+        ? "Show Again"
+        : "Hide from Just Added"
     }
     aria-label={
-      "Hide " +
-      t.name +
-      " from Just Added"
+      hiddenJustAdded
+        ? "Show Again"
+        : "Hide " +
+          t.name +
+          " from Just Added"
     }
     style={{
       position: "absolute",
@@ -3528,9 +3669,14 @@ return ( <article className="card">
       cursor: "pointer"
     }}
   >
-    <EyeOff
-      size={16}
-    />
+    {hiddenJustAdded ? (
+      <>
+        <Eye size={16} />
+        <span>Show Again</span>
+      </>
+    ) : (
+      <EyeOff size={16} />
+    )}
   </button>
 )}
  
