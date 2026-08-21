@@ -2844,15 +2844,20 @@ setProfileId(
     setProfileId(
       "admin"
     );
-  } else if (
-    item.id === "testing"
-  ) {
-    setShowProfile(
-      false
-    );
+} else if (
+  item.id === "testing"
+) {
+  setShowProfile(
+    false
+  );
 
-    return;
-  } else {
+  setLoginProfile(
+    item
+  );
+
+  return;
+}
+  else {
     setViewingAs(
       item.id
     );
