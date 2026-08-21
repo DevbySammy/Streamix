@@ -3332,7 +3332,7 @@ if (
 console.log(
   "DELETE PROFILE:",
   response.status,
-  data
+  JSON.stringify(data)
 );
 
 if (!response.ok) {
