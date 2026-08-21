@@ -1220,9 +1220,82 @@ async function toggle(
 }
 
 /* =======================================================
-REMOVE TITLE
+HIDE JUST ADDED / REMOVE TITLE
 ======================================================= */
 
+async function hideJustAddedTitle(
+  id: string
+) {
+  const sessionId =
+    localStorage.getItem(
+      "sx-session-token"
+    );
+
+  const parts =
+    id.split("-");
+
+  const mediaType =
+    parts[1] === "tv"
+      ? "tv"
+      : "movie";
+
+  const tmdbId =
+    Number(
+      parts.slice(2).join("-")
+    );
+
+  if (!Number.isFinite(tmdbId)) {
+    return;
+  }
+
+  try {
+    const response =
+      await fetch(
+        "https://streamix.gaintrainstrong.workers.dev/api/tmdb/just-added/hide",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type":
+              "application/json",
+            ...(sessionId
+              ? {
+                  Authorization:
+                    `Bearer ${sessionId}`
+                }
+              : {})
+          },
+          body: JSON.stringify({
+            tmdbId,
+            mediaType
+          })
+        }
+      );
+
+    const data =
+      await response.json();
+
+    if (!response.ok) {
+      throw new Error(
+        data?.error ||
+          "Unable to hide this title."
+      );
+    }
+
+    setJustAdded(
+      current =>
+        current.filter(
+          title =>
+            title.id !== id
+        )
+    );
+  } catch (error) {
+    console.error(
+      "Failed to hide Just Added title:",
+      error
+    );
+  }
+}
+  
 async function removeTitle(
   id: string
 ) {
@@ -2077,11 +2150,15 @@ return ( <div className="app">
                 title.id
               )
             }
-            onRemove={() =>
-              removeTitle(
-                title.id
-              )
-            }
+         onRemove={() =>
+  sort === "just-added"
+    ? hideJustAddedTitle(
+        title.id
+      )
+    : removeTitle(
+        title.id
+      )
+}
             onReminder={() =>
               setShowReminder(
                 title
@@ -3337,24 +3414,25 @@ return ( <article className="card">
         : "TV"}
     </span>
 
-    {isAdmin && (
-      <button
-        className="remove"
-        onClick={
-          onRemove
-        }
-        title="Remove title"
-        aria-label={
-          "Remove " +
-          t.name
-        }
-      >
-        <Trash2
-          size={16}
-        />
-      </button>
-    )}
-
+  {isAdmin && (
+  <button
+    className="remove"
+    onClick={
+      onRemove
+    }
+    title="Hide from Just Added"
+    aria-label={
+      "Hide " +
+      t.name +
+      " from Just Added"
+    }
+  >
+    <EyeOff
+      size={16}
+    />
+  </button>
+)}
+ 
   </div>
 
   <div className="card-body">
