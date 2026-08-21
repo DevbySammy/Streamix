@@ -3692,11 +3692,6 @@ return ( <Modal
  >
 
 
-  <p className="muted">
-    Search for movies
-    and TV shows.
-  </p>
-
   <div className="search wide">
 
     <Search size={18} />
