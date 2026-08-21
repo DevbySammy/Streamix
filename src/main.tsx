@@ -2847,7 +2847,8 @@ setProfileId(
   isAdminUser
 ) {
   if (
-    item.id === "admin"
+    item.id ===
+    "admin"
   ) {
     setViewingAs(
       null
@@ -2856,23 +2857,24 @@ setProfileId(
     setProfileId(
       "admin"
     );
-} else if (
-  item.id === "testing"
-) {
-  setShowProfile(
-    false
-  );
+  } else if (
+    item.id ===
+    "testing"
+  ) {
+    setShowProfile(
+      false
+    );
 
-  setLoginProfile(
-    item
-  );
+    setLoginProfile(
+      item
+    );
 
-  return;
-}
-  else {
+    return;
+  } else {
     setViewingAs(
       item.id
     );
+
     localStorage.setItem(
       "sx-viewing-as",
       item.id
