@@ -3660,94 +3660,41 @@ function ProfileLogin({
     }
   }
 
-async function handleTestingLogin() {
-  try {
-    const adminSession =
-      localStorage.getItem(
-        "sx-session-token"
-      );
+  async function handleTestingLogin() {
+    try {
+      const adminSession =
+        localStorage.getItem(
+          "sx-session-token"
+        );
 
-    if (!adminSession) {
-      throw new Error(
-        "Admin session could not be found."
-      );
-    }
-
-    // Save the Admin session before
-    // switching into TESTING mode.
-    localStorage.setItem(
-      "sx-admin-session-token",
-      adminSession
-    );
-
-    const response = await fetch(
-      "https://streamix.gaintrainstrong.workers.dev/api/auth/login",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type":
-            "application/json"
-        },
-        body: JSON.stringify({
-          profileId: "testing"
-        })
+      if (!adminSession) {
+        throw new Error(
+          "Admin session could not be found."
+        );
       }
-    );
 
-    const data =
-      await response.json();
-
-    if (!response.ok) {
-      throw new Error(
-        data?.error ||
-          "Unable to enter TESTING mode."
-      );
-    }
-
-    if (data.sessionId) {
+      // Save the Admin session before
+      // switching into TESTING mode.
       localStorage.setItem(
-        "sx-session-token",
-        data.sessionId
+        "sx-admin-session-token",
+        adminSession
       );
-    }
 
-    onSuccess();
-  } catch (error) {
-    setError(
-      error instanceof Error
-        ? error.message
-        : "Unable to enter TESTING mode."
-    );
-  }
-}
-
-    const data =
-      await response.json();
-
-    if (!response.ok) {
-      throw new Error(
-        data?.error ||
-          "Unable to enter TESTING mode."
+      const response = await fetch(
+        "https://streamix.gaintrainstrong.workers.dev/api/auth/login",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type":
+              "application/json"
+          },
+          body: JSON.stringify({
+            profileId: "testing"
+          })
+        }
       );
-    }
 
-    if (data.sessionId) {
-      localStorage.setItem(
-        "sx-session-token",
-        data.sessionId
-      );
-    }
-
-    onSuccess();
-  } catch (error) {
-    setError(
-      error instanceof Error
-        ? error.message
-        : "Unable to enter TESTING mode."
-    );
-  }
-}
-
+      
   function handleSetPassword() {
     if (!password.trim()) {
       setError(
