@@ -316,19 +316,79 @@ const [library, setLibrary] = useState<Title[]>([]);
   setJustAdded
 ] = useState<Title[]>([]);
 
-  useEffect(() => {
+ useEffect(() => {
   async function loadLibrary() {
     try {
-      const response = await fetch("/api/library");
+      const response =
+        await fetch("/api/library");
 
       if (!response.ok) {
-        throw new Error("Failed to load library");
+        throw new Error(
+          "Failed to load library"
+        );
       }
 
-      const data = await response.json();
-      setLibrary(data);
+      const data =
+        await response.json();
+
+      const titles: Title[] =
+        Array.isArray(data)
+          ? data.map(
+              (item: any): Title => {
+                const kind: Kind =
+                  item.media_type === "tv"
+                    ? "tv"
+                    : "movie";
+
+                const releaseDate =
+                  item.release_date || "";
+
+                return {
+                  id:
+                    item.id ||
+                    (
+                      "tmdb-" +
+                      kind +
+                      "-" +
+                      String(
+                        item.tmdb_id
+                      )
+                    ),
+                  name:
+                    item.title ||
+                    "Untitled",
+                  kind,
+                  year:
+                    releaseDate
+                      ? Number(
+                          String(
+                            releaseDate
+                          ).slice(0, 4)
+                        )
+                      : 0,
+                  poster:
+                    getPosterUrl(
+                      item.poster_path
+                    ),
+                  backdrop:
+                    getBackdropUrl(
+                      item.backdrop_path
+                    ),
+                  overview:
+                    item.overview || "",
+                  addedAt:
+                    item.created_at || ""
+                };
+              }
+            )
+          : [];
+
+      setLibrary(titles);
     } catch (error) {
-      console.error("Failed to load library:", error);
+      console.error(
+        "Failed to load library:",
+        error
+      );
     }
   }
 
