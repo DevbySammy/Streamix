@@ -2473,6 +2473,7 @@ if (
     await request.json<{
       tmdbId?: number;
       mediaType?: "movie" | "tv";
+      titleData?: any;
     }>();
 
   if (
@@ -2502,17 +2503,39 @@ if (
     `)
     .run();
 
+  try {
+    await env.DB
+      .prepare(`
+        ALTER TABLE just_added_hidden
+        ADD COLUMN title_data TEXT
+      `)
+      .run();
+  } catch {
+    // Column already exists.
+  }
+
   await env.DB
     .prepare(`
-      INSERT OR IGNORE INTO just_added_hidden (
+      INSERT INTO just_added_hidden (
+        tmdb_id,
+        media_type,
+        title_data
+      )
+      VALUES (?, ?, ?)
+      ON CONFLICT (
         tmdb_id,
         media_type
       )
-      VALUES (?, ?)
+      DO UPDATE SET
+        title_data =
+          excluded.title_data
     `)
     .bind(
       body.tmdbId,
-      body.mediaType
+      body.mediaType,
+      JSON.stringify(
+        body.titleData || {}
+      )
     )
     .run();
 
@@ -2530,113 +2553,130 @@ if (
     "/api/tmdb/just-added/hidden" &&
   request.method === "GET"
 ) {
+  const admin =
+    await requireAdmin();
+
+  if (admin instanceof Response) {
+    return admin;
+  }
+
+  await env.DB
+    .prepare(`
+      CREATE TABLE IF NOT EXISTS just_added_hidden (
+        tmdb_id INTEGER NOT NULL,
+        media_type TEXT NOT NULL,
+        hidden_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (
+          tmdb_id,
+          media_type
+        )
+      )
+    `)
+    .run();
+
   try {
-    const admin =
-      await requireAdmin();
-
-    if (admin instanceof Response) {
-      return admin;
-    }
-
-    if (!env.TMDB_READ_ACCESS_TOKEN) {
-      return json(
-        {
-          error:
-            "TMDB_READ_ACCESS_TOKEN is not configured."
-        },
-        500
-      );
-    }
-
     await env.DB
       .prepare(`
-        CREATE TABLE IF NOT EXISTS just_added_hidden (
-          tmdb_id INTEGER NOT NULL,
-          media_type TEXT NOT NULL,
-          hidden_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-          PRIMARY KEY (
-            tmdb_id,
-            media_type
-          )
-        )
+        ALTER TABLE just_added_hidden
+        ADD COLUMN title_data TEXT
       `)
       .run();
+  } catch {
+    // Column already exists.
+  }
 
-    const hidden =
-      await env.DB
-        .prepare(`
-          SELECT
-            tmdb_id,
-            media_type,
-            hidden_at
-          FROM just_added_hidden
-          ORDER BY hidden_at DESC
-        `)
-        .all<{
-          tmdb_id: number;
-          media_type: "movie" | "tv";
-          hidden_at: string;
-        }>();
+  const hidden =
+    await env.DB
+      .prepare(`
+        SELECT
+          tmdb_id,
+          media_type,
+          hidden_at,
+          title_data
+        FROM just_added_hidden
+        ORDER BY hidden_at DESC
+      `)
+      .all<{
+        tmdb_id: number;
+        media_type: "movie" | "tv";
+        hidden_at: string;
+        title_data: string | null;
+      }>();
 
-    const results: any[] = [];
+  const results: any[] = [];
 
-    for (
-      const item of hidden.results
+  for (
+    const item of hidden.results
+  ) {
+    if (
+      item.title_data
     ) {
-      const endpoint =
-        item.media_type === "movie"
-          ? `movie/${item.tmdb_id}`
-          : `tv/${item.tmdb_id}`;
+      try {
+        const savedData =
+          JSON.parse(
+            item.title_data
+          );
 
-      const response =
-        await fetch(
-          `https://api.themoviedb.org/3/${endpoint}?language=en-US`,
-          {
-            headers: {
-              Authorization:
-                "Bearer " +
-                env.TMDB_READ_ACCESS_TOKEN,
-              Accept:
-                "application/json"
-            }
-          }
-        );
+        results.push({
+          ...savedData,
+          id:
+            savedData.id ||
+            item.tmdb_id,
+          media_type:
+            item.media_type,
+          hidden_at:
+            item.hidden_at
+        });
 
-      if (!response.ok) {
         continue;
+      } catch {
+        // Fall through to TMDB
+        // for older hidden records.
       }
-
-      const data =
-        await response.json();
-
-      results.push({
-        ...data,
-        media_type:
-          item.media_type,
-        hidden_at:
-          item.hidden_at
-      });
     }
 
-    return json({
-      results
-    });
-  } catch (error) {
-    console.error(
-      "TMDB GET HIDDEN JUST ADDED ERROR:",
-      error
-    );
+    // Existing hidden records that were
+    // created before title_data existed
+    // are fetched individually once.
+    const endpoint =
+      item.media_type ===
+      "movie"
+        ? `movie/${item.tmdb_id}`
+        : `tv/${item.tmdb_id}`;
 
-    return json(
-      {
-        error:
-          error instanceof Error
-            ? error.message
-            : String(error)
-      },
-      500
-    );
+    const response =
+      await fetch(
+        `https://api.themoviedb.org/3/${endpoint}?language=en-US`,
+        {
+          headers: {
+            Authorization:
+              "Bearer " +
+              env.TMDB_READ_ACCESS_TOKEN,
+            Accept:
+              "application/json"
+          }
+        }
+      );
+
+    if (!response.ok) {
+      continue;
+    }
+
+    const data =
+      await response.json();
+
+    results.push({
+      ...data,
+      media_type:
+        item.media_type,
+      hidden_at:
+        item.hidden_at
+    });
   }
+
+  return json({
+    results
+  });
 }
 
     // ==================================================
