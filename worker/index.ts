@@ -2328,6 +2328,195 @@ if (
       });
     }
 
+// ==================================================
+// TMDB - JUST ADDED
+// ==================================================
+
+if (
+  url.pathname ===
+    "/api/tmdb/just-added" &&
+  request.method === "GET"
+) {
+  const auth =
+    await requireSession();
+
+  if (auth instanceof Response) {
+    return auth;
+  }
+
+  if (!env.TMDB_READ_ACCESS_TOKEN) {
+    return json(
+      {
+        error:
+          "TMDB_READ_ACCESS_TOKEN is not configured."
+      },
+      500
+    );
+  }
+
+const today =
+  new Date();
+
+const endDate =
+  today
+    .toISOString()
+    .slice(0, 10);
+
+const startDate =
+  new Date(today);
+
+startDate.setDate(
+  startDate.getDate() - 30
+);
+
+const currentYear =
+  today.getFullYear();
+
+const januaryFirst =
+  new Date(
+    currentYear,
+    0,
+    1
+  );
+
+const effectiveStart =
+  startDate < januaryFirst
+    ? januaryFirst
+    : startDate;
+
+const start =
+  effectiveStart
+    .toISOString()
+    .slice(0, 10);
+
+  const fetchTMDB =
+    async (
+      type: "movie" | "tv"
+    ) => {
+      const dateField =
+        type === "movie"
+          ? "primary_release_date"
+          : "first_air_date";
+
+      const tmdbUrl =
+        `https://api.themoviedb.org/3/discover/${type}` +
+        `?include_adult=false` +
+        `&include_video=false` +
+        `&language=en-US` +
+        `&page=1` +
+        `&sort_by=${dateField}.desc` +
+        `&${dateField}.gte=${start}` +
+        `&${dateField}.lte=${endDate}`;
+
+      const response =
+        await fetch(
+          tmdbUrl,
+          {
+            headers: {
+              Authorization:
+                "Bearer " +
+                env.TMDB_READ_ACCESS_TOKEN,
+              Accept:
+                "application/json"
+            }
+          }
+        );
+
+      const data =
+        await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          "TMDB request failed."
+        );
+      }
+
+      return Array.isArray(
+        data.results
+      )
+        ? data.results
+        : [];
+    };
+
+  try {
+    const [
+      movies,
+      tvShows
+    ] = await Promise.all([
+      fetchTMDB("movie"),
+      fetchTMDB("tv")
+    ]);
+
+    const results = [
+      ...movies.map(
+        (item: any) => ({
+          ...item,
+          media_type:
+            "movie"
+        })
+      ),
+      ...tvShows.map(
+        (item: any) => ({
+          ...item,
+          media_type:
+            "tv"
+        })
+      )
+    ].sort(
+      (a, b) => {
+        const aDate =
+          a.media_type ===
+          "movie"
+            ? a.release_date
+            : a.first_air_date;
+
+        const bDate =
+          b.media_type ===
+          "movie"
+            ? b.release_date
+            : b.first_air_date;
+
+        return String(
+          bDate || ""
+        ).localeCompare(
+          String(aDate || "")
+        );
+      }
+    );
+
+    return json({
+      results,
+      startDate: start,
+      endDate
+    });
+  } catch (error) {
+    console.error(
+      "TMDB JUST ADDED ERROR:",
+      error
+    );
+
+    return json(
+      {
+        error:
+          error instanceof Error
+            ? error.message
+            : "Unable to load Just Added titles."
+      },
+      500
+    );
+  }
+}
+
+// ==================================================
+// TMDB SEARCH
+// ==================================================
+
+if (
+  url.pathname ===
+    "/api/tmdb/search" &&
+  request.method === "GET"
+) {
+  
     // ==================================================
     // TMDB SEARCH
     // ==================================================
