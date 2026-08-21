@@ -2594,13 +2594,16 @@ if (
           hidden_at,
           title_data
         FROM just_added_hidden
+        WHERE title_data IS NOT NULL
+          AND title_data != ''
+          AND title_data != '{}'
         ORDER BY hidden_at DESC
       `)
       .all<{
         tmdb_id: number;
         media_type: "movie" | "tv";
         hidden_at: string;
-        title_data: string | null;
+        title_data: string;
       }>();
 
   const results: any[] = [];
@@ -2608,77 +2611,44 @@ if (
   for (
     const item of hidden.results
   ) {
-    if (
-      item.title_data
-    ) {
-      try {
-        const savedData =
-          JSON.parse(
-            item.title_data
-          );
+    try {
+      const savedData =
+        JSON.parse(
+          item.title_data
+        );
 
-        results.push({
-          ...savedData,
-          id:
-            savedData.id ||
-            item.tmdb_id,
-          media_type:
-            item.media_type,
-          hidden_at:
-            item.hidden_at
-        });
+      results.push({
+        ...savedData,
 
-        continue;
-      } catch {
-        // Fall through to TMDB
-        // for older hidden records.
-      }
-    }
+        id:
+          savedData.id ||
+          (
+            "tmdb-" +
+            item.media_type +
+            "-" +
+            String(
+              item.tmdb_id
+            )
+          ),
 
-    // Existing hidden records that were
-    // created before title_data existed
-    // are fetched individually once.
-    const endpoint =
-      item.media_type ===
-      "movie"
-        ? `movie/${item.tmdb_id}`
-        : `tv/${item.tmdb_id}`;
+        media_type:
+          item.media_type,
 
-    const response =
-      await fetch(
-        `https://api.themoviedb.org/3/${endpoint}?language=en-US`,
-        {
-          headers: {
-            Authorization:
-              "Bearer " +
-              env.TMDB_READ_ACCESS_TOKEN,
-            Accept:
-              "application/json"
-          }
-        }
+        hidden_at:
+          item.hidden_at
+      });
+    } catch (error) {
+      console.error(
+        "Failed to parse hidden title data:",
+        error
       );
-
-    if (!response.ok) {
-      continue;
     }
-
-    const data =
-      await response.json();
-
-    results.push({
-      ...data,
-      media_type:
-        item.media_type,
-      hidden_at:
-        item.hidden_at
-    });
   }
 
   return json({
     results
   });
 }
-
     // ==================================================
 // TMDB - SHOW HIDDEN JUST ADDED AGAIN
 // ==================================================
