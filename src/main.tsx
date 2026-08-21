@@ -3782,15 +3782,31 @@ function ProfileLogin({
             "'s Profile"}
         </h3>
 
-     {isTesting ? (
-  <>
-    {error && (
-      <p className="login-error">
-        {error}
-      </p>
-    )}
-  </>
-) : !hasPassword ? (
+      {isTesting ? (
+          <>
+            <p className="muted">
+              This profile is for Admin
+              testing only. It lets you
+              experience the app exactly
+              as a regular user.
+            </p>
+
+            {error && (
+              <p className="login-error">
+                {error}
+              </p>
+            )}
+
+            <button
+              className="pink full"
+              onClick={
+                handleTestingLogin
+              }
+            >
+              Enter Testing Mode
+            </button>
+          </>
+        ) : !hasPassword ? (
           <>
             <p className="muted">
               Create a password for your profile.
