@@ -408,6 +408,10 @@ function App() {
                 : {}
             }
           );
+         console.log(
+  "HIDDEN RESPONSE:",
+  hiddenResponse.status
+);
 
         if (hiddenResponse.ok) {
           const hiddenData =
@@ -637,6 +641,7 @@ function App() {
 
     loadHeroSettings();
   }, []);
+   
 /* =======================================================
 AUTHENTICATION / SESSION
 ======================================================= */
