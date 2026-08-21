@@ -427,62 +427,103 @@ if (hiddenResponse.ok) {
               hiddenData.results
             )
           ) {
-            const hiddenTitles: Title[] =
-              hiddenData.results.map(
-                (item: any): Title => {
-                  const kind: Kind =
-                    item.media_type === "tv"
-                      ? "tv"
-                      : "movie";
+          const hiddenTitles: Title[] =
+  hiddenData.results.map(
+    (item: any): Title => {
 
-                  const releaseDate =
-                    kind === "movie"
-                      ? item.release_date
-                      : item.first_air_date;
+      // Hidden titles saved by the app
+      // already contain the complete
+      // Title object.
+      if (
+        item.name &&
+        item.kind &&
+        typeof item.year ===
+          "number"
+      ) {
+        return {
+          id:
+            item.id,
 
-                  return {
-                    id:
-                      "tmdb-" +
-                      kind +
-                      "-" +
-                      String(item.id),
+          name:
+            item.name,
 
-                    name:
-                      kind === "movie"
-                        ? item.title ||
-                          "Untitled"
-                        : item.name ||
-                          "Untitled",
+          kind:
+            item.kind,
 
-                    kind,
+          year:
+            item.year,
 
-                    year:
-                      releaseDate
-                        ? Number(
-                            String(
-                              releaseDate
-                            ).slice(0, 4)
-                          )
-                        : 0,
+          poster:
+            item.poster || "",
 
-                    poster:
-                      getPosterUrl(
-                        item.poster_path
-                      ),
+          backdrop:
+            item.backdrop || "",
 
-                    backdrop:
-                      getBackdropUrl(
-                        item.backdrop_path
-                      ),
+          overview:
+            item.overview || "",
 
-                    overview:
-                      item.overview || "",
+          addedAt:
+            item.addedAt ||
+            item.hidden_at ||
+            ""
+        };
+      }
 
-                    addedAt:
-                      item.hidden_at || ""
-                  };
-                }
-              );
+      // Fallback for any older
+      // TMDB-format hidden records.
+      const kind: Kind =
+        item.media_type === "tv"
+          ? "tv"
+          : "movie";
+
+      const releaseDate =
+        kind === "movie"
+          ? item.release_date
+          : item.first_air_date;
+
+      return {
+        id:
+          "tmdb-" +
+          kind +
+          "-" +
+          String(item.id),
+
+        name:
+          kind === "movie"
+            ? item.title ||
+              "Untitled"
+            : item.name ||
+              "Untitled",
+
+        kind,
+
+        year:
+          releaseDate
+            ? Number(
+                String(
+                  releaseDate
+                ).slice(0, 4)
+              )
+            : 0,
+
+        poster:
+          getPosterUrl(
+            item.poster_path
+          ),
+
+        backdrop:
+          getBackdropUrl(
+            item.backdrop_path
+          ),
+
+        overview:
+          item.overview || "",
+
+        addedAt:
+          item.hidden_at || ""
+      };
+    }
+  );
 
             setHiddenJustAdded(
               hiddenTitles
