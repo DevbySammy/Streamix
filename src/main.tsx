@@ -2775,22 +2775,28 @@ setProfileId(
       </Modal>
     )}
 
-  {/* PROFILES */}
+ /* PROFILES */
 
-  {showProfile && (
-    <Modal
-      title="Profiles"
-      compact
-      onClose={() =>
-        setShowProfile(
-          false
+{showProfile && (
+  <Modal
+    title="Profiles"
+    compact
+    onClose={() =>
+      setShowProfile(
+        false
+      )
+    }
+  >
+
+    <div className="profiles">
+
+      {orderedProfiles
+        .filter(
+          item =>
+            item.id !==
+            "testing"
         )
-      }
-    >
-
-      <div className="profiles">
-
-        {orderedProfiles.map(
+        .map(
           item => {
 
             const isDragging =
@@ -2848,54 +2854,41 @@ setProfileId(
                       return;
                     }
 
-                  if (
-  isAdminUser
-) {
-  if (
-    item.id ===
-    "admin"
-  ) {
-    setViewingAs(
-      null
-    );
+                    if (
+                      isAdminUser
+                    ) {
+                      if (
+                        item.id ===
+                        "admin"
+                      ) {
+                        setViewingAs(
+                          null
+                        );
 
-    setProfileId(
-      "admin"
-    );
-  } else if (
-    item.id ===
-    "testing"
-  ) {
-    setShowProfile(
-      false
-    );
+                        setProfileId(
+                          "admin"
+                        );
+                      } else {
+                        setViewingAs(
+                          item.id
+                        );
 
-    setLoginProfile(
-      item
-    );
+                        localStorage.setItem(
+                          "sx-viewing-as",
+                          item.id
+                        );
 
-    return;
-  } else {
-    setViewingAs(
-      item.id
-    );
+                        setProfileId(
+                          "admin"
+                        );
+                      }
 
-    localStorage.setItem(
-      "sx-viewing-as",
-      item.id
-    );
+                      setShowProfile(
+                        false
+                      );
 
-    setProfileId(
-      "admin"
-    );
-  }
-
-  setShowProfile(
-    false
-  );
-
-  return;
-}
+                      return;
+                    }
 
                     setLoginProfile(
                       item
@@ -3022,31 +3015,62 @@ setProfileId(
           }
         )}
 
-        {isAdmin && (
-          <button
-            className="add-profile"
-            onClick={() => {
-              setEditing({
-                id: "new",
-                name: "",
-                avatar:
-                  "🙂"
-              });
+      {isAdmin && (
+        <button
+          className="add-profile"
+          onClick={() => {
+            setEditing({
+              id: "new",
+              name: "",
+              avatar:
+                "🙂"
+            });
+
+            setShowProfile(
+              false
+            );
+          }}
+        >
+          <Plus />
+          Add Profile
+        </button>
+      )}
+
+      {isAdmin && (
+        <button
+          className="add-profile"
+          onClick={() => {
+            const testingProfile =
+              profiles.find(
+                item =>
+                  item.id ===
+                  "testing"
+              );
+
+            if (
+              testingProfile
+            ) {
+              setLoginProfile(
+                testingProfile
+              );
 
               setShowProfile(
                 false
               );
-            }}
-          >
-            <Plus />
-            Add Profile
-          </button>
-        )}
+            }
+          }}
+        >
+          <span className="avatar">
+            🧪
+          </span>
+          TESTING
+        </button>
+      )}
 
-      </div>
+    </div>
 
-    </Modal>
-  )}
+  </Modal>
+)}
 
   {/* PROFILE LOGIN */}
 
