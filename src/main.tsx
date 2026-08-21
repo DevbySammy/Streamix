@@ -3673,8 +3673,6 @@ function ProfileLogin({
         );
       }
 
-      // Save the Admin session before
-      // switching into TESTING mode.
       localStorage.setItem(
         "sx-admin-session-token",
         adminSession
@@ -3694,7 +3692,33 @@ function ProfileLogin({
         }
       );
 
-      
+      const data =
+        await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          data?.error ||
+            "Unable to enter TESTING mode."
+        );
+      }
+
+      if (data.sessionId) {
+        localStorage.setItem(
+          "sx-session-token",
+          data.sessionId
+        );
+      }
+
+      onSuccess();
+    } catch (error) {
+      setError(
+        error instanceof Error
+          ? error.message
+          : "Unable to enter TESTING mode."
+      );
+    }
+  }
+
   function handleSetPassword() {
     if (!password.trim()) {
       setError(
@@ -3777,7 +3801,6 @@ function ProfileLogin({
             >
               Enter Testing Mode
             </button>
-
           </>
         ) : !hasPassword ? (
           <>
@@ -3793,6 +3816,7 @@ function ProfileLogin({
 
                 <input
                   autoFocus
+                  autoComplete="new-password"
                   type={
                     showPassword
                       ? "text"
@@ -3878,6 +3902,7 @@ function ProfileLogin({
 
                 <input
                   autoFocus
+                  autoComplete="new-password"
                   type={
                     showPassword
                       ? "text"
@@ -4071,7 +4096,6 @@ function ProfileLogin({
     </Modal>
   );
 }
-
 /* =========================================================
 CARD
 ========================================================= */
