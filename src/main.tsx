@@ -899,103 +899,92 @@ FILTERING + SORTING
 ======================================================= */
 
 const visible = useMemo(() => {
-  const source =
-    sort === "just-added"
-      ? justAdded
-      : library;
+const source =
+  sort === "just-added"
+    ? justAdded
+    : library;
 
-  let filtered =
-    source.filter(title =>
-      title.name
-        .toLowerCase()
-        .includes(
-          q.toLowerCase()
-        )
-    );
+const filtered =
+source
+ 
+.filter(title =>
+title.name
+.toLowerCase()
+.includes(
+q.toLowerCase()
+)
+)
+.filter(title => {
+if (kind === "all") {
+return true;
+}
 
-  filtered =
-    filtered.filter(title => {
-      if (kind === "all") {
-        return true;
-      }
 
       return (
         title.kind === kind
       );
-    });
-
-  if (sort !== "just-added") {
-    filtered =
-      filtered.filter(title => {
-        if (
-          tab === "rewatch"
-        ) {
-          return state.rewatch.includes(
-            title.id
-          );
-        }
-
-        if (
-          filter === "all"
-        ) {
-          return true;
-        }
-
-        if (
-          filter === "watched"
-        ) {
-          return state.watched.includes(
-            title.id
-          );
-        }
-
-        return state.watchlist.includes(
+    })
+    .filter(title => {
+      if (tab === "rewatch") {
+        return state.rewatch.includes(
           title.id
         );
-      });
-  }
-
-  if (
-    sort === "just-added"
-  ) {
-    return [...filtered];
-  }
-
-  return [...filtered].sort(
-    (a, b) => {
-      switch (sort) {
-        case "name-desc":
-          return b.name.localeCompare(
-            a.name
-          );
-
-        case "year-desc":
-          return (
-            b.year - a.year
-          );
-
-        case "year-asc":
-          return (
-            a.year - b.year
-          );
-
-        case "name-asc":
-        default:
-          return a.name.localeCompare(
-            b.name
-          );
       }
+
+      if (filter === "all") {
+        return true;
+      }
+
+      if (
+        filter === "watched"
+      ) {
+        return state.watched.includes(
+          title.id
+        );
+      }
+
+      return state.watchlist.includes(
+        title.id
+      );
+    });
+
+return [...filtered].sort(
+  (a, b) => {
+    switch (sort) {
+      case "name-desc":
+        return b.name.localeCompare(
+          a.name
+        );
+
+      case "year-desc":
+        return (
+          b.year - a.year
+        );
+
+      case "year-asc":
+        return (
+          a.year - b.year
+        );
+
+      case "name-asc":
+      default:
+        return a.name.localeCompare(
+          b.name
+        );
     }
-  );
+  }
+);
+
+
 }, [
-  library,
-  justAdded,
-  q,
-  kind,
-  tab,
-  filter,
-  sort,
-  state
+library,
+justAdded,
+q,
+kind,
+tab,
+filter,
+sort,
+state
 ]);
 
 /* =======================================================
