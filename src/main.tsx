@@ -567,6 +567,7 @@ const [
   setDeletedProfilesLoading
 ] = useState(false);
    
+
   useEffect(() => {
     async function loadProfiles() {
       try {
@@ -1346,7 +1347,6 @@ const hero =
       ) || null
     : null;
 
-
 /* =======================================================
 LOAD DELETED PROFILES
 ======================================================= */
@@ -1406,6 +1406,7 @@ useEffect(() => {
 
   loadDeletedProfiles();
 }, [isAdminUser]);
+
 
 /* =======================================================
 RECOMMENDATION
