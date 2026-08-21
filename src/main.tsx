@@ -493,12 +493,86 @@ const [heroSettings, setHeroSettings] =
 
   loadHeroSettings();
 }, []);
+
+
 /* =======================================================
 AUTHENTICATION / SESSION
 ======================================================= */
 
 const [profileId, setProfileId] =
   useState<string | null>(null);
+
+const [sessionRestoring, setSessionRestoring] =
+  useState(true);
+
+useEffect(() => {
+  async function restoreSession() {
+    const sessionId =
+      localStorage.getItem(
+        "sx-session-token"
+      );
+
+    if (!sessionId) {
+      setSessionRestoring(false);
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        "https://streamix.gaintrainstrong.workers.dev/api/auth/session",
+        {
+          method: "GET",
+          headers: {
+            Authorization:
+              `Bearer ${sessionId}`
+          }
+        }
+      );
+
+      if (!response.ok) {
+        // The saved session is no longer valid.
+        localStorage.removeItem(
+          "sx-session-token"
+        );
+        setProfileId(null);
+        setViewingAs(null);
+        setSessionRestoring(false);
+        return;
+      }
+
+      const data =
+        await response.json();
+
+      if (
+        data.authenticated &&
+        data.profile?.id
+      ) {
+        setProfileId(
+          data.profile.id
+        );
+        setViewingAs(null);
+      } else {
+        localStorage.removeItem(
+          "sx-session-token"
+        );
+        setProfileId(null);
+        setViewingAs(null);
+      }
+    } catch (error) {
+      console.error(
+        "Failed to restore session:",
+        error
+      );
+
+      // Keep the saved session if this was
+      // only a temporary network problem.
+    } finally {
+      setSessionRestoring(false);
+    }
+  }
+
+  restoreSession();
+}, []);
 
 const [viewingAs, setViewingAs] =
   useState<string | null>(null);
