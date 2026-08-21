@@ -2094,10 +2094,7 @@ setDragPointerId(
 LOGIN SCREEN
 ======================================================= */
 
-if (
-  profileId === null &&
-  !sessionLoading
-) {
+if (profileId === null) {
 return ( <div className="app"> <main> <div className="login-screen"> <div className="login-container">
 
 
