@@ -311,6 +311,12 @@ function App() {
     "visible" | "hidden"
   >("visible");
 
+{/* this one piece of code below shows 30 - 30 movies listed before you press show more */}
+   const [
+  justAddedLimit,
+  setJustAddedLimit
+] = useState(30);
+   
   useEffect(() => {
     async function loadLibrary() {
       try {
@@ -1390,10 +1396,13 @@ return true;
   );
 });
 
- if (
+if (
   sort === "just-added"
- ) {
-  return [...filtered];
+) {
+  return filtered.slice(
+    0,
+    justAddedLimit
+  );
 }
  
 return [...filtered].sort(
@@ -1434,6 +1443,7 @@ return [...filtered].sort(
   filter,
   sort,
   justAddedView,
+  justAddedLimit,
   state
 ]);
 
@@ -2728,7 +2738,21 @@ setProfileId(
         </div>
       )}
 
-    </div>
+      </div>
+
+    {sort === "just-added" &&
+      visible.length < justAdded.length && (
+        <button
+          type="button"
+          onClick={() =>
+            setJustAddedLimit(
+              current => current + 30
+            )
+          }
+        >
+          Show more
+        </button>
+      )}
 
   </main>
 
