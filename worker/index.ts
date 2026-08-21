@@ -451,6 +451,90 @@ if (
       }
     }
 
+    // ==================================================
+// AUTH - CURRENT SESSION
+// ==================================================
+if (
+  url.pathname === "/api/auth/session" &&
+  request.method === "GET"
+) {
+  const session =
+    await getSession();
+
+  if (!session) {
+    return json(
+      {
+        authenticated: false
+      },
+      401
+    );
+  }
+
+  const profile =
+    await getProfile(
+      session.profile_id
+    );
+
+  if (!profile) {
+    return json(
+      {
+        authenticated: false
+      },
+      401
+    );
+  }
+
+  return json({
+    authenticated: true,
+    profile: {
+      id: profile.id,
+      name: profile.name,
+      avatar: profile.avatar
+    }
+  });
+}
+    
+// ==================================================
+// AUTH - RESTORE SESSION
+// ==================================================
+if (
+  url.pathname === "/api/auth/session" &&
+  request.method === "GET"
+) {
+  const session = await getSession();
+
+  if (!session) {
+    return json(
+      {
+        authenticated: false
+      },
+      401
+    );
+  }
+
+  const profile =
+    await getProfile(
+      session.profile_id
+    );
+
+  if (!profile) {
+    return json(
+      {
+        authenticated: false
+      },
+      401
+    );
+  }
+
+  return json({
+    authenticated: true,
+    profile: {
+      id: profile.id,
+      name: profile.name,
+      avatar: profile.avatar
+    }
+  });
+}
       // ==================================================
     // AUTH - SET PASSWORD
     // ==================================================
