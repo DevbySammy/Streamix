@@ -863,9 +863,15 @@ useEffect(() => {
           ? data.results
           : [];
 
-      const titles: Title[] =
-        results.map(
-          (item: any): Title => {
+  const titles: Title[] =
+  results
+    .filter(
+      (item: any) =>
+        typeof item.poster_path === "string" &&
+        item.poster_path.trim() !== ""
+    )
+    .map(
+      (item: any): Title => {
             const kind: Kind =
               item.media_type === "tv"
                 ? "tv"
