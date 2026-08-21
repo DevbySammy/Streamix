@@ -378,8 +378,21 @@ const [
           : [];
 
       setLibrary(titles);
-       const hiddenResponse = await fetch(
-  "/api/tmdb/just-added/hidden"
+     const sessionId =
+  localStorage.getItem(
+    "sx-session-token"
+  );
+
+const hiddenResponse = await fetch(
+  "https://streamix.gaintrainstrong.workers.dev/api/tmdb/just-added/hidden",
+  {
+    headers: sessionId
+      ? {
+          Authorization:
+            `Bearer ${sessionId}`
+        }
+      : {}
+  }
 );
 
 if (hiddenResponse.ok) {
