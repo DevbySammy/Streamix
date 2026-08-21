@@ -554,11 +554,23 @@ if (hiddenResponse.ok) {
   useEffect(() => {
     async function loadProfiles() {
       try {
-        const response =
-          await fetch(
-            "/api/profiles"
-          );
+    const sessionId =
+  localStorage.getItem(
+    "sx-session-token"
+  );
 
+const response =
+  await fetch(
+    "/api/profiles",
+    {
+      headers: sessionId
+        ? {
+            Authorization:
+              `Bearer ${sessionId}`
+          }
+        : {}
+    }
+  );
         if (!response.ok) {
           throw new Error(
             "Failed to load profiles"
