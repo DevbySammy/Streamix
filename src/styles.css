@@ -1385,3 +1385,21 @@ footer span {
     height: 44px;
   }
 }
+
+
+/* =========================================================
+   SHOW MORE BUTTON - JUST ADDED
+========================================================= */
+
+.show-more-button {
+  display: block;
+  margin: 32px auto 10px;
+  padding: 10px 22px;
+  border: 1px solid #ff2d8d;
+  border-radius: 999px;
+  background: transparent;
+  color: #ff2d8d;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
