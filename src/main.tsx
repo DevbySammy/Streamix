@@ -826,8 +826,24 @@ useState(false);
 
 
 const [sort, setSort] =
-  useState<SortOption>("name-asc");
+  useState<SortOption>(() => {
+    const savedSort =
+      localStorage.getItem(
+        "sx-sort"
+      );
 
+    return (
+      (savedSort as SortOption) ||
+      "name-asc"
+    );
+  });
+   useEffect(() => {
+  localStorage.setItem(
+    "sx-sort",
+    sort
+  );
+}, [sort]);
+   
 useEffect(() => {
   if (sort !== "just-added") {
     return;
