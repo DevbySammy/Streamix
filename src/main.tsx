@@ -138,24 +138,6 @@ path
 );
 }
 
-function getJustAddedDateRange() {
-  const today = new Date();
-
-  const endDate =
-    today.toISOString().slice(0, 10);
-
-  const startDate = new Date(today);
-
-  startDate.setDate(
-    startDate.getDate() - 30
-  );
-
-  return {
-    startDate:
-      startDate.toISOString().slice(0, 10),
-    endDate
-  };
-}
 
 /* =========================================================
 TMDB
@@ -984,30 +966,40 @@ return true;
         title.kind === kind
       );
     })
-    .filter(title => {
-      if (tab === "rewatch") {
-        return state.rewatch.includes(
-          title.id
-        );
-      }
+  .filter(title => {
+  if (sort === "just-added") {
+    return true;
+  }
 
-      if (filter === "all") {
-        return true;
-      }
+  if (tab === "rewatch") {
+    return state.rewatch.includes(
+      title.id
+    );
+  }
 
-      if (
-        filter === "watched"
-      ) {
-        return state.watched.includes(
-          title.id
-        );
-      }
+  if (filter === "all") {
+    return true;
+  }
 
-      return state.watchlist.includes(
-        title.id
-      );
-    });
+  if (
+    filter === "watched"
+  ) {
+    return state.watched.includes(
+      title.id
+    );
+  }
 
+  return state.watchlist.includes(
+    title.id
+  );
+});
+
+ if (
+  sort === "just-added"
+ ) {
+  return [...filtered];
+}
+ 
 return [...filtered].sort(
   (a, b) => {
     switch (sort) {
