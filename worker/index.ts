@@ -2521,7 +2521,7 @@ if (
   });
 }
 
-    // ==================================================
+// ==================================================
 // TMDB - GET HIDDEN JUST ADDED
 // ==================================================
 
@@ -2530,87 +2530,113 @@ if (
     "/api/tmdb/just-added/hidden" &&
   request.method === "GET"
 ) {
-  const admin =
-    await requireAdmin();
+  try {
+    const admin =
+      await requireAdmin();
 
-  if (admin instanceof Response) {
-    return admin;
-  }
-
-  await env.DB
-    .prepare(`
-      CREATE TABLE IF NOT EXISTS just_added_hidden (
-        tmdb_id INTEGER NOT NULL,
-        media_type TEXT NOT NULL,
-        hidden_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-        PRIMARY KEY (
-          tmdb_id,
-          media_type
-        )
-      )
-    `)
-    .run();
-
-  const hidden =
-    await env.DB
-      .prepare(`
-        SELECT
-          tmdb_id,
-          media_type,
-          hidden_at
-        FROM just_added_hidden
-        ORDER BY hidden_at DESC
-      `)
-      .all<{
-        tmdb_id: number;
-        media_type: "movie" | "tv";
-        hidden_at: string;
-      }>();
-
-  const results: any[] = [];
-
-  for (
-    const item of hidden.results
-  ) {
-    const endpoint =
-      item.media_type ===
-      "movie"
-        ? `movie/${item.tmdb_id}`
-        : `tv/${item.tmdb_id}`;
-
-    const response =
-      await fetch(
-        `https://api.themoviedb.org/3/${endpoint}?language=en-US`,
-        {
-          headers: {
-            Authorization:
-              "Bearer " +
-              env.TMDB_READ_ACCESS_TOKEN,
-            Accept:
-              "application/json"
-          }
-        }
-      );
-
-    if (!response.ok) {
-      continue;
+    if (admin instanceof Response) {
+      return admin;
     }
 
-    const data =
-      await response.json();
+    if (!env.TMDB_READ_ACCESS_TOKEN) {
+      return json(
+        {
+          error:
+            "TMDB_READ_ACCESS_TOKEN is not configured."
+        },
+        500
+      );
+    }
 
-    results.push({
-      ...data,
-      media_type:
-        item.media_type,
-      hidden_at:
-        item.hidden_at
+    await env.DB
+      .prepare(`
+        CREATE TABLE IF NOT EXISTS just_added_hidden (
+          tmdb_id INTEGER NOT NULL,
+          media_type TEXT NOT NULL,
+          hidden_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          PRIMARY KEY (
+            tmdb_id,
+            media_type
+          )
+        )
+      `)
+      .run();
+
+    const hidden =
+      await env.DB
+        .prepare(`
+          SELECT
+            tmdb_id,
+            media_type,
+            hidden_at
+          FROM just_added_hidden
+          ORDER BY hidden_at DESC
+        `)
+        .all<{
+          tmdb_id: number;
+          media_type: "movie" | "tv";
+          hidden_at: string;
+        }>();
+
+    const results: any[] = [];
+
+    for (
+      const item of hidden.results
+    ) {
+      const endpoint =
+        item.media_type === "movie"
+          ? `movie/${item.tmdb_id}`
+          : `tv/${item.tmdb_id}`;
+
+      const response =
+        await fetch(
+          `https://api.themoviedb.org/3/${endpoint}?language=en-US`,
+          {
+            headers: {
+              Authorization:
+                "Bearer " +
+                env.TMDB_READ_ACCESS_TOKEN,
+              Accept:
+                "application/json"
+            }
+          }
+        );
+
+      if (!response.ok) {
+        continue;
+      }
+
+      const data =
+        await response.json();
+
+      results.push({
+        ...data,
+        media_type:
+          item.media_type,
+        hidden_at:
+          item.hidden_at
+      });
+    }
+
+    return json({
+      results
     });
-  }
+  } catch (error) {
+    console.error(
+      "TMDB GET HIDDEN JUST ADDED ERROR:",
+      error
+    );
 
-  return json({
-    results
-  });
+    return json(
+      {
+        error:
+          error instanceof Error
+            ? error.message
+            : String(error)
+      },
+      500
+    );
+  }
 }
 
     // ==================================================
