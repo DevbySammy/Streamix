@@ -886,6 +886,39 @@ if (
     }
 
     // ==================================================
+// PROFILES - GET
+// ==================================================
+
+if (
+  url.pathname === "/api/profiles" &&
+  request.method === "GET"
+) {
+  const result =
+    await env.DB
+      .prepare(`
+        SELECT
+          id,
+          name,
+          avatar,
+          sort_order
+        FROM profiles
+        ORDER BY
+          sort_order ASC,
+          name ASC
+      `)
+      .all<{
+        id: string;
+        name: string;
+        avatar: string | null;
+        sort_order: number;
+      }>();
+
+  return json(
+    result.results
+  );
+}
+
+    // ==================================================
     // PROFILES - POST
     // ==================================================
 
