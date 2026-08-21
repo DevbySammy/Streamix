@@ -3242,39 +3242,40 @@ const avatars = [
 "🔥"
 ];
 
-function handlePasswordChange()function handlePasswordChange() {
+function handlePasswordChange() {
   if (!profile) {
     return;
   }
 
-if (!newPassword.trim()) {
-  setPasswordError(
-    "Please enter a new password."
+  if (!newPassword.trim()) {
+    setPasswordError(
+      "Please enter a new password."
+    );
+
+    return;
+  }
+
+  onChangePassword?.(
+    newPassword
   );
 
-  return;
+  setCurrentPassword("");
+  setNewPassword("");
+  setPasswordError("");
+  setShowPasswordSection(
+    false
+  );
+  setShowCurrentPassword(
+    false
+  );
+  setShowNewPassword(
+    false
+  );
+
+  alert(
+    "Password updated successfully."
+  );
 }
-
-onChangePassword?.(
-  newPassword
-);
-
-setCurrentPassword("");
-setNewPassword("");
-setPasswordError("");
-setShowPasswordSection(
-  false
-);
-setShowCurrentPassword(
-  false
-);
-setShowNewPassword(
-  false
-);
-
-alert(
-  "Password updated successfully."
-);
   
 return (
 <Modal
