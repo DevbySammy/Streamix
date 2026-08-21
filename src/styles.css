@@ -150,7 +150,7 @@ header {
   padding: 6px;
   background: #18181b;
   border: 1px solid #2c2c31;
-  border-radius: 15px;
+  border-radius: 999px;
   box-shadow: 0 16px 40px rgba(0, 0, 0, .45);
   z-index: 50;
 }
@@ -236,13 +236,13 @@ header {
   width: fit-content;
   background: #171719;
   border: 1px solid #27272b;
-  border-radius: 15px;
+  border-radius: 999px;
 }
 
 .switch button {
   min-height: 42px;
   padding: 9px 18px;
-  border-radius: 9px;
+  border-radius: 999px;
   background: transparent;
   color: #999;
   cursor: pointer;
@@ -288,7 +288,7 @@ header {
   justify-content: center;
   gap: 6px;
   padding: 8px 13px;
-  border-radius: 15px;
+  border-radius: 999px;
   background: #171719;
   border: 1px solid #28282c;
   color: #aaa;
@@ -310,7 +310,7 @@ header {
   padding: 0 13px;
   background: #171719;
   border: 1px solid #ff3d8d;
-  border-radius: 15px;
+  border-radius: 999px;
   color: #777;
 }
 
@@ -338,7 +338,7 @@ header {
 .sort-select {
   min-height: 40px;
   padding: 8px 32px 8px 11px;
-  border-radius: 15px;
+  border-radius: 999px;
   border: 1px solid #28282c;
   background: #171719;
   color: #ccc;
