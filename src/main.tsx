@@ -3619,47 +3619,60 @@ function ProfileLogin({
   }
 
   async function handleTestingLogin() {
-    try {
-      const response = await fetch(
+  try {
+    const sessionId =
+      localStorage.getItem(
+        "sx-session-token"
+      );
+
+    const response =
+      await fetch(
         "https://streamix.gaintrainstrong.workers.dev/api/auth/login",
         {
           method: "POST",
           headers: {
             "Content-Type":
-              "application/json"
+              "application/json",
+            ...(sessionId
+              ? {
+                  Authorization:
+                    `Bearer ${sessionId}`
+                }
+              : {})
           },
           body: JSON.stringify({
-            profileId: "testing"
+            profileId:
+              "testing"
           })
         }
       );
 
-      const data =
-        await response.json();
+    const data =
+      await response.json();
 
-      if (!response.ok) {
-        throw new Error(
-          data?.error ||
-            "Unable to enter TESTING mode."
-        );
-      }
-
-      if (data.sessionId) {
-        localStorage.setItem(
-          "sx-session-token",
-          data.sessionId
-        );
-      }
-
-      onSuccess();
-    } catch (error) {
-      setError(
-        error instanceof Error
-          ? error.message
-          : "Unable to enter TESTING mode."
+    if (!response.ok) {
+      throw new Error(
+        data?.error ||
+          "Unable to enter TESTING mode."
       );
     }
+
+    if (data.sessionId) {
+      localStorage.setItem(
+        "sx-session-token",
+        data.sessionId
+      );
+    }
+
+    onSuccess();
+  } catch (error) {
+    setError(
+      error instanceof Error
+        ? error.message
+        : "Unable to enter TESTING mode."
+    );
   }
+}
 
   function handleSetPassword() {
     if (!password.trim()) {
