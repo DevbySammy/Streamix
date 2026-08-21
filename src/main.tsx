@@ -414,17 +414,18 @@ function App() {
                 : {}
             }
           );
-         console.log(
-  "HIDDEN RESPONSE:",
-  hiddenResponse.status
-);
 
-console.log(
-  "HIDDEN RESPONSE BODY:",
-  await hiddenResponse.clone().text()
-);
+        console.log(
+          "HIDDEN RESPONSE:",
+          hiddenResponse.status
+        );
 
-if (hiddenResponse.ok) {
+        console.log(
+          "HIDDEN RESPONSE BODY:",
+          await hiddenResponse.clone().text()
+        );
+
+        if (hiddenResponse.ok) {
           const hiddenData =
             await hiddenResponse.json();
 
@@ -433,103 +434,103 @@ if (hiddenResponse.ok) {
               hiddenData.results
             )
           ) {
-          const hiddenTitles: Title[] =
-  hiddenData.results.map(
-    (item: any): Title => {
+            const hiddenTitles: Title[] =
+              hiddenData.results.map(
+                (item: any): Title => {
 
-      // Hidden titles saved by the app
-      // already contain the complete
-      // Title object.
-      if (
-        item.name &&
-        item.kind &&
-        typeof item.year ===
-          "number"
-      ) {
-        return {
-          id:
-            item.id,
+                  // Hidden titles saved by the app
+                  // already contain the complete
+                  // Title object.
+                  if (
+                    item.name &&
+                    item.kind &&
+                    typeof item.year ===
+                      "number"
+                  ) {
+                    return {
+                      id:
+                        item.id,
 
-          name:
-            item.name,
+                      name:
+                        item.name,
 
-          kind:
-            item.kind,
+                      kind:
+                        item.kind,
 
-          year:
-            item.year,
+                      year:
+                        item.year,
 
-          poster:
-            item.poster || "",
+                      poster:
+                        item.poster || "",
 
-          backdrop:
-            item.backdrop || "",
+                      backdrop:
+                        item.backdrop || "",
 
-          overview:
-            item.overview || "",
+                      overview:
+                        item.overview || "",
 
-          addedAt:
-            item.addedAt ||
-            item.hidden_at ||
-            ""
-        };
-      }
+                      addedAt:
+                        item.addedAt ||
+                        item.hidden_at ||
+                        ""
+                    };
+                  }
 
-      // Fallback for any older
-      // TMDB-format hidden records.
-      const kind: Kind =
-        item.media_type === "tv"
-          ? "tv"
-          : "movie";
+                  // Fallback for any older
+                  // TMDB-format hidden records.
+                  const kind: Kind =
+                    item.media_type === "tv"
+                      ? "tv"
+                      : "movie";
 
-      const releaseDate =
-        kind === "movie"
-          ? item.release_date
-          : item.first_air_date;
+                  const releaseDate =
+                    kind === "movie"
+                      ? item.release_date
+                      : item.first_air_date;
 
-      return {
-        id:
-          "tmdb-" +
-          kind +
-          "-" +
-          String(item.id),
+                  return {
+                    id:
+                      "tmdb-" +
+                      kind +
+                      "-" +
+                      String(item.id),
 
-        name:
-          kind === "movie"
-            ? item.title ||
-              "Untitled"
-            : item.name ||
-              "Untitled",
+                    name:
+                      kind === "movie"
+                        ? item.title ||
+                          "Untitled"
+                        : item.name ||
+                          "Untitled",
 
-        kind,
+                    kind,
 
-        year:
-          releaseDate
-            ? Number(
-                String(
-                  releaseDate
-                ).slice(0, 4)
-              )
-            : 0,
+                    year:
+                      releaseDate
+                        ? Number(
+                            String(
+                              releaseDate
+                            ).slice(0, 4)
+                          )
+                        : 0,
 
-        poster:
-          getPosterUrl(
-            item.poster_path
-          ),
+                    poster:
+                      getPosterUrl(
+                        item.poster_path
+                      ),
 
-        backdrop:
-          getBackdropUrl(
-            item.backdrop_path
-          ),
+                    backdrop:
+                      getBackdropUrl(
+                        item.backdrop_path
+                      ),
 
-        overview:
-          item.overview || "",
+                    overview:
+                      item.overview || "",
 
-        addedAt:
-          item.hidden_at || ""
-      };
-    }
-  );
+                    addedAt:
+                      item.hidden_at || ""
+                  };
+                }
+              );
 
             setHiddenJustAdded(
               hiddenTitles
@@ -557,37 +558,37 @@ if (hiddenResponse.ok) {
     setProfilesLoading
   ] = useState(true);
 
-   const [
-  deletedProfiles,
-  setDeletedProfiles
-] = useState<Profile[]>([]);
+  const [
+    deletedProfiles,
+    setDeletedProfiles
+  ] = useState<Profile[]>([]);
 
-const [
-  deletedProfilesLoading,
-  setDeletedProfilesLoading
-] = useState(false);
-   
+  const [
+    deletedProfilesLoading,
+    setDeletedProfilesLoading
+  ] = useState(false);
 
   useEffect(() => {
     async function loadProfiles() {
       try {
-    const sessionId =
-  localStorage.getItem(
-    "sx-session-token"
-  );
+        const sessionId =
+          localStorage.getItem(
+            "sx-session-token"
+          );
 
-const response =
-  await fetch(
-    "/api/profiles",
-    {
-      headers: sessionId
-        ? {
-            Authorization:
-              `Bearer ${sessionId}`
-          }
-        : {}
-    }
-  );
+        const response =
+          await fetch(
+            "/api/profiles",
+            {
+              headers: sessionId
+                ? {
+                    Authorization:
+                      `Bearer ${sessionId}`
+                  }
+                : {}
+            }
+          );
+
         if (!response.ok) {
           throw new Error(
             "Failed to load profiles"
@@ -610,63 +611,6 @@ const response =
 
     loadProfiles();
   }, []);
-
-
-useEffect(() => {
-  async function loadDeletedProfiles() {
-    if (!isAdminUser) {
-      return;
-    }
-
-    try {
-      setDeletedProfilesLoading(true);
-
-      const sessionId =
-        localStorage.getItem(
-          "sx-session-token"
-        );
-
-      const response =
-        await fetch(
-          "https://streamix.gaintrainstrong.workers.dev/api/profiles/deleted",
-          {
-            headers: sessionId
-              ? {
-                  Authorization:
-                    `Bearer ${sessionId}`
-                }
-              : {}
-          }
-        );
-
-      if (!response.ok) {
-        throw new Error(
-          "Failed to load deleted profiles"
-        );
-      }
-
-      const data =
-        await response.json();
-
-      setDeletedProfiles(
-        Array.isArray(data)
-          ? data
-          : []
-      );
-    } catch (error) {
-      console.error(
-        "Failed to load deleted profiles:",
-        error
-      );
-    } finally {
-      setDeletedProfilesLoading(
-        false
-      );
-    }
-  }
-
-  loadDeletedProfiles();
-}, [isAdminUser]);
 
   const [
     states,
@@ -743,6 +687,13 @@ AUTHENTICATION / SESSION
 const [profileId, setProfileId] =
   useState<string | null>(null);
 
+   const [viewingAs, setViewingAs] =
+  useState<string | null>(() =>
+    localStorage.getItem(
+      "sx-viewing-as"
+    )
+  );
+
 const [sessionRestoring, setSessionRestoring] =
   useState(true);
 
@@ -814,13 +765,6 @@ useEffect(() => {
   restoreSession();
 }, []);
 
-const [viewingAs, setViewingAs] =
-  useState<string | null>(() =>
-    localStorage.getItem(
-      "sx-viewing-as"
-    )
-  );
-
 const [tab, setTab] =
   useState<"library" | "rewatch">(
     "library"
@@ -873,7 +817,6 @@ useEffect(() => {
         );
 
    
-
       const response = await fetch(
         "https://streamix.gaintrainstrong.workers.dev/api/tmdb/just-added",
         {
