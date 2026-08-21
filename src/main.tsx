@@ -68,6 +68,7 @@ message: string;
 };
 
 type SortOption =
+| "just-added"
 | "name-asc"
 | "name-desc"
 | "year-desc"
@@ -135,6 +136,25 @@ return (
 "https://image.tmdb.org/t/p/w1280" +
 path
 );
+}
+
+function getJustAddedDateRange() {
+  const today = new Date();
+
+  const endDate =
+    today.toISOString().slice(0, 10);
+
+  const startDate = new Date(today);
+
+  startDate.setDate(
+    startDate.getDate() - 30
+  );
+
+  return {
+    startDate:
+      startDate.toISOString().slice(0, 10),
+    endDate
+  };
 }
 
 /* =========================================================
@@ -1824,7 +1844,12 @@ return ( <div className="app">
             }
             aria-label="Sort library"
           >
-            <option value="name-asc">
+          
+           <option value="just-added">
+    Just Added
+  </option>
+           
+           <option value="name-asc">
               Name A–Z
             </option>
 
