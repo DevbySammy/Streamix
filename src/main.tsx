@@ -2831,41 +2831,47 @@ setProfileId(
                       return;
                     }
 
-                    if (
-                      isAdminUser
-                    ) {
-                      if (
-                        item.id ===
-                        "admin"
-                      ) {
-                        setViewingAs(
-                          null
-                        );
+                  if (
+  isAdminUser
+) {
+  if (
+    item.id === "admin"
+  ) {
+    setViewingAs(
+      null
+    );
 
-                        setProfileId(
-                          "admin"
-                        );
-                      } else {
-                      setViewingAs(
-  item.id
-);
+    setProfileId(
+      "admin"
+    );
+  } else if (
+    item.id === "testing"
+  ) {
+    setShowProfile(
+      false
+    );
 
-localStorage.setItem(
-  "sx-viewing-as",
-  item.id
-);
+    return;
+  } else {
+    setViewingAs(
+      item.id
+    );
+    localStorage.setItem(
+      "sx-viewing-as",
+      item.id
+    );
 
-setProfileId(
-  "admin"
-);
-                      }
+    setProfileId(
+      "admin"
+    );
+  }
 
-                      setShowProfile(
-                        false
-                      );
+  setShowProfile(
+    false
+  );
 
-                      return;
-                    }
+  return;
+}
 
                     setLoginProfile(
                       item
@@ -3482,442 +3488,506 @@ PROFILE LOGIN
 ========================================================= */
 
 function ProfileLogin({
-profile,
-onClose,
-onSuccess,
-onSetPassword
+  profile,
+  onClose,
+  onSuccess,
+  onSetPassword
 }: {
-profile: Profile;
-onClose: () => void;
-onSuccess: () => void;
-onSetPassword: (
-password: string
-) => void;
+  profile: Profile;
+  onClose: () => void;
+  onSuccess: () => void;
+  onSetPassword: (
+    password: string
+  ) => void;
 }) {
-const [password, setPassword] =
-useState("");
+  const [password, setPassword] =
+    useState("");
 
-const [error, setError] =
-useState("");
+  const [error, setError] =
+    useState("");
 
-const [resetting, setResetting] =
-useState(false);
+  const [resetting, setResetting] =
+    useState(false);
 
-const [showPassword, setShowPassword] =
-useState(false);
+  const [showPassword, setShowPassword] =
+    useState(false);
 
-const hasPassword = profile.id === "admin";
+  const isTesting =
+    profile.id === "testing";
 
-async function handleLogin() {
-  if (!password.trim()) {
-    setError(
-      "Please enter your password."
-    );
-    return;
+  const hasPassword =
+    profile.id === "admin";
+
+  async function handleLogin() {
+    if (!password.trim()) {
+      setError(
+        "Please enter your password."
+      );
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        "https://streamix.gaintrainstrong.workers.dev/api/auth/login",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type":
+              "application/json"
+          },
+          body: JSON.stringify({
+            profileId:
+              profile.id,
+            password
+          })
+        }
+      );
+
+      const data =
+        await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          data?.error ||
+            "Incorrect password. Please try again."
+        );
+      }
+
+      if (data.sessionId) {
+        localStorage.setItem(
+          "sx-session-token",
+          data.sessionId
+        );
+      }
+
+      onSuccess();
+    } catch (error) {
+      setError(
+        error instanceof Error
+          ? error.message
+          : "Incorrect password. Please try again."
+      );
+    }
   }
 
-  try {
-const response = await fetch(
-  "https://streamix.gaintrainstrong.workers.dev/api/auth/login",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type":
-            "application/json"
-        },
-        body: JSON.stringify({
-          profileId: profile.id,
-          password
-        })
+  async function handleTestingLogin() {
+    try {
+      const response = await fetch(
+        "https://streamix.gaintrainstrong.workers.dev/api/auth/login",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type":
+              "application/json"
+          },
+          body: JSON.stringify({
+            profileId: "testing"
+          })
+        }
+      );
+
+      const data =
+        await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          data?.error ||
+            "Unable to enter TESTING mode."
+        );
       }
+
+      if (data.sessionId) {
+        localStorage.setItem(
+          "sx-session-token",
+          data.sessionId
+        );
+      }
+
+      onSuccess();
+    } catch (error) {
+      setError(
+        error instanceof Error
+          ? error.message
+          : "Unable to enter TESTING mode."
+      );
+    }
+  }
+
+  function handleSetPassword() {
+    if (!password.trim()) {
+      setError(
+        "Please enter a password."
+      );
+
+      return;
+    }
+
+    onSetPassword(
+      password
     );
-
-    const data =
-      await response.json();
-
-    if (!response.ok) {
-      throw new Error(
-        data?.error ||
-          "Incorrect password. Please try again."
-      );
-    }
-
-    if (data.sessionId) {
-      localStorage.setItem(
-        "sx-session-token",
-        data.sessionId
-      );
-    }
 
     onSuccess();
-  } catch (error) {
-    setError(
-      error instanceof Error
-        ? error.message
-        : "Incorrect password. Please try again."
-    );
   }
-}
 
-function handleSetPassword() {
-if (!password.trim()) {
-setError(
-"Please enter a password."
-);
+  function handleResetPassword() {
+    if (!password.trim()) {
+      setError(
+        "Please enter a new password."
+      );
 
+      return;
+    }
 
-  return;
-}
+    onSetPassword(
+      password
+    );
 
-onSetPassword(
-  password
-);
+    onSuccess();
+  }
 
-onSuccess();
-
-
-}
-
-function handleResetPassword() {
-if (!password.trim()) {
-setError(
-"Please enter a new password."
-);
-
-
-  return;
-}
-
-onSetPassword(
-  password
-);
-
-onSuccess();
-
-
-}
-
-return (
-<Modal
-title={
-!hasPassword
-? "Set Your Password"
-: resetting
-? "Create a New Password"
-: "Profile Login"
-}
-onClose={onClose}
->
-
-
-  <div className="profile-login">
-
-    <div className="profile-login-avatar">
-      {
-        profile.avatar
+  return (
+    <Modal
+      title={
+        isTesting
+          ? "Testing Profile"
+          : !hasPassword
+          ? "Set Your Password"
+          : resetting
+          ? "Create a New Password"
+          : "Profile Login"
       }
-    </div>
+      onClose={
+        onClose
+      }
+    >
+      <div className="profile-login">
 
-    <h3>
-      {profile.name}'s
-      Profile
-    </h3>
+        <div className="profile-login-avatar">
+          {profile.avatar}
+        </div>
 
-    {!hasPassword ? (
-      <>
-        <p className="muted">
-          Create a password for your profile.
-          You'll use it whenever you log in.
-        </p>
+        <h3>
+          {profile.name}
+          {!isTesting &&
+            "'s Profile"}
+        </h3>
 
-        <label>
-          Password
+        {isTesting ? (
+          <>
+            <p className="muted">
+              This profile is for Admin
+              testing only. It lets you
+              experience the app exactly
+              as a regular user.
+            </p>
 
-          <div className="password-wrapper">
-
-            <input
-              autoFocus
-              type={
-                showPassword
-                  ? "text"
-                  : "password"
-              }
-              value={
-                password
-              }
-              onChange={event => {
-                setPassword(
-                  event.target
-                    .value
-                );
-
-                setError("");
-              }}
-              onKeyDown={event => {
-                if (
-                  event.key ===
-                  "Enter"
-                ) {
-                  handleSetPassword();
-                }
-              }}
-              placeholder="Create a password"
-            />
+            {error && (
+              <p className="login-error">
+                {error}
+              </p>
+            )}
 
             <button
-              type="button"
-              className="password-toggle"
-              onClick={() =>
-                setShowPassword(
-                  current =>
-                    !current
-                )
-              }
-              aria-label={
-                showPassword
-                  ? "Hide password"
-                  : "Show password"
+              className="pink full"
+              onClick={
+                handleTestingLogin
               }
             >
-              {showPassword ? (
-                <EyeOff
-                  size={18}
-                />
-              ) : (
-                <Eye
-                  size={18}
-                />
-              )}
+              Enter Testing Mode
             </button>
 
-          </div>
-        </label>
+          </>
+        ) : !hasPassword ? (
+          <>
+            <p className="muted">
+              Create a password for your profile.
+              You'll use it whenever you log in.
+            </p>
 
-        {error && (
-          <p className="login-error">
-            {error}
-          </p>
-        )}
+            <label>
+              Password
 
-        <button
-          className="pink full"
-          onClick={
-            handleSetPassword
-          }
-        >
-          Set Password
-        </button>
-      </>
-    ) : resetting ? (
-      <>
-        <p className="muted">
-          Create a new password for your
-          profile.
-        </p>
+              <div className="password-wrapper">
 
-        <label>
-          New Password
+                <input
+                  autoFocus
+                  type={
+                    showPassword
+                      ? "text"
+                      : "password"
+                  }
+                  value={
+                    password
+                  }
+                  onChange={event => {
+                    setPassword(
+                      event.target
+                        .value
+                    );
 
-          <div className="password-wrapper">
+                    setError("");
+                  }}
+                  onKeyDown={event => {
+                    if (
+                      event.key ===
+                      "Enter"
+                    ) {
+                      handleSetPassword();
+                    }
+                  }}
+                  placeholder="Create a password"
+                />
 
-            <input
-              autoFocus
-              type={
-                showPassword
-                  ? "text"
-                  : "password"
-              }
-              value={
-                password
-              }
-              onChange={event => {
-                setPassword(
-                  event.target
-                    .value
-                );
+                <button
+                  type="button"
+                  className="password-toggle"
+                  onClick={() =>
+                    setShowPassword(
+                      current =>
+                        !current
+                    )
+                  }
+                  aria-label={
+                    showPassword
+                      ? "Hide password"
+                      : "Show password"
+                  }
+                >
+                  {showPassword ? (
+                    <EyeOff
+                      size={18}
+                    />
+                  ) : (
+                    <Eye
+                      size={18}
+                    />
+                  )}
+                </button>
 
-                setError("");
-              }}
-              onKeyDown={event => {
-                if (
-                  event.key ===
-                  "Enter"
-                ) {
-                  handleResetPassword();
-                }
-              }}
-              placeholder="Create a new password"
-            />
+              </div>
+            </label>
+
+            {error && (
+              <p className="login-error">
+                {error}
+              </p>
+            )}
 
             <button
-              type="button"
-              className="password-toggle"
-              onClick={() =>
-                setShowPassword(
-                  current =>
-                    !current
-                )
-              }
-              aria-label={
-                showPassword
-                  ? "Hide password"
-                  : "Show password"
+              className="pink full"
+              onClick={
+                handleSetPassword
               }
             >
-              {showPassword ? (
-                <EyeOff
-                  size={18}
-                />
-              ) : (
-                <Eye
-                  size={18}
-                />
-              )}
+              Set Password
             </button>
+          </>
+        ) : resetting ? (
+          <>
+            <p className="muted">
+              Create a new password for your
+              profile.
+            </p>
 
-          </div>
-        </label>
+            <label>
+              New Password
 
-        {error && (
-          <p className="login-error">
-            {error}
-          </p>
-        )}
+              <div className="password-wrapper">
 
-        <button
-          className="pink full"
-          onClick={
-            handleResetPassword
-          }
-        >
-          Reset Password
-        </button>
+                <input
+                  autoFocus
+                  type={
+                    showPassword
+                      ? "text"
+                      : "password"
+                  }
+                  value={
+                    password
+                  }
+                  onChange={event => {
+                    setPassword(
+                      event.target
+                        .value
+                    );
 
-        <button
-          className="ghost full"
-          onClick={() => {
-            setResetting(
-              false
-            );
+                    setError("");
+                  }}
+                  onKeyDown={event => {
+                    if (
+                      event.key ===
+                      "Enter"
+                    ) {
+                      handleResetPassword();
+                    }
+                  }}
+                  placeholder="Create a new password"
+                />
 
-            setPassword("");
-            setError("");
-            setShowPassword(
-              false
-            );
-          }}
-        >
-          Back to Login
-        </button>
-      </>
-    ) : (
-      <>
-        <p className="muted">
-          Enter your password to continue.
-        </p>
+                <button
+                  type="button"
+                  className="password-toggle"
+                  onClick={() =>
+                    setShowPassword(
+                      current =>
+                        !current
+                    )
+                  }
+                  aria-label={
+                    showPassword
+                      ? "Hide password"
+                      : "Show password"
+                  }
+                >
+                  {showPassword ? (
+                    <EyeOff
+                      size={18}
+                    />
+                  ) : (
+                    <Eye
+                      size={18}
+                    />
+                  )}
+                </button>
 
-        <label>
-          Password
+              </div>
+            </label>
 
-          <div className="password-wrapper">
-
-            <input
-              autoFocus
-              type={
-                showPassword
-                  ? "text"
-                  : "password"
-              }
-              value={
-                password
-              }
-              onChange={event => {
-                setPassword(
-                  event.target
-                    .value
-                );
-
-                setError("");
-              }}
-              onKeyDown={event => {
-                if (
-                  event.key ===
-                  "Enter"
-                ) {
-                  handleLogin();
-                }
-              }}
-              placeholder="Enter password"
-            />
+            {error && (
+              <p className="login-error">
+                {error}
+              </p>
+            )}
 
             <button
-              type="button"
-              className="password-toggle"
-              onClick={() =>
-                setShowPassword(
-                  current =>
-                    !current
-                )
-              }
-              aria-label={
-                showPassword
-                  ? "Hide password"
-                  : "Show password"
+              className="pink full"
+              onClick={
+                handleResetPassword
               }
             >
-              {showPassword ? (
-                <EyeOff
-                  size={18}
-                />
-              ) : (
-                <Eye
-                  size={18}
-                />
-              )}
+              Reset Password
             </button>
 
-          </div>
-        </label>
+            <button
+              className="ghost full"
+              onClick={() => {
+                setResetting(
+                  false
+                );
 
-        {error && (
-          <p className="login-error">
-            {error}
-          </p>
+                setPassword("");
+                setError("");
+                setShowPassword(
+                  false
+                );
+              }}
+            >
+              Back to Login
+            </button>
+          </>
+        ) : (
+          <>
+            <p className="muted">
+              Enter your password to continue.
+            </p>
+
+            <label>
+              Password
+
+              <div className="password-wrapper">
+
+                <input
+                  autoFocus
+                  type={
+                    showPassword
+                      ? "text"
+                      : "password"
+                  }
+                  value={
+                    password
+                  }
+                  onChange={event => {
+                    setPassword(
+                      event.target
+                        .value
+                    );
+
+                    setError("");
+                  }}
+                  onKeyDown={event => {
+                    if (
+                      event.key ===
+                      "Enter"
+                    ) {
+                      handleLogin();
+                    }
+                  }}
+                  placeholder="Enter password"
+                />
+
+                <button
+                  type="button"
+                  className="password-toggle"
+                  onClick={() =>
+                    setShowPassword(
+                      current =>
+                        !current
+                    )
+                  }
+                  aria-label={
+                    showPassword
+                      ? "Hide password"
+                      : "Show password"
+                  }
+                >
+                  {showPassword ? (
+                    <EyeOff
+                      size={18}
+                    />
+                  ) : (
+                    <Eye
+                      size={18}
+                    />
+                  )}
+                </button>
+
+              </div>
+            </label>
+
+            {error && (
+              <p className="login-error">
+                {error}
+              </p>
+            )}
+
+            <button
+              className="pink full"
+              onClick={
+                handleLogin
+              }
+            >
+              Log In
+            </button>
+
+            {profile.id !== "admin" && (
+              <button
+                className="forgot-password"
+                onClick={() => {
+                  setResetting(true);
+                  setPassword("");
+                  setError("");
+                  setShowPassword(false);
+                }}
+              >
+                Forgot password?
+              </button>
+            )}
+          </>
         )}
 
-        <button
-          className="pink full"
-          onClick={
-            handleLogin
-          }
-        >
-          Log In
-        </button>
-
-     {profile.id !== "admin" && (
-  <button
-    className="forgot-password"
-    onClick={() => {
-      setResetting(true);
-      setPassword("");
-      setError("");
-      setShowPassword(false);
-    }}
-  >
-    Forgot password?
-  </button>
-)}
-      </>
-    )}
-
-  </div>
-
-</Modal>
-
-
-);
+      </div>
+    </Modal>
+  );
 }
-
 /* =========================================================
 CARD
 ========================================================= */
