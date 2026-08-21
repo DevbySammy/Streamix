@@ -2494,6 +2494,8 @@ onAdd={async title => {
     }
   ]);
 }}
+      />
+    )}
 
   {/* REMINDER */}
 
