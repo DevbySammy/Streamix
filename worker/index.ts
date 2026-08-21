@@ -2393,21 +2393,27 @@ const start =
     .toISOString()
     .slice(0, 10);
 
-  const fetchTMDB =
-    async (
-      type: "movie" | "tv"
-    ) => {
-      const dateField =
-        type === "movie"
-          ? "primary_release_date"
-          : "first_air_date";
+const fetchTMDB =
+  async (
+    type: "movie" | "tv"
+  ) => {
+    const dateField =
+      type === "movie"
+        ? "primary_release_date"
+        : "first_air_date";
 
+    const allResults: any[] = [];
+
+    let page = 1;
+    let totalPages = 1;
+
+    do {
       const tmdbUrl =
         `https://api.themoviedb.org/3/discover/${type}` +
         `?include_adult=false` +
         `&include_video=false` +
         `&language=en-US` +
-        `&page=1` +
+        `&page=${page}` +
         `&sort_by=${dateField}.desc` +
         `&${dateField}.gte=${start}` +
         `&${dateField}.lte=${endDate}`;
@@ -2435,12 +2441,28 @@ const start =
         );
       }
 
-      return Array.isArray(
-        data.results
-      )
-        ? data.results
-        : [];
-    };
+      if (
+        Array.isArray(
+          data.results
+        )
+      ) {
+        allResults.push(
+          ...data.results
+        );
+      }
+
+      totalPages =
+        Number(
+          data.total_pages || 1
+        );
+
+      page += 1;
+    } while (
+      page <= totalPages
+    );
+
+    return allResults;
+  };
 
   try {
     const [
