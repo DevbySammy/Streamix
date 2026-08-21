@@ -550,6 +550,11 @@ if (hiddenResponse.ok) {
     profilesLoading,
     setProfilesLoading
   ] = useState(true);
+ 
+   const [
+  sessionLoading,
+  setSessionLoading
+] = useState(true);
 
   useEffect(() => {
     async function loadProfiles() {
@@ -594,43 +599,47 @@ const response =
     loadProfiles();
   }, []);
 
-  useEffect(() => {
-    async function restoreSession() {
-      try {
-        const response =
-          await fetch(
-            "/api/auth/session",
-            {
-              credentials:
-                "include"
-            }
-          );
+useEffect(() => {
+  async function restoreSession() {
+    try {
+      const response =
+        await fetch(
+          "/api/auth/session",
+          {
+            credentials:
+              "include"
+          }
+        );
 
-        if (!response.ok) {
-          return;
-        }
+      if (!response.ok) {
+        return;
+      }
 
-        const data =
-          await response.json();
+      const data =
+        await response.json();
 
-        if (
-          data.authenticated &&
-          data.profile
-        ) {
-          setProfileId(
-            data.profile.id
-          );
-        }
-      } catch (error) {
-        console.error(
-          "Failed to restore session:",
-          error
+      if (
+        data.authenticated &&
+        data.profile
+      ) {
+        setProfileId(
+          data.profile.id
         );
       }
+    } catch (error) {
+      console.error(
+        "Failed to restore session:",
+        error
+      );
+    } finally {
+      setSessionLoading(
+        false
+      );
     }
+  }
 
-    restoreSession();
-  }, []);
+  restoreSession();
+}, []);
 
   const [
     states,
@@ -2079,7 +2088,10 @@ setDragPointerId(
 LOGIN SCREEN
 ======================================================= */
 
-if (profileId === null) {
+if (
+  profileId === null &&
+  !sessionLoading
+) {
 return ( <div className="app"> <main> <div className="login-screen"> <div className="login-container">
 
 
