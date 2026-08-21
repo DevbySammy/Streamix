@@ -743,7 +743,6 @@ useEffect(() => {
         setProfileId(
           data.profile.id
         );
-        setViewingAs(null);
       } else {
         localStorage.removeItem(
           "sx-session-token"
@@ -768,7 +767,11 @@ useEffect(() => {
 }, []);
 
 const [viewingAs, setViewingAs] =
-  useState<string | null>(null);
+  useState<string | null>(() =>
+    localStorage.getItem(
+      "sx-viewing-as"
+    )
+  );
 
 const [tab, setTab] =
   useState<"library" | "rewatch">(
@@ -2223,10 +2226,15 @@ return ( <div className="app">
         <button
           className="admin-badge"
           onClick={() => {
-            setViewingAs(null);
-            setProfileId(
-              "admin"
-            );
+        setViewingAs(null);
+
+localStorage.removeItem(
+  "sx-viewing-as"
+);
+
+setProfileId(
+  "admin"
+);
             setTab("library");
             setFilter("all");
             setKind("all");
@@ -2838,13 +2846,18 @@ return ( <div className="app">
                           "admin"
                         );
                       } else {
-                        setViewingAs(
-                          item.id
-                        );
+                      setViewingAs(
+  item.id
+);
 
-                        setProfileId(
-                          "admin"
-                        );
+localStorage.setItem(
+  "sx-viewing-as",
+  item.id
+);
+
+setProfileId(
+  "admin"
+);
                       }
 
                       setShowProfile(
