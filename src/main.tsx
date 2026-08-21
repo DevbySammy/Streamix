@@ -2417,53 +2417,83 @@ return ( <div className="app">
       onClose={() =>
         setShowAdd(false)
       }
- onAdd={async title => {
-  try {
-    const sessionId =
-      localStorage.getItem(
-        "sx-session-token"
-      );
-
-    const response = await fetch(
-      "/api/library",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type":
-            "application/json",
-          ...(sessionId
-            ? {
-                Authorization:
-                  `Bearer ${sessionId}`
-              }
-            : {})
-        },
-        body: JSON.stringify(title)
-      }
+onAdd={async title => {
+  const sessionId =
+    localStorage.getItem(
+      "sx-session-token"
     );
 
-    if (!response.ok) {
-      throw new Error(
-        "Failed to save media"
-      );
+  const response = await fetch(
+    "/api/library",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type":
+          "application/json",
+        ...(sessionId
+          ? {
+              Authorization:
+                `Bearer ${sessionId}`
+            }
+          : {})
+      },
+      body: JSON.stringify({
+        tmdb_id: Number(
+          title.id.replace(
+            `tmdb-${title.kind}-`,
+            ""
+          )
+        ),
+        media_type:
+          title.kind === "movie"
+            ? "movie"
+            : "tv",
+        title:
+          title.name,
+        poster_path:
+          title.poster
+            ? title.poster.replace(
+                "https://image.tmdb.org/t/p/w500",
+                ""
+              )
+            : null,
+        backdrop_path:
+          title.backdrop
+            ? title.backdrop.replace(
+                "https://image.tmdb.org/t/p/w1280",
+                ""
+              )
+            : null,
+        overview:
+          title.overview || null,
+        release_date:
+          title.year
+            ? `${title.year}-01-01`
+            : null,
+        vote_average:
+          null
+      })
     }
+  );
 
-    const savedTitle =
-      await response.json();
+  const data =
+    await response.json();
 
-    setLibrary(current => [
-      ...current,
-      savedTitle
-    ]);
-  } catch (error) {
-    console.error(
-      "Failed to save media:",
-      error
+  if (!response.ok) {
+    throw new Error(
+      data?.error ||
+        "Failed to save media."
     );
   }
+
+  setLibrary(current => [
+    ...current,
+    {
+      ...title,
+      id: data.id
+    }
+  ]);
 }}
-    />
-  )}
 
   {/* REMINDER */}
 
@@ -3660,7 +3690,7 @@ onAdd
 }: {
 library: Title[];
 onClose: () => void;
-onAdd: (title: Title) => void;
+onAdd: (title: Title) => Promise<void>;
 }) {
 const [query, setQuery] =
 useState("");
@@ -3744,39 +3774,47 @@ return () =>
 
 }, [confirmation]);
 
-function handleAdd(
-title: Title
+async function handleAdd(
+  title: Title
 ) {
-const alreadyAdded =
-library.some(
-item =>
-item.id === title.id
-);
+  const alreadyAdded =
+    library.some(
+      item =>
+        item.id === title.id
+    );
 
+  if (alreadyAdded) {
+    setAddedTitleId(
+      title.id
+    );
 
-if (alreadyAdded) {
-  setAddedTitleId(
-    title.id
-  );
+    setConfirmation(
+      "Already in your library"
+    );
 
-  setConfirmation(
-    "Already in your library"
-  );
+    return;
+  }
 
-  return;
-}
+  try {
+    await onAdd(title);
 
-onAdd(title);
+    setAddedTitleId(
+      title.id
+    );
 
-setAddedTitleId(
-  title.id
-);
+    setConfirmation(
+      "Added to your library"
+    );
+  } catch (error) {
+    setConfirmation(
+      "Unable to add this title."
+    );
 
-setConfirmation(
-  "Added to your library"
-);
-
-
+    console.error(
+      "Failed to add title:",
+      error
+    );
+  }
 }
 
 return ( <Modal
@@ -3797,7 +3835,7 @@ return ( <Modal
           event.target.value
         )
       }
-      placeholder="Search movies and TV shows"
+      placeholder="Search Movies and TV Shows"
     />
 
   </div>
