@@ -2726,84 +2726,92 @@ if (
       .toISOString()
       .slice(0, 10);
 
-async function discover(
-  type: "movie" | "tv"
-) {
-  const dateFilter =
-    type === "movie"
-      ? "primary_release_date"
-      : "first_air_date";
+  async function discover(
+    type: "movie" | "tv"
+  ) {
+    const dateFilter =
+      type === "movie"
+        ? "primary_release_date"
+        : "first_air_date";
 
-  const allResults: any[] = [];
+    const allResults: any[] = [];
 
-  for (let page = 1; page <= 5; page++) {
-    const tmdbUrl =
-      "https://api.themoviedb.org/3/discover/" +
-      type +
-      "?include_adult=false" +
-      "&include_video=false" +
-      "&language=en-US" +
-      "&with_original_language=en" +
-      "&page=" +
-      page +
-      "&sort_by=" +
-      dateFilter +
-      ".desc" +
-      "&" +
-      dateFilter +
-      ".gte=" +
-      startDateString +
-      "&" +
-      dateFilter +
-      ".lte=" +
-      endDate;
+    for (
+      let page = 1;
+      page <= 5;
+      page++
+    ) {
+      const tmdbUrl =
+        "https://api.themoviedb.org/3/discover/" +
+        type +
+        "?include_adult=false" +
+        "&include_video=false" +
+        "&language=en-US" +
+        "&with_original_language=en" +
+        "&page=" +
+        page +
+        "&sort_by=" +
+        dateFilter +
+        ".desc" +
+        "&" +
+        dateFilter +
+        ".gte=" +
+        startDateString +
+        "&" +
+        dateFilter +
+        ".lte=" +
+        endDate;
 
-    const response =
-      await fetch(
-        tmdbUrl,
-        {
-          headers: {
-            Authorization:
-              "Bearer " +
-              env.TMDB_READ_ACCESS_TOKEN,
-            accept:
-              "application/json"
+      const response =
+        await fetch(
+          tmdbUrl,
+          {
+            headers: {
+              Authorization:
+                "Bearer " +
+                env.TMDB_READ_ACCESS_TOKEN,
+              accept:
+                "application/json"
+            }
           }
-        }
-      );
+        );
 
-    const data =
-      await response.json();
+      const data =
+        await response.json();
 
-    if (!response.ok) {
-      throw new Error(
-        typeof data?.status_message ===
-        "string"
-          ? data.status_message
-          : "TMDB request failed."
-      );
+      if (!response.ok) {
+        throw new Error(
+          typeof data?.status_message ===
+          "string"
+            ? data.status_message
+            : "TMDB request failed."
+        );
+      }
+
+      if (
+        Array.isArray(
+          data.results
+        )
+      ) {
+        allResults.push(
+          ...data.results.filter(
+            (item: any) =>
+              item.original_language ===
+              "en"
+          )
+        );
+      }
+
+      if (
+        !data.total_pages ||
+        page >= data.total_pages
+      ) {
+        break;
+      }
     }
 
-    if (
-      Array.isArray(
-        data.results
-      )
-    ) {
-      allResults.push(
-        ...data.results
-      );
-    }
-
-    if (
-      !data.total_pages ||
-      page >= data.total_pages
-    ) {
-      break;
-    }
+    return allResults;
   }
-
-  return allResults;
-}
 
   try {
     const [
@@ -2814,83 +2822,84 @@ async function discover(
       discover("tv")
     ]);
 
-await env.DB
-  .prepare(`
-    CREATE TABLE IF NOT EXISTS just_added_hidden (
-      tmdb_id INTEGER NOT NULL,
-      media_type TEXT NOT NULL,
-      hidden_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-      PRIMARY KEY (
-        tmdb_id,
-        media_type
+    await env.DB
+      .prepare(`
+        CREATE TABLE IF NOT EXISTS just_added_hidden (
+          tmdb_id INTEGER NOT NULL,
+          media_type TEXT NOT NULL,
+          hidden_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          PRIMARY KEY (
+            tmdb_id,
+            media_type
+          )
+        )
+      `)
+      .run();
+
+    const hidden =
+      await env.DB
+        .prepare(`
+          SELECT
+            tmdb_id,
+            media_type
+          FROM just_added_hidden
+        `)
+        .all<{
+          tmdb_id: number;
+          media_type: "movie" | "tv";
+        }>();
+
+    const hiddenKeys =
+      new Set(
+        hidden.results.map(
+          item =>
+            `${item.media_type}-${item.tmdb_id}`
+        )
+      );
+
+    const results = [
+      ...movies.map(
+        (item: any) => ({
+          ...item,
+          media_type:
+            "movie"
+        })
+      ),
+      ...tvShows.map(
+        (item: any) => ({
+          ...item,
+          media_type:
+            "tv"
+        })
       )
-    )
-  `)
-  .run();
+    ]
+      .filter(
+        (item: any) =>
+          !hiddenKeys.has(
+            `${item.media_type}-${item.id}`
+          )
+      )
+      .sort(
+        (a, b) => {
+          const aDate =
+            a.media_type ===
+            "movie"
+              ? a.release_date
+              : a.first_air_date;
 
-const hidden =
-  await env.DB
-    .prepare(`
-      SELECT
-        tmdb_id,
-        media_type
-      FROM just_added_hidden
-    `)
-    .all<{
-      tmdb_id: number;
-      media_type: "movie" | "tv";
-    }>();
-const hiddenKeys =
-  new Set(
-    hidden.results.map(
-      item =>
-        `${item.media_type}-${item.tmdb_id}`
-    )
-  );
+          const bDate =
+            b.media_type ===
+            "movie"
+              ? b.release_date
+              : b.first_air_date;
 
-const results = [
-  ...movies.map(
-    (item: any) => ({
-      ...item,
-      media_type:
-        "movie"
-    })
-  ),
-  ...tvShows.map(
-    (item: any) => ({
-      ...item,
-      media_type:
-        "tv"
-    })
-  )
-]
-.filter(
-  (item: any) =>
-    !hiddenKeys.has(
-      `${item.media_type}-${item.id}`
-    )
-)
-.sort( 
-  (a, b) => {
-    const aDate =
-      a.media_type ===
-      "movie"
-        ? a.release_date
-        : a.first_air_date;
-
-    const bDate =
-      b.media_type ===
-      "movie"
-        ? b.release_date
-        : b.first_air_date;
-
-    return String(
-      bDate || ""
-    ).localeCompare(
-      String(aDate || "")
-    );
-  }
-);
+          return String(
+            bDate || ""
+          ).localeCompare(
+            String(aDate || "")
+          );
+        }
+      );
 
     return json({
       results
@@ -2913,8 +2922,7 @@ const results = [
     );
   }
 }
-
-  
+    
 // ==================================================
 // TMDB SEARCH
 // ==================================================
