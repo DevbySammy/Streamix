@@ -606,6 +606,127 @@ useEffect(() => {
   loadJustAdded();
 }, [sort]);
 
+useEffect(() => {
+  if (
+    !isAdmin ||
+    sort !== "just-added" ||
+    justAddedView !== "hidden"
+  ) {
+    return;
+  }
+
+  async function loadHiddenJustAdded() {
+    try {
+      const sessionId =
+        localStorage.getItem(
+          "sx-session-token"
+        );
+
+      const response = await fetch(
+        "https://streamix.gaintrainstrong.workers.dev/api/tmdb/just-added/hidden",
+        {
+          headers: sessionId
+            ? {
+                Authorization:
+                  `Bearer ${sessionId}`
+              }
+            : {}
+        }
+      );
+
+      const data =
+        await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          data?.error ||
+            "Unable to load hidden titles."
+        );
+      }
+
+      const results =
+        Array.isArray(data.results)
+          ? data.results
+          : [];
+
+      const titles: Title[] =
+        results.map(
+          (item: any): Title => {
+            const kind: Kind =
+              item.media_type === "tv"
+                ? "tv"
+                : "movie";
+
+            const releaseDate =
+              kind === "movie"
+                ? item.release_date
+                : item.first_air_date;
+
+            const year =
+              releaseDate &&
+              typeof releaseDate ===
+                "string"
+                ? Number(
+                    releaseDate.slice(0, 4)
+                  )
+                : 0;
+
+            const name =
+              kind === "movie"
+                ? item.title ||
+                  "Untitled"
+                : item.name ||
+                  "Untitled";
+
+            return {
+              id:
+                "tmdb-" +
+                kind +
+                "-" +
+                String(item.id),
+              name,
+              kind,
+              year,
+              poster:
+                getPosterUrl(
+                  item.poster_path
+                ),
+              backdrop:
+                getBackdropUrl(
+                  item.backdrop_path
+                ),
+              overview:
+                typeof item.overview ===
+                "string"
+                  ? item.overview
+                  : "",
+              addedAt:
+                item.hidden_at ||
+                ""
+            };
+          }
+        );
+
+      setHiddenJustAdded(
+        titles
+      );
+    } catch (error) {
+      console.error(
+        "Failed to load hidden Just Added:",
+        error
+      );
+
+      setHiddenJustAdded([]);
+    }
+  }
+
+  loadHiddenJustAdded();
+}, [
+  isAdmin,
+  sort,
+  justAddedView
+]);
+
 const [q, setQ] = useState("");
 
 const [showProfile, setShowProfile] =
@@ -1343,6 +1464,12 @@ async function hideJustAddedTitle(
       );
     }
 
+    const hiddenTitle =
+      justAdded.find(
+        title =>
+          title.id === id
+      );
+
     setJustAdded(
       current =>
         current.filter(
@@ -1350,6 +1477,21 @@ async function hideJustAddedTitle(
             title.id !== id
         )
     );
+
+    if (hiddenTitle) {
+      setHiddenJustAdded(
+        current =>
+          current.some(
+            item =>
+              item.id === id
+          )
+            ? current
+            : [
+                ...current,
+                hiddenTitle
+              ]
+      );
+    }
   } catch (error) {
     console.error(
       "Failed to hide Just Added title:",
