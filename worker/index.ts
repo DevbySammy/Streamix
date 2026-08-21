@@ -2726,21 +2726,25 @@ if (
       .toISOString()
       .slice(0, 10);
 
-  async function discover(
-    type: "movie" | "tv"
-  ) {
-    const dateFilter =
-      type === "movie"
-        ? "primary_release_date"
-        : "first_air_date";
+async function discover(
+  type: "movie" | "tv"
+) {
+  const dateFilter =
+    type === "movie"
+      ? "primary_release_date"
+      : "first_air_date";
 
+  const allResults: any[] = [];
+
+  for (let page = 1; page <= 5; page++) {
     const tmdbUrl =
       "https://api.themoviedb.org/3/discover/" +
       type +
       "?include_adult=false" +
       "&include_video=false" +
       "&language=en-US" +
-      "&page=1" +
+      "&page=" +
+      page +
       "&sort_by=" +
       dateFilter +
       ".desc" +
@@ -2779,12 +2783,26 @@ if (
       );
     }
 
-    return Array.isArray(
-      data.results
-    )
-      ? data.results
-      : [];
+    if (
+      Array.isArray(
+        data.results
+      )
+    ) {
+      allResults.push(
+        ...data.results
+      );
+    }
+
+    if (
+      !data.total_pages ||
+      page >= data.total_pages
+    ) {
+      break;
+    }
   }
+
+  return allResults;
+}
 
   try {
     const [
