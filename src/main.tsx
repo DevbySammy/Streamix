@@ -1126,37 +1126,72 @@ setHeroSettings(current => {
 PROFILE MANAGEMENT
 ======================================================= */
 
-function addProfile(
-name: string,
-avatar: string
+async function addProfile(
+  name: string,
+  avatar: string
 ) {
-const newProfile: Profile = {
-id: uid(),
-name:
-name.trim() ||
-"New Profile",
-avatar:
-avatar || "🙂"
-};
+  try {
+    const sessionId =
+      localStorage.getItem(
+        "sx-session-token"
+      );
 
+    const response = await fetch(
+      "https://streamix.gaintrainstrong.workers.dev/api/profiles",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type":
+            "application/json",
+          ...(sessionId
+            ? {
+                Authorization:
+                  `Bearer ${sessionId}`
+              }
+            : {})
+        },
+        body: JSON.stringify({
+          id: uid(),
+          name:
+            name.trim() ||
+            "New Profile",
+          avatar:
+            avatar || "🙂"
+        })
+      }
+    );
 
-setProfiles(current => [
-  ...current,
-  newProfile
-]);
+    const data =
+      await response.json();
 
-setStates(current => ({
-  ...current,
-  [newProfile.id]: {
-    watched: [],
-    watchlist: [],
-    rewatch: []
+    if (!response.ok) {
+      throw new Error(
+        data?.error ||
+          "Failed to create profile."
+      );
+    }
+
+    setProfiles(current => [
+      ...current,
+      data
+    ]);
+
+    setStates(current => ({
+      ...current,
+      [data.id]: {
+        watched: [],
+        watchlist: [],
+        rewatch: []
+      }
+    }));
+
+    setEditing(null);
+  } catch (error) {
+    console.error(
+      "Failed to create profile:",
+      error
+    );
   }
-}));
-
-setEditing(null);
-
-
 }
 
 /* =======================================================
