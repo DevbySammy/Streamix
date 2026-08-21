@@ -1294,57 +1294,118 @@ CURRENT USER / PERMISSIONS
 ======================================================= */
 
 const isAdminUser =
-profileId === "admin";
+  profileId === "admin";
 
 const isViewingAs =
-isAdminUser &&
-viewingAs !== null;
+  isAdminUser &&
+  viewingAs !== null;
 
 const isAdmin =
-isAdminUser &&
-!isViewingAs;
+  isAdminUser &&
+  !isViewingAs;
 
 let effectiveProfileId:
-string | null = profileId;
+  string | null = profileId;
 
 if (isViewingAs) {
-effectiveProfileId =
-viewingAs;
+  effectiveProfileId =
+    viewingAs;
 }
 
 let effectiveProfile:
-Profile | null = null;
+  Profile | null = null;
 
 if (effectiveProfileId) {
-effectiveProfile =
-profiles.find(
-item =>
-item.id ===
-effectiveProfileId
-) || null;
+  effectiveProfile =
+    profiles.find(
+      item =>
+        item.id ===
+        effectiveProfileId
+    ) || null;
 }
 
 const profile =
-effectiveProfile;
+  effectiveProfile;
 
 const state: State =
-effectiveProfileId &&
-states[effectiveProfileId]
-? states[effectiveProfileId]
-: {
-watched: [],
-watchlist: [],
-rewatch: []
-};
+  effectiveProfileId &&
+  states[effectiveProfileId]
+    ? states[effectiveProfileId]
+    : {
+        watched: [],
+        watchlist: [],
+        rewatch: []
+      };
 
 const hero =
-heroSettings.titleId
-? library.find(
-item =>
-item.id ===
-heroSettings.titleId
-) || null
-: null;
+  heroSettings.titleId
+    ? library.find(
+        item =>
+          item.id ===
+          heroSettings.titleId
+      ) || null
+    : null;
+
+
+/* =======================================================
+LOAD DELETED PROFILES
+======================================================= */
+
+useEffect(() => {
+  async function loadDeletedProfiles() {
+    if (!isAdminUser) {
+      return;
+    }
+
+    try {
+      setDeletedProfilesLoading(true);
+
+      const sessionId =
+        localStorage.getItem(
+          "sx-session-token"
+        );
+
+      const response =
+        await fetch(
+          "https://streamix.gaintrainstrong.workers.dev/api/profiles/deleted",
+          {
+            headers: sessionId
+              ? {
+                  Authorization:
+                    `Bearer ${sessionId}`
+                }
+              : {}
+          }
+        );
+
+      if (!response.ok) {
+        throw new Error(
+          "Failed to load deleted profiles"
+        );
+      }
+
+      const data =
+        await response.json();
+
+      setDeletedProfiles(
+        Array.isArray(data)
+          ? data
+          : []
+      );
+    } catch (error) {
+      console.error(
+        "Failed to load deleted profiles:",
+        error
+      );
+    } finally {
+      setDeletedProfilesLoading(
+        false
+      );
+    }
+  }
+
+  loadDeletedProfiles();
+}, [isAdminUser]);
 
 /* =======================================================
 RECOMMENDATION
