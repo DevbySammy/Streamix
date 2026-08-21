@@ -411,6 +411,40 @@ const [profilesLoading, setProfilesLoading] = useState(true);
   loadProfiles();
 }, []);
 
+   useEffect(() => {
+  async function restoreSession() {
+    try {
+     const response =
+  await fetch("/api/auth/session", {
+    credentials: "include"
+  });
+
+      if (!response.ok) {
+        return;
+      }
+
+      const data =
+        await response.json();
+
+      if (
+        data.authenticated &&
+        data.profile
+      ) {
+        setProfileId(
+          data.profile.id
+        );
+      }
+    } catch (error) {
+      console.error(
+        "Failed to restore session:",
+        error
+      );
+    }
+  }
+
+  restoreSession();
+}, []);
+   
 const [states, setStates] =
   useState<Record<string, State>>({});
 
