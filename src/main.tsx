@@ -2546,7 +2546,7 @@ async function handleLogin() {
 
   try {
 const response = await fetch(
-  "/api/auth/login",
+  "https://streamix.gaintrainstrong.workers.dev/api/auth/login",
       {
         method: "POST",
         headers: {
