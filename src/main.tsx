@@ -2432,15 +2432,7 @@ return ( <div className="app">
     <div className="toolbar">
 
       {!isAdmin && (
-        <div
-          className="filters"
-          style={{
-            display: "flex",
-            flexWrap: "nowrap",
-            alignItems: "center",
-            flexShrink: 0
-          }}
-        >
+        <div className="filters">
 
           <button
             className={
