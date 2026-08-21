@@ -378,6 +378,18 @@ const [
           : [];
 
       setLibrary(titles);
+       const hiddenResponse = await fetch(
+  "/api/tmdb/just-added/hidden"
+);
+
+if (hiddenResponse.ok) {
+  const hiddenData =
+    await hiddenResponse.json();
+
+  if (Array.isArray(hiddenData)) {
+    setHiddenJustAdded(hiddenData);
+  }
+}
     } catch (error) {
       console.error(
         "Failed to load library:",
