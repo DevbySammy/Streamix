@@ -150,7 +150,7 @@ header {
   padding: 6px;
   background: #18181b;
   border: 1px solid #2c2c31;
-  border-radius: 12px;
+  border-radius: 15px;
   box-shadow: 0 16px 40px rgba(0, 0, 0, .45);
   z-index: 50;
 }
@@ -236,7 +236,7 @@ header {
   width: fit-content;
   background: #171719;
   border: 1px solid #27272b;
-  border-radius: 12px;
+  border-radius: 15px;
 }
 
 .switch button {
