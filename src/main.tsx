@@ -3293,53 +3293,100 @@ if (
     );
   }
 }}
-      onDelete={
-        editing.id ===
-        "new"
-          ? undefined
-          : () => {
-              const deletedProfileId =
-                editing.id;
+    onDelete={
+  editing.id ===
+  "new"
+    ? undefined
+    : async () => {
+        const deletedProfileId =
+          editing.id;
 
-              setProfiles(
-                current =>
-                  current.filter(
-                    item =>
-                      item.id !==
-                      deletedProfileId
-                  )
-              );
+        try {
+          const sessionId =
+            localStorage.getItem(
+              "sx-session-token"
+            );
 
-              setStates(
-                current => {
-                  const next = {
-                    ...current
-                  };
-
-                  delete next[
-                    deletedProfileId
-                  ];
-
-                  return next;
+          const response =
+            await fetch(
+              "https://streamix.gaintrainstrong.workers.dev/api/profiles?id=" +
+                encodeURIComponent(
+                  deletedProfileId
+                ),
+              {
+                method: "DELETE",
+                headers: {
+                  ...(sessionId
+                    ? {
+                        Authorization:
+                          `Bearer ${sessionId}`
+                      }
+                    : {})
                 }
-              );
-
-              if (
-                deletedProfileId ===
-                profileId
-              ) {
-                signOut();
-              } else {
-                setViewingAs(
-                  null
-                );
-
-                setEditing(
-                  null
-                );
               }
+            );
+
+         const data =
+  await response.json();
+
+console.log(
+  "DELETE PROFILE:",
+  response.status,
+  data
+);
+
+if (!response.ok) {
+            throw new Error(
+              data?.error ||
+                "Failed to delete profile."
+            );
+          }
+
+          setProfiles(
+            current =>
+              current.filter(
+                item =>
+                  item.id !==
+                  deletedProfileId
+              )
+          );
+
+          setStates(
+            current => {
+              const next = {
+                ...current
+              };
+
+              delete next[
+                deletedProfileId
+              ];
+
+              return next;
             }
+          );
+
+          if (
+            deletedProfileId ===
+            profileId
+          ) {
+            signOut();
+          } else {
+            setViewingAs(
+              null
+            );
+
+            setEditing(
+              null
+            );
+          }
+        } catch (error) {
+          console.error(
+            "Failed to delete profile:",
+            error
+          );
+        }
       }
+}
     />
   )}
 
