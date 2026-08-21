@@ -1589,9 +1589,14 @@ async function hideJustAddedTitle(
               : {})
           },
           body: JSON.stringify({
-            tmdbId,
-            mediaType
-          })
+  tmdbId,
+  mediaType,
+  titleData:
+    justAdded.find(
+      title =>
+        title.id === id
+    )
+})
         }
       );
 
