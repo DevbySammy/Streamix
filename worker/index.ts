@@ -2435,11 +2435,17 @@ const fetchTMDB =
       const data =
         await response.json();
 
-      if (!response.ok) {
-        throw new Error(
-          "TMDB request failed."
-        );
-      }
+   if (!response.ok) {
+  const errorText =
+    typeof data?.status_message ===
+    "string"
+      ? data.status_message
+      : "TMDB request failed.";
+
+  throw new Error(
+    errorText
+  );
+}
 
       if (
         Array.isArray(
@@ -2515,22 +2521,23 @@ const fetchTMDB =
       startDate: start,
       endDate
     });
-  } catch (error) {
-    console.error(
-      "TMDB JUST ADDED ERROR:",
-      error
-    );
+    } catch (error) {
+      console.error(
+        "TMDB JUST ADDED ERROR:",
+        error
+      );
 
-    return json(
-      {
-        error:
-          error instanceof Error
-            ? error.message
-            : "Unable to load Just Added titles."
-      },
-      500
-    );
-  }
+      return json(
+        {
+          error:
+            error instanceof Error
+              ? error.message
+              : "Unable to load Just Added titles.",
+          results: []
+        },
+        500
+      );
+    }
 }
 
   
