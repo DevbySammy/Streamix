@@ -299,7 +299,7 @@ if (
 
     
 
-    // ==================================================
+      // ==================================================
     // AUTH - LOGIN
     // ==================================================
 
@@ -307,127 +307,148 @@ if (
       url.pathname === "/api/auth/login" &&
       request.method === "POST"
     ) {
-      const body =
-        await request.json<{
-          profileId?: string;
-          password?: string;
-        }>();
-
-      const profileId =
-        body.profileId?.trim();
-
-      const password =
-        body.password ?? "";
-
-      if (!profileId) {
-        return json(
-          {
-            error:
-              "Profile id is required."
-          },
-          400
-        );
-      }
-
-      const profile =
-        await env.DB
-          .prepare(`
-            SELECT
-              id,
-              name,
-              avatar,
-              password_hash,
-              sort_order,
-              created_at
-            FROM profiles
-            WHERE id = ?
-          `)
-          .bind(profileId)
-          .first<{
-            id: string;
-            name: string;
-            avatar: string | null;
-            password_hash: string | null;
-            sort_order: number;
-            created_at: string;
+      try {
+        const body =
+          await request.json<{
+            profileId?: string;
+            password?: string;
           }>();
 
-      if (!profile) {
+        const profileId =
+          body.profileId?.trim();
+
+        const password =
+          body.password ?? "";
+
+        if (!profileId) {
+          return json(
+            {
+              error:
+                "Profile id is required."
+            },
+            400
+          );
+        }
+
+        const profile =
+          await env.DB
+            .prepare(`
+              SELECT
+                id,
+                name,
+                avatar,
+                password_hash,
+                sort_order,
+                created_at
+              FROM profiles
+              WHERE id = ?
+            `)
+            .bind(profileId)
+            .first<{
+              id: string;
+              name: string;
+              avatar: string | null;
+              password_hash: string | null;
+              sort_order: number;
+              created_at: string;
+            }>();
+
+        if (!profile) {
+          return json(
+            {
+              error:
+                "Profile not found."
+            },
+            404
+          );
+        }
+
+        // ADMIN PASSWORD COMES ONLY FROM CLOUDFLARE
+        if (profile.id === "admin") {
+          if (!env.ADMIN_API_TOKEN) {
+            return json(
+              {
+                error:
+                  "ADMIN_API_TOKEN is not configured."
+              },
+              500
+            );
+          }
+
+          if (
+            password !==
+            env.ADMIN_API_TOKEN
+          ) {
+            return json(
+              {
+                error:
+                  "Incorrect password."
+              },
+              401
+            );
+          }
+        } else {
+          if (!profile.password_hash) {
+            return json({
+              requiresPasswordSetup: true,
+              profile: {
+                id: profile.id,
+                name: profile.name,
+                avatar:
+                  profile.avatar
+              }
+            });
+          }
+
+          const passwordHash =
+            await hashPassword(
+              password
+            );
+
+          if (
+            passwordHash !==
+            profile.password_hash
+          ) {
+            return json(
+              {
+                error:
+                  "Incorrect password."
+              },
+              401
+            );
+          }
+        }
+
+        const sessionId =
+          await createSession(
+            profile.id
+          );
+
+        return json({
+          success: true,
+          sessionId,
+          profile: {
+            id: profile.id,
+            name: profile.name,
+            avatar: profile.avatar
+          }
+        });
+      } catch (error) {
+        console.error(
+          "AUTH LOGIN ERROR:",
+          error
+        );
+
         return json(
           {
             error:
-              "Profile not found."
+              error instanceof Error
+                ? error.message
+                : "Login server error."
           },
-          404
+          500
         );
       }
-
-      /*
-       * The Admin profile is protected by the
-       * server-side ADMIN_API_TOKEN.
-       *
-       * The browser never receives this secret.
-       */
-      if (profile.id === "admin") {
-        if (
-          !env.ADMIN_API_TOKEN ||
-          password !==
-            env.ADMIN_API_TOKEN
-        ) {
-          return json(
-            {
-              error:
-                "Incorrect password."
-            },
-            401
-          );
-        }
-      } else {
-        if (!profile.password_hash) {
-          return json({
-            requiresPasswordSetup: true,
-            profile: {
-              id: profile.id,
-              name: profile.name,
-              avatar:
-                profile.avatar
-            }
-          });
-        }
-
-        const passwordHash =
-          await hashPassword(
-            password
-          );
-
-        if (
-          passwordHash !==
-          profile.password_hash
-        ) {
-          return json(
-            {
-              error:
-                "Incorrect password."
-            },
-            401
-          );
-        }
-      }
-
-      const sessionId =
-        await createSession(
-          profile.id
-        );
-
-      return json({
-        success: true,
-        sessionId,
-        profile: {
-          id: profile.id,
-          name: profile.name,
-          avatar: profile.avatar
-        }
-      });
     }
 
       // ==================================================
