@@ -3243,57 +3243,39 @@ const avatars = [
 ];
 
 function handlePasswordChange() {
-if (!profile) {
-return;
-}
+  if (!profile) {
+    return;
+  }
 
+  if (!newPassword.trim()) {
+    setPasswordError(
+      "Please enter a new password."
+    );
 
-if (!newPassword.trim()) {
-  setPasswordError(
-    "Please enter a new password."
+    return;
+  }
+
+  onChangePassword?.(
+    newPassword
   );
 
-  return;
-}
-  setPasswordError(
-    "Current password is incorrect."
+  setCurrentPassword("");
+  setNewPassword("");
+  setPasswordError("");
+  setShowPasswordSection(
+    false
+  );
+  setShowCurrentPassword(
+    false
+  );
+  setShowNewPassword(
+    false
   );
 
-  return;
-}
-
-if (!newPassword.trim()) {
-  setPasswordError(
-    "Please enter a new password."
+  alert(
+    "Password updated successfully."
   );
-
-  return;
 }
-
-onChangePassword?.(
-  newPassword
-);
-
-setCurrentPassword("");
-setNewPassword("");
-setPasswordError("");
-setShowPasswordSection(
-  false
-);
-setShowCurrentPassword(
-  false
-);
-setShowNewPassword(
-  false
-);
-
-alert(
-  "Password updated successfully."
-);
-
-
-}
-
 return (
 <Modal
 title={
