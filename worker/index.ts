@@ -2399,6 +2399,150 @@ if (
   });
 }
 
+    // ==================================================
+// TMDB - GET HIDDEN JUST ADDED
+// ==================================================
+
+if (
+  url.pathname ===
+    "/api/tmdb/just-added/hidden" &&
+  request.method === "GET"
+) {
+  const admin =
+    await requireAdmin();
+
+  if (admin instanceof Response) {
+    return admin;
+  }
+
+  await env.DB
+    .prepare(`
+      CREATE TABLE IF NOT EXISTS just_added_hidden (
+        tmdb_id INTEGER NOT NULL,
+        media_type TEXT NOT NULL,
+        hidden_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (
+          tmdb_id,
+          media_type
+        )
+      )
+    `)
+    .run();
+
+  const hidden =
+    await env.DB
+      .prepare(`
+        SELECT
+          tmdb_id,
+          media_type,
+          hidden_at
+        FROM just_added_hidden
+        ORDER BY hidden_at DESC
+      `)
+      .all<{
+        tmdb_id: number;
+        media_type: "movie" | "tv";
+        hidden_at: string;
+      }>();
+
+  const results: any[] = [];
+
+  for (
+    const item of hidden.results
+  ) {
+    const endpoint =
+      item.media_type ===
+      "movie"
+        ? `movie/${item.tmdb_id}`
+        : `tv/${item.tmdb_id}`;
+
+    const response =
+      await fetch(
+        `https://api.themoviedb.org/3/${endpoint}?language=en-US`,
+        {
+          headers: {
+            Authorization:
+              "Bearer " +
+              env.TMDB_READ_ACCESS_TOKEN,
+            Accept:
+              "application/json"
+          }
+        }
+      );
+
+    if (!response.ok) {
+      continue;
+    }
+
+    const data =
+      await response.json();
+
+    results.push({
+      ...data,
+      media_type:
+        item.media_type,
+      hidden_at:
+        item.hidden_at
+    });
+  }
+
+  return json({
+    results
+  });
+}
+
+    // ==================================================
+// TMDB - SHOW HIDDEN JUST ADDED AGAIN
+// ==================================================
+
+if (
+  url.pathname ===
+    "/api/tmdb/just-added/show" &&
+  request.method === "POST"
+) {
+  const admin =
+    await requireAdmin();
+
+  if (admin instanceof Response) {
+    return admin;
+  }
+
+  const body =
+    await request.json<{
+      tmdbId?: number;
+      mediaType?: "movie" | "tv";
+    }>();
+
+  if (
+    !body.tmdbId ||
+    !body.mediaType
+  ) {
+    return json(
+      {
+        error:
+          "tmdbId and mediaType are required."
+      },
+      400
+    );
+  }
+
+  await env.DB
+    .prepare(`
+      DELETE FROM just_added_hidden
+      WHERE tmdb_id = ?
+      AND media_type = ?
+    `)
+    .bind(
+      body.tmdbId,
+      body.mediaType
+    )
+    .run();
+
+  return json({
+    success: true
+  });
+}
+    
 // ==================================================
 // TMDB - JUST ADDED
 // ==================================================
