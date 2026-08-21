@@ -3247,35 +3247,35 @@ function handlePasswordChange()function handlePasswordChange() {
     return;
   }
 
-  if (!newPassword.trim()) {
-    setPasswordError(
-      "Please enter a new password."
-    );
-
-    return;
-  }
-
-  onChangePassword?.(
-    newPassword
+if (!newPassword.trim()) {
+  setPasswordError(
+    "Please enter a new password."
   );
 
-  setCurrentPassword("");
-  setNewPassword("");
-  setPasswordError("");
-  setShowPasswordSection(
-    false
-  );
-  setShowCurrentPassword(
-    false
-  );
-  setShowNewPassword(
-    false
-  );
-
-  alert(
-    "Password updated successfully."
-  );
+  return;
 }
+
+onChangePassword?.(
+  newPassword
+);
+
+setCurrentPassword("");
+setNewPassword("");
+setPasswordError("");
+setShowPasswordSection(
+  false
+);
+setShowCurrentPassword(
+  false
+);
+setShowNewPassword(
+  false
+);
+
+alert(
+  "Password updated successfully."
+);
+  
 return (
 <Modal
 title={
