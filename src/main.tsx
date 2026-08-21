@@ -3414,18 +3414,31 @@ return ( <article className="card">
         : "TV"}
     </span>
 
-  {isAdmin && (
+{isAdmin && (
   <button
+    type="button"
     className="remove"
-    onClick={
-      onRemove
+    onClick={event => {
+      event.preventDefault();
+      event.stopPropagation();
+      onRemove();
+    }}
+    title={
+      "Hide " +
+      t.name +
+      " from Just Added"
     }
-    title="Hide from Just Added"
     aria-label={
       "Hide " +
       t.name +
       " from Just Added"
     }
+    style={{
+      position: "absolute",
+      zIndex: 20,
+      pointerEvents: "auto",
+      cursor: "pointer"
+    }}
   >
     <EyeOff
       size={16}
