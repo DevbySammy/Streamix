@@ -1366,6 +1366,63 @@ if (
   });
 }
 
+
+// ==================================================
+// PROFILES - RESTORE
+// ==================================================
+
+if (
+  url.pathname === "/api/profiles/restore" &&
+  request.method === "POST"
+) {
+  const admin =
+    await requireAdmin();
+
+  if (admin instanceof Response) {
+    return admin;
+  }
+
+  const id =
+    url.searchParams.get("id");
+
+  if (!id) {
+    return json(
+      {
+        error:
+          "Profile id is required."
+      },
+      400
+    );
+  }
+
+  const result =
+    await env.DB
+      .prepare(`
+        UPDATE profiles
+        SET deleted_at = NULL
+        WHERE id = ?
+          AND deleted_at IS NOT NULL
+      `)
+      .bind(id)
+      .run();
+
+  if (
+    !result.meta ||
+    result.meta.changes === 0
+  ) {
+    return json(
+      {
+        error:
+          "Deleted profile not found."
+      },
+      404
+    );
+  }
+
+  return json({
+    success: true
+  });
+}
     // ==================================================
     // LIBRARY - GET
     // ==================================================
