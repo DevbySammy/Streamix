@@ -2680,7 +2680,6 @@ setProfileId(
       </select>
 
     </div>
-
   </>
 )}
 
@@ -2746,62 +2745,50 @@ setProfileId(
 
 <div className="grid">
 
-  {visible.map(
-    title => (
-      <Card
-        key={title.id}
-        t={title}
-        st={state}
-        isAdmin={isAdmin}
-        hiddenJustAdded={
-          isAdmin &&
-          sort === "just-added" &&
-          justAddedView === "hidden"
-        }
-        onWatch={() =>
-          toggle(
-            "watched",
-            title.id
-          )
-        }
-        onList={() =>
-          toggle(
-            "watchlist",
-            title.id
-          )
-        }
-        onRewatch={() =>
-          toggle(
-            "rewatch",
-            title.id
-          )
-        }
-        onRemove={() =>
-          sort === "just-added"
-            ? justAddedView === "hidden"
-              ? showJustAddedAgain(
-                  title.id
-                )
-              : hideJustAddedTitle(
-                  title.id
-                )
-            : removeTitle(
-                title.id
-              )
-        }
-        onReminder={() =>
-          setShowReminder(
-            title
-          )
-        }
-        onSchedule={() =>
-          setShowSchedule(
-            title
-          )
-        }
-      />
-    )
-  )}
+  {visible.map(title => (
+    <Card
+      key={title.id}
+      t={title}
+      st={state}
+      isAdmin={isAdmin}
+      hiddenJustAdded={
+        isAdmin &&
+        sort === "just-added" &&
+        justAddedView === "hidden"
+      }
+      onWatch={() =>
+        toggle(
+          "watched",
+          title.id
+        )
+      }
+      onList={() =>
+        toggle(
+          "watchlist",
+          title.id
+        )
+      }
+      onRewatch={() =>
+        toggle(
+          "rewatch",
+          title.id
+        )
+      }
+      onRemove={() =>
+        sort === "just-added"
+          ? justAddedView === "hidden"
+            ? showJustAddedAgain(title.id)
+            : hideJustAddedTitle(title.id)
+          : removeTitle(title.id)
+      }
+      onReminder={() =>
+        setShowReminder(title)
+      }
+      onSchedule={() =>
+        setShowSchedule(title)
+      }
+    />
+  ))}
 
   {!visible.length && (
     <div className="empty">
