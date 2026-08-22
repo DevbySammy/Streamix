@@ -1551,7 +1551,8 @@ footer span {
     z-index: 19;
 
     margin: 0 0 12px;
-    padding: 8px 0;
+  padding: 12px 0 8px;
+
 
     background: #171719;
   }
