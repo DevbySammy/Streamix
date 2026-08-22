@@ -3590,9 +3590,10 @@ setProfileId(
           console.error(
             "Failed to delete profile:",
             error
-          );
-      }}
-  />
+           );
+      }
+    }
+  }
 
 
   {/* ADD MEDIA */}
