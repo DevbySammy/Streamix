@@ -3808,49 +3808,57 @@ onAdd={async title => {
       />
     )}
 
-  {/* DELETED PROFILES */}
+ 
+{/* DELETED PROFILES */}
 
-  {showDeleted &&
-    isAdmin && (
-      <Modal
-        title="Deleted Profiles"
-        compact
-        onClose={() =>
-          setShowDeleted(false)
-        }
-      >
-        {deletedProfilesLoading ? (
-          <p className="muted">
-            Loading...
-          </p>
-        ) : deletedProfiles.length === 0 ? (
-          <p className="muted">
-            No deleted profiles.
-          </p>
-        ) : (
-          <div className="profiles">
-            {deletedProfiles.map(
-              item => (
-                <div
-                  className="profile-row"
-                  key={item.id}
+{showDeleted &&
+  isAdmin && (
+    <Modal
+      title="Deleted Profiles"
+      compact
+      onClose={() =>
+        setShowDeleted(false)
+      }
+    >
+      {deletedProfilesLoading ? (
+        <p className="muted">
+          Loading...
+        </p>
+      ) : deletedProfiles.length === 0 ? (
+        <p className="muted">
+          No deleted profiles.
+        </p>
+      ) : (
+        <div className="profiles deleted-profiles">
+          {deletedProfiles.map(
+            item => (
+              <div
+                className="profile-row deleted-profile-row"
+                key={item.id}
+              >
+                <button
+                  className="deleted-profile-name"
+                  onClick={() => {
+                    setShowDeleted(
+                      false
+                    );
+                  }}
                 >
-                  <button
-                    onClick={() => {
-                      setShowDeleted(
-                        false
-                      );
-                    }}
-                  >
-                    <span className="avatar">
-                      {item.avatar ||
-                        "🙂"}
-                    </span>
+                  <span className="avatar">
+                    {item.avatar ||
+                      "🙂"}
+                  </span>
+
+                  <span className="deleted-profile-name-text">
                     {item.name}
-                  </button>
+                  </span>
+                </button>
+
+                <div className="deleted-profile-actions">
 
                   <button
                     className="ghost"
+                    type="button"
                     onClick={async () => {
                       try {
                         const sessionId =
@@ -3906,15 +3914,81 @@ onAdd={async title => {
                       }
                     }}
                   >
-                    Restore
+                    RESTORE
                   </button>
+
+                  <button
+                    className="ghost"
+                    type="button"
+                    onClick={async () => {
+                      const confirmed =
+                        window.confirm(
+                          `Permanently delete "${item.name}"? This cannot be undone.`
+                        );
+
+                      if (!confirmed) {
+                        return;
+                      }
+
+                      try {
+                        const sessionId =
+                          localStorage.getItem(
+                            "sx-session-token"
+                          );
+
+                        const response =
+                          await fetch(
+                            "https://streamix.gaintrainstrong.workers.dev/api/profiles/delete-forever?id=" +
+                              encodeURIComponent(
+                                item.id
+                              ),
+                            {
+                              method: "DELETE",
+                              headers: sessionId
+                                ? {
+                                    Authorization:
+                                      `Bearer ${sessionId}`
+                                  }
+                                : {}
+                            }
+                          );
+
+                        if (
+                          !response.ok
+                        ) {
+                          throw new Error(
+                            "Failed to permanently delete profile."
+                          );
+                        }
+
+                        setDeletedProfiles(
+                          current =>
+                            current.filter(
+                              p =>
+                                p.id !==
+                                item.id
+                            )
+                        );
+                      } catch (error) {
+                        console.error(
+                          "Failed to permanently delete profile:",
+                          error
+                        );
+                      }
+                    }}
+                  >
+                    DELETE FOREVER
+                  </button>
+
                 </div>
-              )
-            )}
-          </div>
-        )}
-      </Modal>
-    )}
+              </div>
+            )
+          )}
+        </div>
+      )}
+    </Modal>
+  )}
+
 
   {/* FOOTER */}
 
