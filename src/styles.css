@@ -312,10 +312,10 @@ header {
   align-items: center;
   gap: 9px;
   padding: 0 13px;
-  background: #171719;
-  border: 1px solid #ff3d8d;
+  background: #fff;
+  border: none;
   border-radius: 999px;
-  color: #777;
+  color: #888;
 }
 
 .search.wide {
@@ -328,11 +328,11 @@ header {
   border: 0;
   outline: 0;
   background: transparent;
-  color: #fff;
+  color: #888;
 }
 
 .search input::placeholder {
-  color: #666;
+  color: #888;
 }
 
 .format {
