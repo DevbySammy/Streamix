@@ -919,8 +919,20 @@ function App() {
              }
            );
 
+       const dedupedTitles =
+         Array.from(
+           new Map(
+             titles.map(
+               title => [
+                 title.id,
+                 title
+               ]
+             )
+           ).values()
+         );
+
        setJustAdded(
-         titles
+         dedupedTitles
        );
      } catch (error) {
        console.error(
@@ -1581,7 +1593,15 @@ const visible = useMemo(() => {
         }
 
         return title.kind === kind;
-      });
+      })
+      .filter(
+        (title, index, array) =>
+          array.findIndex(
+            item =>
+              item.id ===
+              title.id
+          ) === index
+      );
 
   if (
     sort === "just-added" &&
