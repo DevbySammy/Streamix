@@ -2621,7 +2621,7 @@ setProfileId(
   aria-label="Filter library"
 >
   <option value="just-added">
-    Filter by...
+    Just Added
   </option>
 
   <option value="name-asc">
