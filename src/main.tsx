@@ -2575,8 +2575,6 @@ setProfileId(
       </div>
 
     </div>
-  </>
-)}
 
     {/* FORMAT + SORT */}
 
@@ -2686,123 +2684,6 @@ setProfileId(
   </>
 )}
 
-        {/* FORMAT + SORT */}
-
-        <div className="format">
-
-          <button
-            className={
-              kind === "all" &&
-              kindClicked
-                ? "selected"
-                : ""
-            }
-            onClick={() => {
-              setKind("all");
-              setKindClicked(
-                true
-              );
-            }}
-          >
-            All
-          </button>
-
-          <button
-            className={
-              kind === "movie"
-                ? "selected"
-                : ""
-            }
-            onClick={() => {
-              setKind("movie");
-              setKindClicked(
-                true
-              );
-            }}
-          >
-            <Film size={15} />
-            Movies
-          </button>
-
-          <button
-            className={
-              kind === "tv"
-                ? "selected"
-                : ""
-            }
-            onClick={() => {
-              setKind("tv");
-              setKindClicked(
-                true
-              );
-            }}
-          >
-            <Tv size={15} />
-            TV
-          </button>
-
-          {isAdmin &&
-  sort === "just-added" && (
-    <button
-      type="button"
-      className={
-        justAddedView === "hidden"
-          ? "selected"
-          : ""
-      }
-      onClick={() =>
-        setJustAddedView(
-          current =>
-            current === "visible"
-              ? "hidden"
-              : "visible"
-        )
-      }
-    >
-      {justAddedView === "hidden"
-        ? "Back to Just Added"
-        : "View Hidden"}
-    </button>
-  )}
-          
-          <select
-            className="sort-select"
-            value={sort}
-            onChange={event =>
-              setSort(
-                event.target
-                  .value as SortOption
-              )
-            }
-            aria-label="Sort library"
-          >
-          
-           <option value="just-added">
-    Just Added
-  </option>
-           
-           <option value="name-asc">
-              Name A–Z
-            </option>
-
-            <option value="name-desc">
-              Name Z–A
-            </option>
-
-            <option value="year-desc">
-              Newest release
-            </option>
-
-            <option value="year-asc">
-              Oldest release
-            </option>
-
-          </select>
-
-        </div>
-
-      </>
-    )}
 {tab === "rewatch" && (
   <div className="toolbar">
 
@@ -2851,9 +2732,7 @@ setProfileId(
       <input
         value={q}
         onChange={event =>
-          setQ(
-            event.target.value
-          )
+          setQ(event.target.value)
         }
         placeholder="Search re-watch"
       />
@@ -2863,95 +2742,93 @@ setProfileId(
   </div>
 )}
 
-
 {/* LIBRARY */}
 
-    <div className="grid">
+<div className="grid">
 
-      {visible.map(
-        title => (
-          <Card
-            key={title.id}
-            t={title}
-            st={state}
-            isAdmin={isAdmin}
-            hiddenJustAdded={
-  isAdmin &&
-  sort === "just-added" &&
-  justAddedView === "hidden"
-}
-            onWatch={() =>
-              toggle(
-                "watched",
-                title.id
-              )
-            }
-            onList={() =>
-              toggle(
-                "watchlist",
-                title.id
-              )
-            }
-            onRewatch={() =>
-              toggle(
-                "rewatch",
-                title.id
-              )
-            }
+  {visible.map(
+    title => (
+      <Card
+        key={title.id}
+        t={title}
+        st={state}
+        isAdmin={isAdmin}
+        hiddenJustAdded={
+          isAdmin &&
+          sort === "just-added" &&
+          justAddedView === "hidden"
+        }
+        onWatch={() =>
+          toggle(
+            "watched",
+            title.id
+          )
+        }
+        onList={() =>
+          toggle(
+            "watchlist",
+            title.id
+          )
+        }
+        onRewatch={() =>
+          toggle(
+            "rewatch",
+            title.id
+          )
+        }
         onRemove={() =>
-  sort === "just-added"
-    ? justAddedView === "hidden"
-      ? showJustAddedAgain(
-          title.id
-        )
-      : hideJustAddedTitle(
-          title.id
-        )
-    : removeTitle(
-        title.id
-      )
-}
-            onReminder={() =>
-              setShowReminder(
-                title
+          sort === "just-added"
+            ? justAddedView === "hidden"
+              ? showJustAddedAgain(
+                  title.id
+                )
+              : hideJustAddedTitle(
+                  title.id
+                )
+            : removeTitle(
+                title.id
               )
-            }
-            onSchedule={() =>
-              setShowSchedule(
-                title
-              )
-            }
-          />
-        )
-      )}
-
-      {!visible.length && (
-        <div className="empty">
-          {library.length ===
-          0
-            ? "Your library is empty."
-            : "Nothing here yet."}
-        </div>
-      )}
-
-      </div>
-
-    {sort === "just-added" &&
-      visible.length < justAdded.length && (
-<button
-  type="button"
-  className="show-more-button"
-  onClick={() =>
-    setJustAddedLimit(
-      current => current + 30
+        }
+        onReminder={() =>
+          setShowReminder(
+            title
+          )
+        }
+        onSchedule={() =>
+          setShowSchedule(
+            title
+          )
+        }
+      />
     )
-  }
->
-          Show more
-        </button>
-      )}
+  )}
 
-  </main>
+  {!visible.length && (
+    <div className="empty">
+      {library.length === 0
+        ? "Your library is empty."
+        : "Nothing here yet."}
+    </div>
+  )}
+
+</div>
+
+{sort === "just-added" &&
+  visible.length < justAdded.length && (
+    <button
+      type="button"
+      className="show-more-button"
+      onClick={() =>
+        setJustAddedLimit(
+          current => current + 30
+        )
+      }
+    >
+      Show more
+    </button>
+  )}
+
+</main>
 
   {/* TODAY'S RECOMMENDATION */}
 
