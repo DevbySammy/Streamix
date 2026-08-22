@@ -2610,36 +2610,36 @@ setProfileId(
           </button>
         )}
 
-      <select
-        className="sort-select"
-        value={sort}
-        onChange={event =>
-          setSort(
-            event.target.value as SortOption
-          )
-        }
-        aria-label="Sort library"
-      >
-        <option value="just-added">
-          Just Added
-        </option>
+    <select
+  className="sort-select"
+  value={sort}
+  onChange={event =>
+    setSort(
+      event.target.value as SortOption
+    )
+  }
+  aria-label="Filter library"
+>
+  <option value="just-added">
+    Filter by...
+  </option>
 
-        <option value="name-asc">
-          Name A–Z
-        </option>
+  <option value="name-asc">
+    Name A–Z
+  </option>
 
-        <option value="name-desc">
-          Name Z–A
-        </option>
+  <option value="name-desc">
+    Name Z–A
+  </option>
 
-        <option value="year-desc">
-          Newest release
-        </option>
+  <option value="year-desc">
+    Newest release
+  </option>
 
-        <option value="year-asc">
-          Oldest release
-        </option>
-      </select>
+  <option value="year-asc">
+    Oldest release
+  </option>
+</select>
 
     </div>
   </>
