@@ -1375,118 +1375,117 @@ useEffect(() => {
   recommendation
 ]);
 
+
 /* =======================================================
  FILTERING + SORTING
  ======================================================= */
 
- const visible = useMemo(() => {
-   const source =
-     sort === "just-added"
-       ? (
-           isAdmin &&
-           justAddedView === "hidden"
-             ? hiddenJustAdded
-             : justAdded
-         )
-       : library;
+const visible = useMemo(() => {
+  const source =
+    sort === "just-added"
+      ? (
+          isAdmin &&
+          justAddedView === "hidden"
+            ? hiddenJustAdded
+            : justAdded
+        )
+      : library;
 
-   const filtered =
-     source
-       .filter(title =>
-         title.name
-           .toLowerCase()
-           .includes(
-             q.toLowerCase()
-           )
-       )
-       .filter(title => {
-         if (kind === "all") {
-           return true;
-         }
+  const filtered =
+    source
+      .filter(title =>
+        title.name
+          .toLowerCase()
+          .includes(
+            q.toLowerCase()
+          )
+      )
+      .filter(title => {
+        if (kind === "all") {
+          return true;
+        }
 
-         return (
-           title.kind === kind
-         );
-       })
-       .filter(title => {
-         if (sort === "just-added") {
-           return true;
-         }
+        return (
+          title.kind === kind
+        );
+      })
+      .filter(title => {
+        if (sort === "just-added") {
+          return true;
+        }
 
-         // Re-watch uses the rewatch tab
-         if (tab === "rewatch") {
-           return state.rewatch.includes(
-             title.id
-           );
-         }
+        if (tab === "rewatch") {
+          return state.rewatch.includes(
+            title.id
+          );
+        }
 
-         // Watchlist uses the watchlist filter
-         if (filter === "watchlist") {
-           return state.watchlist.includes(
-             title.id
-           );
-         }
+        if (filter === "watchlist") {
+          return state.watchlist.includes(
+            title.id
+          );
+        }
 
-         // Watched uses the watched filter
-         if (filter === "watched") {
-           return state.watched.includes(
-             title.id
-           );
-         }
+        if (filter === "watched") {
+          return state.watched.includes(
+            title.id
+          );
+        }
 
-         // Library / All
-         return true;
-       });
+        return true;
+      });
 
-   if (
-     sort === "just-added"
-   ) {
-     return filtered.slice(
-       0,
-       justAddedLimit
-     );
-   }
+  if (
+    sort === "just-added"
+  ) {
+    return filtered.slice(
+      0,
+      justAddedLimit
+    );
+  }
 
-   return [...filtered].sort(
-     (a, b) => {
-       switch (sort) {
-         case "name-desc":
-           return b.name.localeCompare(
-             a.name
-           );
+  return [...filtered].sort(
+    (a, b) => {
+      switch (sort) {
+        case "name-desc":
+          return b.name.localeCompare(
+            a.name
+          );
 
-         case "year-desc":
-           return (
-             b.year - a.year
-           );
+        case "year-desc":
+          return (
+            b.year - a.year
+          );
 
-         case "year-asc":
-           return (
-             a.year - b.year
-           );
+        case "year-asc":
+          return (
+            a.year - b.year
+          );
 
-         case "name-asc":
-         default:
-           return a.name.localeCompare(
-             b.name
-           );
-       }
-     }
-   );
+        case "name-asc":
+        default:
+          return a.name.localeCompare(
+            b.name
+          );
+      }
+    }
+  );
 
- }, [
-   library,
-   justAdded,
-   hiddenJustAdded,
-   q,
-   kind,
-   filter,
-   tab,
-   sort,
-   justAddedView,
-   justAddedLimit,
-   state
- ]);
+}, [
+  library,
+  justAdded,
+  hiddenJustAdded,
+  q,
+  kind,
+  tab,
+  filter,
+  sort,
+  justAddedView,
+  justAddedLimit,
+  state,
+  isAdmin
+]);
+
    
 /* =======================================================
 AUTHENTICATION ACTIONS
@@ -2496,6 +2495,7 @@ setProfileId(
               : ""
           }
           onClick={() => {
+            setTab("library");
             setFilter("watchlist");
             setFilterClicked(true);
           }}
@@ -2510,6 +2510,7 @@ setProfileId(
               : ""
           }
           onClick={() => {
+            setTab("library");
             setFilter("watched");
             setFilterClicked(true);
           }}
@@ -2518,13 +2519,10 @@ setProfileId(
         </button>
 
         <button
-          className={
-            filter === "rewatch"
-              ? "selected"
-              : ""
-          }
+          className=""
           onClick={() => {
-            setFilter("rewatch");
+            setTab("rewatch");
+            setFilter("all");
             setFilterClicked(true);
           }}
         >
@@ -2621,36 +2619,36 @@ setProfileId(
           </button>
         )}
 
-    <select
-  className="sort-select"
-  value={sort}
-  onChange={event =>
-    setSort(
-      event.target.value as SortOption
-    )
-  }
-  aria-label="Filter library"
->
-  <option value="just-added">
-    Just Added
-  </option>
+      <select
+        className="sort-select"
+        value={sort}
+        onChange={event =>
+          setSort(
+            event.target.value as SortOption
+          )
+        }
+        aria-label="Filter library"
+      >
+        <option value="just-added">
+          Just Added
+        </option>
 
-  <option value="name-asc">
-    Name A–Z
-  </option>
+        <option value="name-asc">
+          Name A–Z
+        </option>
 
-  <option value="name-desc">
-    Name Z–A
-  </option>
+        <option value="name-desc">
+          Name Z–A
+        </option>
 
-  <option value="year-desc">
-    Newest release
-  </option>
+        <option value="year-desc">
+          Newest release
+        </option>
 
-  <option value="year-asc">
-    Oldest release
-  </option>
-</select>
+        <option value="year-asc">
+          Oldest release
+        </option>
+      </select>
 
     </div>
   </>
@@ -2659,59 +2657,58 @@ setProfileId(
 {tab === "rewatch" && (
   <div className="toolbar">
 
-    {!isAdmin && (
-      <div className="filters">
+    <div className="filters">
 
-        <button
-          className=""
-          onClick={() => {
-            setTab("library");
-            setFilter("watchlist");
-            setFilterClicked(true);
-          }}
-        >
-          Watchlist
-        </button>
+      <button
+        className=""
+        onClick={() => {
+          setTab("library");
+          setFilter("watchlist");
+          setFilterClicked(true);
+        }}
+      >
+        Watchlist
+      </button>
 
-        <button
-          className=""
-          onClick={() => {
-            setTab("library");
-            setFilter("watched");
-            setFilterClicked(true);
-          }}
-        >
-          Watched
-        </button>
+      <button
+        className=""
+        onClick={() => {
+          setTab("library");
+          setFilter("watched");
+          setFilterClicked(true);
+        }}
+      >
+        Watched
+      </button>
 
-        <button
-          className="selected"
-          onClick={() => {
-            setTab("rewatch");
-            setFilterClicked(true);
-          }}
-        >
-          Re-watch
-        </button>
+      <button
+        className="selected"
+        onClick={() => {
+          setTab("rewatch");
+          setFilter("all");
+          setFilterClicked(true);
+        }}
+      >
+        Re-watch
+      </button>
 
-      </div>
-    )}
+    </div>
 
-   <div className="search">
+    <div className="search">
 
-  <Search size={18} />
+      <Search size={18} />
 
-  <input
-    value={q}
-    onChange={event =>
-      setQ(event.target.value)
-    }
-    placeholder="Search library"
-  />
+      <input
+        value={q}
+        onChange={event =>
+          setQ(event.target.value)
+        }
+        placeholder="Search library"
+      />
 
-</div>
+    </div>
 
-</div>
+  </div>
 )}
 
 {/* LIBRARY */}
@@ -2789,6 +2786,7 @@ setProfileId(
   )}
 
 </main>
+
 
   {/* TODAY'S RECOMMENDATION */}
 
