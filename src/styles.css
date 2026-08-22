@@ -1643,3 +1643,59 @@ footer span {
     font-size: 11px;
   }
 }
+
+/* =========================================================
+   HIDDEN JUST ADDED SEARCH
+========================================================= */
+
+.hidden-search {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  width: 100%;
+  margin: 12px 0 20px;
+  padding: 10px 12px;
+
+  box-sizing: border-box;
+
+  background: #171719;
+  border: 1px solid #303035;
+  border-radius: 8px;
+
+  color: #aaa;
+}
+
+.hidden-search svg {
+  flex-shrink: 0;
+}
+
+.hidden-search input {
+  width: 100%;
+  min-width: 0;
+
+  margin: 0;
+  padding: 0;
+
+  border: 0;
+  outline: none;
+
+  background: transparent;
+  color: #fff;
+
+  font-size: 14px;
+}
+
+.hidden-search input::placeholder {
+  color: #888;
+}
+
+@media (max-width: 600px) {
+  .hidden-search {
+    margin: 12px 0 16px;
+  }
+
+  .hidden-search input {
+    font-size: 16px;
+  }
+}
