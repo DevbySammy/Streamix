@@ -1523,15 +1523,29 @@ useEffect(() => {
  ======================================================= */
 
 const visible = useMemo(() => {
+  /*
+   * Watchlist / Watched / Re-watch always operate
+   * on the main library.
+   *
+   * "Just Added" is only used when no personal
+   * list filter is active.
+   */
+  const usingPersonalFilter =
+    tab === "rewatch" ||
+    filter === "watchlist" ||
+    filter === "watched";
+
   const source =
-    sort === "just-added"
-      ? (
-          isAdmin &&
-          justAddedView === "hidden"
-            ? hiddenJustAdded
-            : justAdded
-        )
-      : library;
+    usingPersonalFilter
+      ? library
+      : sort === "just-added"
+        ? (
+            isAdmin &&
+            justAddedView === "hidden"
+              ? hiddenJustAdded
+              : justAdded
+          )
+        : library;
 
   const filtered =
     source
@@ -1552,10 +1566,6 @@ const visible = useMemo(() => {
         );
       })
       .filter(title => {
-        if (sort === "just-added") {
-          return true;
-        }
-
         if (tab === "rewatch") {
           return state.rewatch.includes(
             title.id
@@ -1578,7 +1588,8 @@ const visible = useMemo(() => {
       });
 
   if (
-    sort === "just-added"
+    sort === "just-added" &&
+    !usingPersonalFilter
   ) {
     return filtered.slice(
       0,
