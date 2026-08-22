@@ -14,6 +14,7 @@ Eye,
 EyeOff,
 Film,
 Plus, 
+ArrowUp,
 Search,
 Settings,
 Trash2,
@@ -333,8 +334,13 @@ const [
   setIsMobile
 ] = useState(false);
 
+const [
+  showScrollTop,
+  setShowScrollTop
+] = useState(false);
+
 useEffect(() => {
-  const mediaQuery =
+    const mediaQuery =
     window.matchMedia(
       "(max-width: 600px)"
     );
@@ -363,6 +369,28 @@ useEffect(() => {
       "change",
       updateMobile
     );
+}, []);
+   useEffect(() => {
+  const handleScroll = () => {
+    setShowScrollTop(
+      window.scrollY > 100
+    );
+  };
+
+  window.addEventListener(
+    "scroll",
+    handleScroll,
+    { passive: true }
+  );
+
+  handleScroll();
+
+  return () => {
+    window.removeEventListener(
+      "scroll",
+      handleScroll
+    );
+  };
 }, []);
    
   useEffect(() => {
@@ -4144,6 +4172,22 @@ setProfileId(
     )}
 
   </footer>
+
+  {showScrollTop && (
+    <button
+      type="button"
+      className="scroll-top-button"
+      onClick={() =>
+        window.scrollTo({
+          top: 0,
+          behavior: "smooth"
+        })
+      }
+      aria-label="Scroll to top"
+    >
+      <ArrowUp size={20} />
+    </button>
+  )}
 
 </div>
 
