@@ -280,6 +280,10 @@ header {
   flex-shrink: 0;
 }
 
+.filters {
+  margin-top: 16px;
+}
+
 .filters button,
 .format button {
   min-height: 40px;
