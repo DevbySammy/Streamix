@@ -2669,11 +2669,12 @@ setProfileId(
               ? "selected"
               : ""
           }
-          onClick={() => {
-            setTab("library");
-            setFilter("watched");
-            setFilterClicked(true);
-          }}
+        onClick={() => {
+  setTab("library");
+  setFilter("watched");
+  setFilterClicked(true);
+  setKindClicked(false);
+}}
         >
           Watched
         </button>
@@ -2684,11 +2685,12 @@ setProfileId(
       ? "selected"
       : ""
   }
-  onClick={() => {
-    setTab("library");
-    setFilter("rewatch");
-    setFilterClicked(true);
-  }}
+ onClick={() => {
+  setTab("library");
+  setFilter("rewatch");
+  setFilterClicked(true);
+  setKindClicked(false);
+}}
 >
   Re-watch
 </button>
