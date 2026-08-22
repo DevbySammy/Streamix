@@ -317,6 +317,53 @@ function App() {
   justAddedLimit,
   setJustAddedLimit
 ] = useState(30);
+
+   const [
+  hiddenJustAddedLimit,
+  setHiddenJustAddedLimit
+] = useState(30);
+
+const [
+  hiddenSearch,
+  setHiddenSearch
+] = useState("");
+
+const [
+  isMobile,
+  setIsMobile
+] = useState(false);
+
+useEffect(() => {
+  const mediaQuery =
+    window.matchMedia(
+      "(max-width: 600px)"
+    );
+
+  const updateMobile =
+    () => {
+      setIsMobile(
+        mediaQuery.matches
+      );
+      setHiddenJustAddedLimit(
+        mediaQuery.matches
+          ? 20
+          : 30
+      );
+    };
+
+  updateMobile();
+
+  mediaQuery.addEventListener(
+    "change",
+    updateMobile
+  );
+
+  return () =>
+    mediaQuery.removeEventListener(
+      "change",
+      updateMobile
+    );
+}, []);
    
   useEffect(() => {
     async function loadLibrary() {
@@ -1578,15 +1625,20 @@ const visible = useMemo(() => {
     source = library;
   }
 
-  const filtered =
-    source
-      .filter(title =>
-        title.name
-          .toLowerCase()
-          .includes(
-            q.toLowerCase()
-          )
-      )
+ const filtered =
+  source
+    .filter(title =>
+      title.name
+        .toLowerCase()
+        .includes(
+          (
+            isAdmin &&
+            justAddedView === "hidden"
+              ? hiddenSearch
+              : q
+          ).toLowerCase()
+        )
+    )
       .filter(title => {
         if (kind === "all") {
           return true;
@@ -1603,15 +1655,21 @@ const visible = useMemo(() => {
           ) === index
       );
 
-  if (
-    sort === "just-added" &&
-    !usingPersonalFilter
-  ) {
-    return filtered.slice(
-      0,
-      justAddedLimit
-    );
-  }
+if (
+  sort === "just-added" &&
+  !usingPersonalFilter
+) {
+  const limit =
+    isAdmin &&
+    justAddedView === "hidden"
+      ? hiddenJustAddedLimit
+      : justAddedLimit;
+
+  return filtered.slice(
+    0,
+    limit
+  );
+}
 
   return [...filtered].sort(
     (a, b) => {
@@ -1645,9 +1703,12 @@ const visible = useMemo(() => {
   filter,
   sort,
   justAddedView,
-  justAddedLimit,
-  state,
-  isAdmin
+ justAddedLimit,
+ hiddenJustAddedLimit,
+ hiddenSearch,
+ isMobile,
+ state,
+ isAdmin
 ]);
    
 /* =======================================================
@@ -2868,6 +2929,25 @@ LIBRARY CONTROLS
       </select>
 
     </div>
+
+    {isAdmin &&
+      justAddedView === "hidden" && (
+        <div className="hidden-search">
+          <Search size={18} />
+
+          <input
+            value={hiddenSearch}
+            onChange={event =>
+              setHiddenSearch(
+                event.target.value
+              )
+            }
+            placeholder="Search hidden movies and TV shows"
+            aria-label="Search hidden movies and TV shows"
+          />
+        </div>
+      )}
+
   </>
 )}
 
@@ -2933,15 +3013,35 @@ LIBRARY CONTROLS
 {sort === "just-added" &&
   filter === "all" &&
   visible.length > 0 &&
-  visible.length < justAdded.length && (
+  (
+    justAddedView === "hidden"
+      ? visible.length <
+        hiddenJustAdded.length
+      : visible.length <
+        justAdded.length
+  ) && (
     <button
       type="button"
       className="show-more-button"
-      onClick={() =>
-        setJustAddedLimit(
-          current => current + 30
-        )
-      }
+      onClick={() => {
+        if (
+          justAddedView ===
+          "hidden"
+        ) {
+          setHiddenJustAddedLimit(
+            current =>
+              current +
+              (isMobile
+                ? 20
+                : 30)
+          );
+        } else {
+          setJustAddedLimit(
+            current =>
+              current + 30
+          );
+        }
+      }}
     >
       Show more
     </button>
