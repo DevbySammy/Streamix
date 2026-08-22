@@ -2500,88 +2500,15 @@ setProfileId(
 
     </div>
 
-  {/* LIBRARY CONTROLS */}
+ {/* LIBRARY CONTROLS */}
 
-  {tab === "library" && (
-    <>
+{tab === "library" && (
+  <>
 
-      <div className="toolbar">
+    <div className="toolbar">
 
-        {!isAdmin && (
-          <div className="filters">
-
-            <button
-              className={
-                filter === "watchlist"
-                  ? "selected"
-                  : ""
-              }
-              onClick={() => {
-                setFilter("watchlist");
-                setFilterClicked(true);
-              }}
-            >
-              Watchlist
-            </button>
-
-            <button
-              className={
-                filter === "watched"
-                  ? "selected"
-                  : ""
-              }
-              onClick={() => {
-                setFilter("watched");
-                setFilterClicked(true);
-              }}
-            >
-              Watched
-            </button>
-
-            <button
-              className={
-                tab === "rewatch"
-                  ? "selected"
-                  : ""
-              }
-              onClick={() => {
-                setTab("rewatch");
-                setFilterClicked(true);
-              }}
-            >
-              Re-watch
-            </button>
-
-          </div>
-        )}
-
-        <div className="search">
-
-          <Search
-            size={18}
-          />
-
-          <input
-            value={q}
-            onChange={event =>
-              setQ(
-                event.target.value
-              )
-            }
-            placeholder={
-              filter === "watchlist"
-                ? "Search watchlist"
-                : filter === "watched"
-                  ? "Search watched"
-                  : "Search library"
-            }
-          />
-
-        </div>
-
-      </div>
-            All
-          </button>
+      {!isAdmin && (
+        <div className="filters">
 
           <button
             className={
@@ -2592,6 +2519,7 @@ setProfileId(
             onClick={() => {
               setFilter("watchlist");
               setFilterClicked(true);
+              setQ("");
             }}
           >
             Watchlist
@@ -2606,9 +2534,25 @@ setProfileId(
             onClick={() => {
               setFilter("watched");
               setFilterClicked(true);
+              setQ("");
             }}
           >
             Watched
+          </button>
+
+          <button
+            className={
+              filter === "rewatch"
+                ? "selected"
+                : ""
+            }
+            onClick={() => {
+              setFilter("rewatch");
+              setFilterClicked(true);
+              setQ("");
+            }}
+          >
+            Re-watch
           </button>
 
         </div>
@@ -2627,24 +2571,132 @@ setProfileId(
               event.target.value
             )
           }
-     placeholder={
-  tab === "rewatch"
-    ? "Search re-watch"
-    : sort === "just-added"
-      ? justAddedView === "hidden"
-        ? "Search hidden"
-        : "Search Just Added"
-      : filter === "watchlist"
-        ? "Search watchlist"
-        : filter === "watched"
-          ? "Search watched"
-          : "Search library"
-}
+          placeholder={
+            filter === "watchlist"
+              ? "Search watchlist"
+              : filter === "watched"
+                ? "Search watched"
+                : filter === "rewatch"
+                  ? "Search re-watch"
+                  : "Search library"
+          }
         />
 
       </div>
 
     </div>
+
+
+    {/* FORMAT + SORT */}
+
+    <div className="format">
+
+      <button
+        className={
+          kind === "all" &&
+          kindClicked
+            ? "selected"
+            : ""
+        }
+        onClick={() => {
+          setKind("all");
+          setKindClicked(true);
+        }}
+      >
+        All
+      </button>
+
+      <button
+        className={
+          kind === "movie"
+            ? "selected"
+            : ""
+        }
+        onClick={() => {
+          setKind("movie");
+          setKindClicked(true);
+        }}
+      >
+        <Film size={15} />
+        Movies
+      </button>
+
+      <button
+        className={
+          kind === "tv"
+            ? "selected"
+            : ""
+        }
+        onClick={() => {
+          setKind("tv");
+          setKindClicked(true);
+        }}
+      >
+        <Tv size={15} />
+        TV
+      </button>
+
+      {isAdmin &&
+        sort === "just-added" && (
+          <button
+            type="button"
+            className={
+              justAddedView === "hidden"
+                ? "selected"
+                : ""
+            }
+            onClick={() =>
+              setJustAddedView(
+                current =>
+                  current === "visible"
+                    ? "hidden"
+                    : "visible"
+              )
+            }
+          >
+            {justAddedView === "hidden"
+              ? "Back to Just Added"
+              : "View Hidden"}
+          </button>
+        )}
+
+      <select
+        className="sort-select"
+        value={sort}
+        onChange={event =>
+          setSort(
+            event.target.value as SortOption
+          )
+        }
+        aria-label="Sort library"
+      >
+
+        <option value="just-added">
+          Just Added
+        </option>
+
+        <option value="name-asc">
+          Name A–Z
+        </option>
+
+        <option value="name-desc">
+          Name Z–A
+        </option>
+
+        <option value="year-desc">
+          Newest release
+        </option>
+
+        <option value="year-asc">
+          Oldest release
+        </option>
+
+      </select>
+
+    </div>
+
+  </>
+)}
 
         {/* FORMAT + SORT */}
 
