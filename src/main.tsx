@@ -1115,26 +1115,34 @@ PROFILE ORDER
 ======================================================= */
 
 const orderedProfiles = useMemo(() => {
-const adminProfile = profiles.find(
-profile =>
-profile.id === "admin"
-);
-
-
-const regularProfiles =
-  profiles.filter(
+  const adminProfile = profiles.find(
     profile =>
-      profile.id !== "admin"
+      profile.id === "admin"
   );
 
-return adminProfile
-  ? [
-      adminProfile,
-      ...regularProfiles
-    ]
-  : regularProfiles;
+  const testingProfile = profiles.find(
+    profile =>
+      profile.id === "testing"
+  );
 
+  const regularProfiles =
+    profiles.filter(
+      profile =>
+        profile.id !== "admin" &&
+        profile.id !== "testing"
+    );
 
+  return [
+    ...(adminProfile
+      ? [adminProfile]
+      : []),
+
+    ...(testingProfile
+      ? [testingProfile]
+      : []),
+
+    ...regularProfiles
+  ];
 }, [profiles]);
 
 /* =======================================================
