@@ -1529,17 +1529,29 @@ const visible = useMemo(() => {
     filter === "watched" ||
     filter === "rewatch";
 
-  const source =
-    usingPersonalFilter
-      ? library
-      : sort === "just-added"
-        ? (
-            isAdmin &&
-            justAddedView === "hidden"
-              ? hiddenJustAdded
-              : justAdded
-          )
-        : library;
+  let source: Title[];
+
+  if (filter === "watchlist") {
+    source = library.filter(title =>
+      state.watchlist.includes(title.id)
+    );
+  } else if (filter === "watched") {
+    source = library.filter(title =>
+      state.watched.includes(title.id)
+    );
+  } else if (filter === "rewatch") {
+    source = library.filter(title =>
+      state.rewatch.includes(title.id)
+    );
+  } else if (sort === "just-added") {
+    source =
+      isAdmin &&
+      justAddedView === "hidden"
+        ? hiddenJustAdded
+        : justAdded;
+  } else {
+    source = library;
+  }
 
   const filtered =
     source
@@ -1556,27 +1568,6 @@ const visible = useMemo(() => {
         }
 
         return title.kind === kind;
-      })
-      .filter(title => {
-        if (filter === "watchlist") {
-          return state.watchlist.includes(
-            title.id
-          );
-        }
-
-        if (filter === "watched") {
-          return state.watched.includes(
-            title.id
-          );
-        }
-
-        if (filter === "rewatch") {
-          return state.rewatch.includes(
-            title.id
-          );
-        }
-
-        return true;
       });
 
   if (
