@@ -681,278 +681,278 @@ function App() {
     loadHeroSettings();
   }, []);
    
-/* =======================================================
-AUTHENTICATION / SESSION
-======================================================= */
+ /* =======================================================
+ AUTHENTICATION / SESSION
+ ======================================================= */
 
-const [profileId, setProfileId] =
-  useState<string | null>(null);
+ const [profileId, setProfileId] =
+   useState<string | null>(null);
 
-   const [viewingAs, setViewingAs] =
-  useState<string | null>(() =>
-    localStorage.getItem(
-      "sx-viewing-as"
-    )
-  );
+ const [viewingAs, setViewingAs] =
+   useState<string | null>(() =>
+     localStorage.getItem(
+       "sx-viewing-as"
+     )
+   );
 
-const [sessionRestoring, setSessionRestoring] =
-  useState(true);
+ const [sessionRestoring, setSessionRestoring] =
+   useState(true);
 
-useEffect(() => {
-  async function restoreSession() {
-    const sessionId =
-      localStorage.getItem(
-        "sx-session-token"
-      );
+ useEffect(() => {
+   async function restoreSession() {
+     const sessionId =
+       localStorage.getItem(
+         "sx-session-token"
+       );
 
-    if (!sessionId) {
-      setSessionRestoring(false);
-      return;
-    }
+     if (!sessionId) {
+       setSessionRestoring(false);
+       return;
+     }
 
-    try {
-      const response = await fetch(
-        "https://streamix.gaintrainstrong.workers.dev/api/auth/session",
-        {
-          method: "GET",
-          headers: {
-            Authorization:
-              `Bearer ${sessionId}`
-          }
-        }
-      );
+     try {
+       const response = await fetch(
+         "https://streamix.gaintrainstrong.workers.dev/api/auth/session",
+         {
+           method: "GET",
+           headers: {
+             Authorization:
+               `Bearer ${sessionId}`
+           }
+         }
+       );
 
-      if (!response.ok) {
-        // The saved session is no longer valid.
-        localStorage.removeItem(
-          "sx-session-token"
-        );
-        setProfileId(null);
-        setViewingAs(null);
-        setSessionRestoring(false);
-        return;
-      }
+       if (!response.ok) {
+         // The saved session is no longer valid.
+         localStorage.removeItem(
+           "sx-session-token"
+         );
+         setProfileId(null);
+         setViewingAs(null);
+         setSessionRestoring(false);
+         return;
+       }
 
-      const data =
-        await response.json();
+       const data =
+         await response.json();
 
-      if (
-        data.authenticated &&
-        data.profile?.id
-      ) {
-        setProfileId(
-          data.profile.id
-        );
-      } else {
-        localStorage.removeItem(
-          "sx-session-token"
-        );
-        setProfileId(null);
-        setViewingAs(null);
-      }
-    } catch (error) {
-      console.error(
-        "Failed to restore session:",
-        error
-      );
+       if (
+         data.authenticated &&
+         data.profile?.id
+       ) {
+         setProfileId(
+           data.profile.id
+         );
+       } else {
+         localStorage.removeItem(
+           "sx-session-token"
+         );
+         setProfileId(null);
+         setViewingAs(null);
+       }
+     } catch (error) {
+       console.error(
+         "Failed to restore session:",
+         error
+       );
 
-      // Keep the saved session if this was
-      // only a temporary network problem.
-    } finally {
-      setSessionRestoring(false);
-    }
-  }
+       // Keep the saved session if this was
+       // only a temporary network problem.
+     } finally {
+       setSessionRestoring(false);
+     }
+   }
 
-  restoreSession();
-}, []);
+   restoreSession();
+ }, []);
 
-const [tab, setTab] =
-  useState<"library" | "rewatch">(
-    "library"
-  );
+ const [tab, setTab] =
+   useState<"library" | "rewatch">(
+     "library"
+   );
 
-const [filter, setFilter] =
-useState<
-"all" | "watchlist" | "watched"
->("all");
+ const [filter, setFilter] =
+   useState<
+     "all" | "watchlist" | "watched" | "rewatch"
+   >("all");
 
-const [filterClicked, setFilterClicked] =
-useState(false);
+ const [filterClicked, setFilterClicked] =
+   useState(false);
 
-const [kind, setKind] =
-useState<"all" | Kind>("all");
+ const [kind, setKind] =
+   useState<"all" | Kind>("all");
 
-const [kindClicked, setKindClicked] =
-useState(false);
+ const [kindClicked, setKindClicked] =
+   useState(false);
 
 
-const [sort, setSort] =
-  useState<SortOption>(() => {
-    const savedSort =
-      localStorage.getItem(
-        "sx-sort"
-      );
+ const [sort, setSort] =
+   useState<SortOption>(() => {
+     const savedSort =
+       localStorage.getItem(
+         "sx-sort"
+       );
 
-    return (
-      (savedSort as SortOption) ||
-      "name-asc"
-    );
-  });
-   useEffect(() => {
-  localStorage.setItem(
-    "sx-sort",
-    sort
-  );
-}, [sort]);
-   
-useEffect(() => {
-  if (sort !== "just-added") {
-    return;
-  }
+     return (
+       (savedSort as SortOption) ||
+       "name-asc"
+     );
+   });
 
-  async function loadJustAdded() {
-    try {
-      const sessionId =
-        localStorage.getItem(
-          "sx-session-token"
-        );
+ useEffect(() => {
+   localStorage.setItem(
+     "sx-sort",
+     sort
+   );
+ }, [sort]);
 
-   
-      const response = await fetch(
-        "https://streamix.gaintrainstrong.workers.dev/api/tmdb/just-added",
-        {
-          headers: sessionId
-            ? {
-                Authorization:
-                  `Bearer ${sessionId}`
-              }
-            : {}
-        }
-      );
+ useEffect(() => {
+   if (sort !== "just-added") {
+     return;
+   }
 
-      const data =
-        await response.json();
+   async function loadJustAdded() {
+     try {
+       const sessionId =
+         localStorage.getItem(
+           "sx-session-token"
+         );
 
-      if (!response.ok) {
-        throw new Error(
-          data?.error ||
-            "Unable to load Just Added."
-        );
-      }
 
-      const results =
-        Array.isArray(data.results)
-          ? data.results
-          : [];
+       const response = await fetch(
+         "https://streamix.gaintrainstrong.workers.dev/api/tmdb/just-added",
+         {
+           headers: sessionId
+             ? {
+                 Authorization:
+                   `Bearer ${sessionId}`
+               }
+             : {}
+         }
+       );
 
-  const titles: Title[] =
-  results
-    .filter(
-      (item: any) =>
-        typeof item.poster_path === "string" &&
-        item.poster_path.trim() !== ""
-    )
-    .map(
-      (item: any): Title => {
-            const kind: Kind =
-              item.media_type === "tv"
-                ? "tv"
-                : "movie";
+       const data =
+         await response.json();
 
-            const releaseDate =
-              kind === "movie"
-                ? item.release_date
-                : item.first_air_date;
+       if (!response.ok) {
+         throw new Error(
+           data?.error ||
+             "Unable to load Just Added."
+         );
+       }
 
-            const year =
-              releaseDate &&
-              typeof releaseDate ===
-                "string"
-                ? Number(
-                    releaseDate.slice(0, 4)
-                  )
-                : 0;
+       const results =
+         Array.isArray(data.results)
+           ? data.results
+           : [];
 
-            const name =
-              kind === "movie"
-                ? item.title ||
-                  "Untitled"
-                : item.name ||
-                  "Untitled";
+       const titles: Title[] =
+         results
+           .filter(
+             (item: any) =>
+               typeof item.poster_path === "string" &&
+               item.poster_path.trim() !== ""
+           )
+           .map(
+             (item: any): Title => {
+               const kind: Kind =
+                 item.media_type === "tv"
+                   ? "tv"
+                   : "movie";
 
-            return {
-              id:
-                "tmdb-" +
-                kind +
-                "-" +
-                String(item.id),
-              name,
-              kind,
-              year,
-              poster:
-                getPosterUrl(
-                  item.poster_path
-                ),
-              backdrop:
-                getBackdropUrl(
-                  item.backdrop_path
-                ),
-              overview:
-                typeof item.overview ===
-                "string"
-                  ? item.overview
-                  : "",
-              addedAt:
-                releaseDate || ""
-            };
-          }
-        );
+               const releaseDate =
+                 kind === "movie"
+                   ? item.release_date
+                   : item.first_air_date;
 
-      setJustAdded(
-        titles
-      );
-    } catch (error) {
-      console.error(
-        "Failed to load Just Added:",
-        error
-      );
+               const year =
+                 releaseDate &&
+                 typeof releaseDate ===
+                   "string"
+                   ? Number(
+                       releaseDate.slice(0, 4)
+                     )
+                   : 0;
 
-      setJustAdded([]);
-    }
-  }
+               const name =
+                 kind === "movie"
+                   ? item.title ||
+                     "Untitled"
+                   : item.name ||
+                     "Untitled";
 
-  loadJustAdded();
-}, [sort]);
+               return {
+                 id:
+                   "tmdb-" +
+                   kind +
+                   "-" +
+                   String(item.id),
+                 name,
+                 kind,
+                 year,
+                 poster:
+                   getPosterUrl(
+                     item.poster_path
+                   ),
+                 backdrop:
+                   getBackdropUrl(
+                     item.backdrop_path
+                   ),
+                 overview:
+                   typeof item.overview ===
+                   "string"
+                     ? item.overview
+                     : "",
+                 addedAt:
+                   releaseDate || ""
+               };
+             }
+           );
 
-const [q, setQ] = useState("");
+       setJustAdded(
+         titles
+       );
+     } catch (error) {
+       console.error(
+         "Failed to load Just Added:",
+         error
+       );
 
-const [showProfile, setShowProfile] =
-useState(false);
+       setJustAdded([]);
+     }
+   }
 
-const [loginProfile, setLoginProfile] =
-useState<Profile | null>(null);
+   loadJustAdded();
+ }, [sort]);
 
-const [showAdd, setShowAdd] =
-useState(false);
+ const [q, setQ] = useState("");
 
-const [showReco, setShowReco] =
-useState(false);
+ const [showProfile, setShowProfile] =
+   useState(false);
 
-const [showReminder, setShowReminder] =
-useState<Title | null>(null);
+ const [loginProfile, setLoginProfile] =
+   useState<Profile | null>(null);
 
-const [showSchedule, setShowSchedule] =
-useState<Title | null>(null);
+ const [showAdd, setShowAdd] =
+   useState(false);
 
-const [showHero, setShowHero] =
-useState(false);
+ const [showReco, setShowReco] =
+   useState(false);
 
-const [editing, setEditing] =
-useState<Profile | null>(null);
+ const [showReminder, setShowReminder] =
+   useState<Title | null>(null);
 
-const [menu, setMenu] =
-useState(false);
+ const [showSchedule, setShowSchedule] =
+   useState<Title | null>(null);
 
+ const [showHero, setShowHero] =
+   useState(false);
+
+ const [editing, setEditing] =
+   useState<Profile | null>(null);
+
+ const [menu, setMenu] =
+   useState(false);
 /* =======================================================
 PROFILE DRAGGING
 ======================================================= */
