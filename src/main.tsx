@@ -1233,23 +1233,145 @@ const state: State =
         watchlist: [],
         rewatch: []
       };
+   
 /* =======================================================
 LOAD WATCHED / WATCHLIST / REWATCH
 ======================================================= */
 
 useEffect(() => {
-  // ...new code...
-}, [effectiveProfileId]);
+  if (!effectiveProfileId) {
+    return;
+  }
 
-const hero =
-  heroSettings.titleId
-    ? library.find(
-        item =>
-          item.id ===
-          heroSettings.titleId
-      ) || null
-    : null;
-   
+  async function loadMediaState() {
+    try {
+      const sessionId =
+        localStorage.getItem(
+          "sx-session-token"
+        );
+
+      const headers: HeadersInit =
+        sessionId
+          ? {
+              Authorization:
+                `Bearer ${sessionId}`
+            }
+          : {};
+
+      const profileQuery =
+        `?profileId=${encodeURIComponent(
+          effectiveProfileId
+        )}`;
+
+      const [
+        watchedResponse,
+        watchlistResponse,
+        rewatchResponse
+      ] = await Promise.all([
+        fetch(
+          `/api/watch-history${profileQuery}`,
+          {
+            headers
+          }
+        ),
+        fetch(
+          `/api/watchlist${profileQuery}`,
+          {
+            headers
+          }
+        ),
+        fetch(
+          `/api/rewatch${profileQuery}`,
+          {
+            headers
+          }
+        )
+      ]);
+
+      if (
+        !watchedResponse.ok ||
+        !watchlistResponse.ok ||
+        !rewatchResponse.ok
+      ) {
+        throw new Error(
+          "Failed to load media state."
+        );
+      }
+
+      const [
+        watchedData,
+        watchlistData,
+        rewatchData
+      ] = await Promise.all([
+        watchedResponse.json(),
+        watchlistResponse.json(),
+        rewatchResponse.json()
+      ]);
+
+      setStates(
+        currentStates => ({
+          ...currentStates,
+          [effectiveProfileId]: {
+            watched:
+              Array.isArray(
+                watchedData
+              )
+                ? watchedData
+                    .map(
+                      (item: any) =>
+                        item.library_item_id
+                    )
+                    .filter(
+                      (id: any) =>
+                        typeof id ===
+                        "string"
+                    )
+                : [],
+
+            watchlist:
+              Array.isArray(
+                watchlistData
+              )
+                ? watchlistData
+                    .map(
+                      (item: any) =>
+                        item.library_item_id
+                    )
+                    .filter(
+                      (id: any) =>
+                        typeof id ===
+                        "string"
+                    )
+                : [],
+
+            rewatch:
+              Array.isArray(
+                rewatchData
+              )
+                ? rewatchData
+                    .map(
+                      (item: any) =>
+                        item.library_item_id
+                    )
+                    .filter(
+                      (id: any) =>
+                        typeof id ===
+                        "string"
+                    )
+                : []
+          }
+        })
+      );
+    } catch (error) {
+      console.error(
+        "Failed to load media state:",
+        error
+      );
+    }
+  }
+
+  loadMediaState();
+}, [effectiveProfileId]);
 
 /* =======================================================
 LOAD DELETED PROFILES
