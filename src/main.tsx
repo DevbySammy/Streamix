@@ -2584,7 +2584,19 @@ setProfileId(
               event.target.value
             )
           }
-          placeholder="Search library"
+     placeholder={
+  tab === "rewatch"
+    ? "Search re-watch"
+    : sort === "just-added"
+      ? justAddedView === "hidden"
+        ? "Search hidden"
+        : "Search Just Added"
+      : filter === "watchlist"
+        ? "Search watchlist"
+        : filter === "watched"
+          ? "Search watched"
+          : "Search library"
+}
         />
 
       </div>
