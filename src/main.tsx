@@ -2481,13 +2481,6 @@ setProfileId(
 
   <main>
 
-  {/* PRIMARY NAVIGATION */}
-
-<div className="switch">
-  <div className="nav-heading">
-    Library
-  </div>
-</div>
 
 {/* LIBRARY CONTROLS */}
 
