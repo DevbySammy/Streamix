@@ -3592,7 +3592,8 @@ setProfileId(
             error
           );
         }
-      )}
+      }}
+  />
 
 
   {/* ADD MEDIA */}
