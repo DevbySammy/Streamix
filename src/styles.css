@@ -504,7 +504,7 @@ header {
 
 .deleted-profile-actions .ghost:active {
   border-color: #ff4f9a;
-  color: #ff4f9a;
+  color: #fff;
 }
 
 .danger {
