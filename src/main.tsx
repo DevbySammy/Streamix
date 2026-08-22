@@ -1274,12 +1274,14 @@ useEffect(() => {
             headers
           }
         ),
+
         fetch(
           `/api/watchlist${profileQuery}`,
           {
             headers
           }
         ),
+
         fetch(
           `/api/rewatch${profileQuery}`,
           {
@@ -1311,6 +1313,7 @@ useEffect(() => {
       setStates(
         currentStates => ({
           ...currentStates,
+
           [effectiveProfileId]: {
             watched:
               Array.isArray(
@@ -1372,6 +1375,15 @@ useEffect(() => {
 
   loadMediaState();
 }, [effectiveProfileId]);
+
+      const hero =
+  heroSettings.titleId
+    ? library.find(
+        item =>
+          item.id ===
+          heroSettings.titleId
+      ) || null
+    : null;
 
 /* =======================================================
 LOAD DELETED PROFILES
