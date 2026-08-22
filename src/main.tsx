@@ -2671,7 +2671,7 @@ setProfileId(
               }}
             >
               <Settings />
-              Edit hero
+              Edit this hero
             </button>
 
             <button
