@@ -2500,7 +2500,7 @@ setProfileId(
 
     </div>
 
- {/* LIBRARY CONTROLS */}
+{/* LIBRARY CONTROLS */}
 
 {tab === "library" && (
   <>
@@ -2519,7 +2519,6 @@ setProfileId(
             onClick={() => {
               setFilter("watchlist");
               setFilterClicked(true);
-              setQ("");
             }}
           >
             Watchlist
@@ -2534,7 +2533,6 @@ setProfileId(
             onClick={() => {
               setFilter("watched");
               setFilterClicked(true);
-              setQ("");
             }}
           >
             Watched
@@ -2542,14 +2540,13 @@ setProfileId(
 
           <button
             className={
-              filter === "rewatch"
+              tab === "rewatch"
                 ? "selected"
                 : ""
             }
             onClick={() => {
-              setFilter("rewatch");
+              setTab("rewatch");
               setFilterClicked(true);
-              setQ("");
             }}
           >
             Re-watch
@@ -2560,32 +2557,31 @@ setProfileId(
 
       <div className="search">
 
-        <Search
-          size={18}
-        />
+        <Search size={18} />
 
         <input
           value={q}
           onChange={event =>
-            setQ(
-              event.target.value
-            )
+            setQ(event.target.value)
           }
           placeholder={
-            filter === "watchlist"
-              ? "Search watchlist"
-              : filter === "watched"
-                ? "Search watched"
-                : filter === "rewatch"
-                  ? "Search re-watch"
-                  : "Search library"
+            tab === "rewatch"
+              ? "Search re-watch"
+              : sort === "just-added"
+                ? justAddedView === "hidden"
+                  ? "Search hidden"
+                  : "Search Just Added"
+                : filter === "watchlist"
+                  ? "Search watchlist"
+                  : filter === "watched"
+                    ? "Search watched"
+                    : "Search library"
           }
         />
 
       </div>
 
     </div>
-
 
     {/* FORMAT + SORT */}
 
@@ -2646,11 +2642,10 @@ setProfileId(
                 : ""
             }
             onClick={() =>
-              setJustAddedView(
-                current =>
-                  current === "visible"
-                    ? "hidden"
-                    : "visible"
+              setJustAddedView(current =>
+                current === "visible"
+                  ? "hidden"
+                  : "visible"
               )
             }
           >
@@ -2670,7 +2665,6 @@ setProfileId(
         }
         aria-label="Sort library"
       >
-
         <option value="just-added">
           Just Added
         </option>
@@ -2690,7 +2684,6 @@ setProfileId(
         <option value="year-asc">
           Oldest release
         </option>
-
       </select>
 
     </div>
