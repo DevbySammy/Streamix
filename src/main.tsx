@@ -2970,12 +2970,15 @@ if (
     item.id ===
     "admin"
   ) {
-    setViewingAs(
-      null
-    );
-    setProfileId(
-      "admin"
-    );
+  setViewingAs(
+  null
+);
+localStorage.removeItem(
+  "sx-viewing-as"
+);
+setProfileId(
+  "admin"
+);
   } else {
     setViewingAs(
       item.id
