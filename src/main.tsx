@@ -3473,7 +3473,7 @@ setProfileId(
     );
   }
 }}
-    onDelete={
+ onDelete={
   editing.id ===
   "new"
     ? undefined
@@ -3506,16 +3506,16 @@ setProfileId(
               }
             );
 
-         const data =
-  await response.json();
+          const data =
+            await response.json();
 
-console.log(
-  "DELETE PROFILE:",
-  response.status,
-  JSON.stringify(data)
-);
+          console.log(
+            "DELETE PROFILE:",
+            response.status,
+            JSON.stringify(data)
+          );
 
-if (!response.ok) {
+          if (!response.ok) {
             throw new Error(
               data?.error ||
                 "Failed to delete profile."
@@ -3529,6 +3529,33 @@ if (!response.ok) {
                   item.id !==
                   deletedProfileId
               )
+          );
+
+          setDeletedProfiles(
+            current => {
+              const deletedProfile =
+                profiles.find(
+                  item =>
+                    item.id ===
+                    deletedProfileId
+                );
+
+              if (
+                !deletedProfile ||
+                current.some(
+                  item =>
+                    item.id ===
+                    deletedProfileId
+                )
+              ) {
+                return current;
+              }
+
+              return [
+                ...current,
+                deletedProfile
+              ];
+            }
           );
 
           setStates(
@@ -3567,8 +3594,6 @@ if (!response.ok) {
         }
       }
 }
-     />
-  )}
 
  
   {/* ADD MEDIA */}
