@@ -2639,7 +2639,9 @@ setProfileId(
   <main>
 
 
-{/* LIBRARY CONTROLS */}
+/* =======================================================
+LIBRARY CONTROLS
+======================================================= */
 
 {tab === "library" && (
   <>
@@ -2653,12 +2655,13 @@ setProfileId(
               ? "selected"
               : ""
           }
-       onClick={() => {
-  setTab("library");
-  setFilter("watchlist");
-  setFilterClicked(true);
-  setKindClicked(false);
-}}
+          onClick={() => {
+            setTab("library");
+            setFilter("watchlist");
+            setFilterClicked(true);
+            setKind("all");
+            setKindClicked(false);
+          }}
         >
           Watchlist
         </button>
@@ -2669,31 +2672,33 @@ setProfileId(
               ? "selected"
               : ""
           }
-        onClick={() => {
-  setTab("library");
-  setFilter("watched");
-  setFilterClicked(true);
-  setKindClicked(false);
-}}
+          onClick={() => {
+            setTab("library");
+            setFilter("watched");
+            setFilterClicked(true);
+            setKind("all");
+            setKindClicked(false);
+          }}
         >
           Watched
         </button>
 
-      <button
-  className={
-    filter === "rewatch"
-      ? "selected"
-      : ""
-  }
- onClick={() => {
-  setTab("library");
-  setFilter("rewatch");
-  setFilterClicked(true);
-  setKindClicked(false);
-}}
->
-  Re-watch
-</button>
+        <button
+          className={
+            filter === "rewatch"
+              ? "selected"
+              : ""
+          }
+          onClick={() => {
+            setTab("library");
+            setFilter("rewatch");
+            setFilterClicked(true);
+            setKind("all");
+            setKindClicked(false);
+          }}
+        >
+          Re-watch
+        </button>
 
       </div>
 
@@ -2727,6 +2732,8 @@ setProfileId(
         onClick={() => {
           setKind("all");
           setKindClicked(true);
+          setFilter("all");
+          setFilterClicked(false);
         }}
       >
         All
@@ -2741,6 +2748,8 @@ setProfileId(
         onClick={() => {
           setKind("movie");
           setKindClicked(true);
+          setFilter("all");
+          setFilterClicked(false);
         }}
       >
         <Film size={15} />
@@ -2756,6 +2765,8 @@ setProfileId(
         onClick={() => {
           setKind("tv");
           setKindClicked(true);
+          setFilter("all");
+          setFilterClicked(false);
         }}
       >
         <Tv size={15} />
