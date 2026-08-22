@@ -2661,6 +2661,7 @@ LIBRARY CONTROLS
             setFilterClicked(true);
             setKind("all");
             setKindClicked(false);
+            setJustAddedView("visible");
           }}
         >
           Watchlist
@@ -2678,6 +2679,7 @@ LIBRARY CONTROLS
             setFilterClicked(true);
             setKind("all");
             setKindClicked(false);
+            setJustAddedView("visible");
           }}
         >
           Watched
@@ -2695,6 +2697,7 @@ LIBRARY CONTROLS
             setFilterClicked(true);
             setKind("all");
             setKindClicked(false);
+            setJustAddedView("visible");
           }}
         >
           Re-watch
