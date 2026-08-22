@@ -1375,106 +1375,114 @@ useEffect(() => {
   recommendation
 ]);
 
-/* =======================================================
-FILTERING + SORTING
-======================================================= */
+ /* =======================================================
+ FILTERING + SORTING
+ ======================================================= */
 
-const visible = useMemo(() => {
-  const source =
-    sort === "just-added"
-      ? (
-          isAdmin &&
-          justAddedView === "hidden"
-            ? hiddenJustAdded
-            : justAdded
-        )
-      : filter === "watchlist"
-        ? library.filter(title =>
-            state.watchlist.includes(
-              title.id
-            )
-          )
-        : filter === "watched"
-          ? library.filter(title =>
-              state.watched.includes(
-                title.id
-              )
-            )
-          : tab === "rewatch"
-            ? library.filter(title =>
-                state.rewatch.includes(
-                  title.id
-                )
-              )
-            : library;
+ const visible = useMemo(() => {
+   const source =
+     sort === "just-added"
+       ? (
+           isAdmin &&
+           justAddedView === "hidden"
+             ? hiddenJustAdded
+             : justAdded
+         )
+       : library;
 
-  const filtered = source
-    .filter(title =>
-      title.name
-        .toLowerCase()
-        .includes(
-          q.toLowerCase()
-        )
-    )
-    .filter(title => {
-      if (kind === "all") {
-        return true;
-      }
+   const filtered =
+     source
+       .filter(title =>
+         title.name
+           .toLowerCase()
+           .includes(
+             q.toLowerCase()
+           )
+       )
+       .filter(title => {
+         if (kind === "all") {
+           return true;
+         }
 
-      return (
-        title.kind === kind
-      );
-    });
+         return (
+           title.kind === kind
+         );
+       })
+       .filter(title => {
+         if (sort === "just-added") {
+           return true;
+         }
 
-  if (
-    sort === "just-added"
-  ) {
-    return filtered.slice(
-      0,
-      justAddedLimit
-    );
-  }
+         if (filter === "watchlist") {
+           return state.watchlist.includes(
+             title.id
+           );
+         }
 
-  return [...filtered].sort(
-    (a, b) => {
-      switch (sort) {
-        case "name-desc":
-          return b.name.localeCompare(
-            a.name
-          );
+         if (filter === "watched") {
+           return state.watched.includes(
+             title.id
+           );
+         }
 
-        case "year-desc":
-          return (
-            b.year - a.year
-          );
+         if (filter === "rewatch") {
+           return state.rewatch.includes(
+             title.id
+           );
+         }
 
-        case "year-asc":
-          return (
-            a.year - b.year
-          );
+         return true;
+       });
 
-        case "name-asc":
-        default:
-          return a.name.localeCompare(
-            b.name
-          );
-      }
-    }
-  );
-}, [
-  library,
-  justAdded,
-  hiddenJustAdded,
-  q,
-  kind,
-  tab,
-  filter,
-  sort,
-  justAddedView,
-  justAddedLimit,
-  state,
-  isAdmin
-]);
+   if (
+     sort === "just-added"
+   ) {
+     return filtered.slice(
+       0,
+       justAddedLimit
+     );
+   }
+
+   return [...filtered].sort(
+     (a, b) => {
+       switch (sort) {
+         case "name-desc":
+           return b.name.localeCompare(
+             a.name
+           );
+
+         case "year-desc":
+           return (
+             b.year - a.year
+           );
+
+         case "year-asc":
+           return (
+             a.year - b.year
+           );
+
+         case "name-asc":
+         default:
+           return a.name.localeCompare(
+             b.name
+           );
+       }
+     }
+   );
+
+ }, [
+   library,
+   justAdded,
+   hiddenJustAdded,
+   q,
+   kind,
+   filter,
+   sort,
+   justAddedView,
+   justAddedLimit,
+   state
+ ]);
+   
 /* =======================================================
 AUTHENTICATION ACTIONS
 ======================================================= */
