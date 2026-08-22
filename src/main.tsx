@@ -2768,31 +2768,31 @@ LIBRARY CONTROLS
       </button>
 
       {isAdmin &&
-          <button
-            type="button"
-            className={
-              justAddedView === "hidden"
-                ? "selected"
-                : ""
-            }
-            onClick={() => {
-              setFilter("all");
-              setFilterClicked(false);
-              setKind("all");
-              setKindClicked(false);
+        <button
+          type="button"
+          className={
+            justAddedView === "hidden"
+              ? "selected"
+              : ""
+          }
+          onClick={() => {
+            setFilter("all");
+            setFilterClicked(false);
+            setKind("all");
+            setKindClicked(false);
 
-              setJustAddedView(current =>
-                current === "visible"
-                  ? "hidden"
-                  : "visible"
-              );
-            }}
-          >
-            {justAddedView === "hidden"
-              ? "Back to Just Added"
-              : "View Hidden"}
-          </button>
-        )}
+            setJustAddedView(current =>
+              current === "visible"
+                ? "hidden"
+                : "visible"
+            );
+          }}
+        >
+          {justAddedView === "hidden"
+            ? "Back to Just Added"
+            : "View Hidden"}
+        </button>
+      }
 
       <select
         className="sort-select"
