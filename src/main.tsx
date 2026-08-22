@@ -2481,25 +2481,13 @@ setProfileId(
 
   <main>
 
-    {/* PRIMARY NAVIGATION */}
+  {/* PRIMARY NAVIGATION */}
 
-    <div className="switch">
-
-      <button
-        className={
-          tab === "library"
-            ? "active"
-            : ""
-        }
-        onClick={() => {
-          setTab("library");
-          setFilter("all");
-        }}
-      >
-        Library
-      </button>
-
-    </div>
+<div className="switch">
+  <div className="nav-heading">
+    Library
+  </div>
+</div>
 
 {/* LIBRARY CONTROLS */}
 
