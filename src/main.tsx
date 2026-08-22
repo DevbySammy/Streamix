@@ -3595,7 +3595,6 @@ setProfileId(
       }
 }
 
- 
   {/* ADD MEDIA */}
 
   {showAdd && (
@@ -3604,85 +3603,86 @@ setProfileId(
       onClose={() =>
         setShowAdd(false)
       }
-onAdd={async title => {
-  const sessionId =
-    localStorage.getItem(
-      "sx-session-token"
-    );
+      onAdd={async title => {
+        const sessionId =
+          localStorage.getItem(
+            "sx-session-token"
+          );
 
-  const response = await fetch(
-    "/api/library",
-    {
-      method: "POST",
-      headers: {
-        "Content-Type":
-          "application/json",
-        ...(sessionId
-          ? {
-              Authorization:
-                `Bearer ${sessionId}`
+        const response =
+          await fetch(
+            "/api/library",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type":
+                  "application/json",
+                ...(sessionId
+                  ? {
+                      Authorization:
+                        `Bearer ${sessionId}`
+                    }
+                  : {})
+              },
+              body: JSON.stringify({
+                tmdb_id: Number(
+                  title.id.replace(
+                    `tmdb-${title.kind}-`,
+                    ""
+                  )
+                ),
+                media_type:
+                  title.kind === "movie"
+                    ? "movie"
+                    : "tv",
+                title:
+                  title.name,
+                poster_path:
+                  title.poster
+                    ? title.poster.replace(
+                        "https://image.tmdb.org/t/p/w500",
+                        ""
+                      )
+                    : null,
+                backdrop_path:
+                  title.backdrop
+                    ? title.backdrop.replace(
+                        "https://image.tmdb.org/t/p/w1280",
+                        ""
+                      )
+                    : null,
+                overview:
+                  title.overview || null,
+                release_date:
+                  title.year
+                    ? `${title.year}-01-01`
+                    : null,
+                vote_average:
+                  null
+              })
             }
-          : {})
-      },
-      body: JSON.stringify({
-        tmdb_id: Number(
-          title.id.replace(
-            `tmdb-${title.kind}-`,
-            ""
-          )
-        ),
-        media_type:
-          title.kind === "movie"
-            ? "movie"
-            : "tv",
-        title:
-          title.name,
-        poster_path:
-          title.poster
-            ? title.poster.replace(
-                "https://image.tmdb.org/t/p/w500",
-                ""
-              )
-            : null,
-        backdrop_path:
-          title.backdrop
-            ? title.backdrop.replace(
-                "https://image.tmdb.org/t/p/w1280",
-                ""
-              )
-            : null,
-        overview:
-          title.overview || null,
-        release_date:
-          title.year
-            ? `${title.year}-01-01`
-            : null,
-        vote_average:
-          null
-      })
-    }
-  );
+          );
 
-  const data =
-    await response.json();
+        const data =
+          await response.json();
 
-  if (!response.ok) {
-    throw new Error(
-      data?.error ||
-        "Failed to save media."
-    );
-  }
+        if (!response.ok) {
+          throw new Error(
+            data?.error ||
+              "Failed to save media."
+          );
+        }
 
-  setLibrary(current => [
-    ...current,
-    {
-      ...title,
-      id: data.id
-    }
-  ]);
-}}
-      />
-    )}
+        setLibrary(current => [
+          ...current,
+          {
+            ...title,
+            id: data.id
+          }
+        ]);
+      }}
+    />
+  )}
 
   {/* REMINDER */}
 
