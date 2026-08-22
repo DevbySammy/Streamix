@@ -1542,21 +1542,18 @@ footer span {
     padding: 0;
   }
 
-  /* SEARCH AREA */
+ /* SEARCH AREA */
 
-  .modal .search {
-    position: sticky;
-    top: 68px;
+.modal .search {
+  position: sticky;
+  top: 0;
+  z-index: 19;
 
-    z-index: 19;
+  margin: 0 0 12px;
+  padding: 8px 0 12px;
 
-    margin: 0 0 12px;
-  padding: 12px 0 8px;
-
-
-    background: #171719;
-  }
-
+  background: #171719;
+}
   /* KEEP THE EXISTING SEARCH BAR APPEARANCE */
 
   .modal .search input {
