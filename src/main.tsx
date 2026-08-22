@@ -2476,13 +2476,13 @@ return ( <div className="app"> <main> <div className="login-screen"> <div classN
 
           <div className="profiles">
 
-            {orderedProfiles
-              .filter(
-                item =>
-                  item.id !==
-                  "testing"
-              )
-              .map(
+    {orderedProfiles
+  .filter(
+    item =>
+      isAdminUser ||
+      item.id !== "testing"
+  )
+  .map(
                 item => (
                   <div
                     className="profile-row"
