@@ -1518,22 +1518,15 @@ useEffect(() => {
 ]);
 
 
-/* =======================================================
+ /* =======================================================
  FILTERING + SORTING
  ======================================================= */
 
 const visible = useMemo(() => {
-  /*
-   * Watchlist / Watched / Re-watch always operate
-   * on the main library.
-   *
-   * "Just Added" is only used when no personal
-   * list filter is active.
-   */
   const usingPersonalFilter =
-    tab === "rewatch" ||
     filter === "watchlist" ||
-    filter === "watched";
+    filter === "watched" ||
+    filter === "rewatch";
 
   const source =
     usingPersonalFilter
@@ -1561,17 +1554,9 @@ const visible = useMemo(() => {
           return true;
         }
 
-        return (
-          title.kind === kind
-        );
+        return title.kind === kind;
       })
       .filter(title => {
-        if (tab === "rewatch") {
-          return state.rewatch.includes(
-            title.id
-          );
-        }
-
         if (filter === "watchlist") {
           return state.watchlist.includes(
             title.id
@@ -1580,6 +1565,12 @@ const visible = useMemo(() => {
 
         if (filter === "watched") {
           return state.watched.includes(
+            title.id
+          );
+        }
+
+        if (filter === "rewatch") {
+          return state.rewatch.includes(
             title.id
           );
         }
@@ -1606,14 +1597,10 @@ const visible = useMemo(() => {
           );
 
         case "year-desc":
-          return (
-            b.year - a.year
-          );
+          return b.year - a.year;
 
         case "year-asc":
-          return (
-            a.year - b.year
-          );
+          return a.year - b.year;
 
         case "name-asc":
         default:
@@ -1630,7 +1617,6 @@ const visible = useMemo(() => {
   hiddenJustAdded,
   q,
   kind,
-  tab,
   filter,
   sort,
   justAddedView,
@@ -1638,7 +1624,6 @@ const visible = useMemo(() => {
   state,
   isAdmin
 ]);
-
    
 /* =======================================================
 AUTHENTICATION ACTIONS
