@@ -1388,93 +1388,79 @@ const visible = useMemo(() => {
             ? hiddenJustAdded
             : justAdded
         )
-      : library;
+      : filter === "watchlist"
+        ? library.filter(title =>
+            state.watchlist.includes(
+              title.id
+            )
+          )
+        : filter === "watched"
+          ? library.filter(title =>
+              state.watched.includes(
+                title.id
+              )
+            )
+          : tab === "rewatch"
+            ? library.filter(title =>
+                state.rewatch.includes(
+                  title.id
+                )
+              )
+            : library;
 
-const filtered =
-source
- 
-.filter(title =>
-title.name
-.toLowerCase()
-.includes(
-q.toLowerCase()
-)
-)
-.filter(title => {
-if (kind === "all") {
-return true;
-}
-
+  const filtered = source
+    .filter(title =>
+      title.name
+        .toLowerCase()
+        .includes(
+          q.toLowerCase()
+        )
+    )
+    .filter(title => {
+      if (kind === "all") {
+        return true;
+      }
 
       return (
         title.kind === kind
       );
-    })
-  .filter(title => {
-  if (sort === "just-added") {
-    return true;
-  }
-
-  if (tab === "rewatch") {
-    return state.rewatch.includes(
-      title.id
-    );
-  }
-
-  if (filter === "all") {
-    return true;
-  }
+    });
 
   if (
-    filter === "watched"
+    sort === "just-added"
   ) {
-    return state.watched.includes(
-      title.id
+    return filtered.slice(
+      0,
+      justAddedLimit
     );
   }
 
-  return state.watchlist.includes(
-    title.id
-  );
-});
+  return [...filtered].sort(
+    (a, b) => {
+      switch (sort) {
+        case "name-desc":
+          return b.name.localeCompare(
+            a.name
+          );
 
-if (
-  sort === "just-added"
-) {
-  return filtered.slice(
-    0,
-    justAddedLimit
-  );
-}
- 
-return [...filtered].sort(
-  (a, b) => {
-    switch (sort) {
-      case "name-desc":
-        return b.name.localeCompare(
-          a.name
-        );
+        case "year-desc":
+          return (
+            b.year - a.year
+          );
 
-      case "year-desc":
-        return (
-          b.year - a.year
-        );
+        case "year-asc":
+          return (
+            a.year - b.year
+          );
 
-      case "year-asc":
-        return (
-          a.year - b.year
-        );
-
-      case "name-asc":
-      default:
-        return a.name.localeCompare(
-          b.name
-        );
+        case "name-asc":
+        default:
+          return a.name.localeCompare(
+            b.name
+          );
+      }
     }
-  }
-);
-
-
+  );
 }, [
   library,
   justAdded,
@@ -1486,9 +1472,9 @@ return [...filtered].sort(
   sort,
   justAddedView,
   justAddedLimit,
-  state
+  state,
+  isAdmin
 ]);
-
 /* =======================================================
 AUTHENTICATION ACTIONS
 ======================================================= */
