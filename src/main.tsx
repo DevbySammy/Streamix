@@ -2831,61 +2831,6 @@ setProfileId(
   </>
 )}
 
-  <div className="toolbar">
-
-    <div className="filters">
-
-      <button
-        className=""
-        onClick={() => {
-          setTab("library");
-          setFilter("watchlist");
-          setFilterClicked(true);
-        }}
-      >
-        Watchlist
-      </button>
-
-      <button
-        className=""
-        onClick={() => {
-          setTab("library");
-          setFilter("watched");
-          setFilterClicked(true);
-        }}
-      >
-        Watched
-      </button>
-
-      <button
-        className="selected"
-        onClick={() => {
-          setTab("rewatch");
-          setFilter("all");
-          setFilterClicked(true);
-        }}
-      >
-        Re-watch
-      </button>
-
-    </div>
-
-    <div className="search">
-
-      <Search size={18} />
-
-      <input
-        value={q}
-        onChange={event =>
-          setQ(event.target.value)
-        }
-        placeholder="Search library"
-      />
-
-    </div>
-
-  </div>
-)}
 
 {/* LIBRARY */}
 
