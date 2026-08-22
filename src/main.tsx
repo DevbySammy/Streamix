@@ -2504,7 +2504,6 @@ setProfileId(
 
 {tab === "library" && (
   <>
-
     <div className="toolbar">
 
       {!isAdmin && (
@@ -2539,11 +2538,7 @@ setProfileId(
           </button>
 
           <button
-            className={
-              tab === "rewatch"
-                ? "selected"
-                : ""
-            }
+            className=""
             onClick={() => {
               setTab("rewatch");
               setFilterClicked(true);
@@ -2565,23 +2560,23 @@ setProfileId(
             setQ(event.target.value)
           }
           placeholder={
-            tab === "rewatch"
-              ? "Search re-watch"
-              : sort === "just-added"
-                ? justAddedView === "hidden"
-                  ? "Search hidden"
-                  : "Search Just Added"
-                : filter === "watchlist"
-                  ? "Search watchlist"
-                  : filter === "watched"
-                    ? "Search watched"
-                    : "Search library"
+            sort === "just-added"
+              ? justAddedView === "hidden"
+                ? "Search hidden"
+                : "Search Just Added"
+              : filter === "watchlist"
+                ? "Search watchlist"
+                : filter === "watched"
+                  ? "Search watched"
+                  : "Search library"
           }
         />
 
       </div>
 
     </div>
+  </>
+)}
 
     {/* FORMAT + SORT */}
 
