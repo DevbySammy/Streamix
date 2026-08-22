@@ -1741,25 +1741,45 @@ async function toggle(
         ? "/api/watchlist"
         : "/api/rewatch";
 
+  const sessionId =
+    localStorage.getItem(
+      "sx-session-token"
+    );
+
   try {
     const response = await fetch(
       exists
         ? `${endpoint}?profileId=${encodeURIComponent(
             effectiveProfileId
-          )}&libraryItemId=${encodeURIComponent(id)}`
+          )}&libraryItemId=${encodeURIComponent(
+            id
+          )}`
         : endpoint,
       {
-        method: exists ? "DELETE" : "POST",
+        method: exists
+          ? "DELETE"
+          : "POST",
+
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type":
+            "application/json",
+
+          ...(sessionId
+            ? {
+                Authorization:
+                  `Bearer ${sessionId}`
+              }
+            : {})
         },
+
         ...(exists
           ? {}
           : {
               body: JSON.stringify({
                 profileId:
                   effectiveProfileId,
-                libraryItemId: id
+                libraryItemId:
+                  id
               })
             })
       }
@@ -1771,19 +1791,19 @@ async function toggle(
       );
     }
 
-    updateState(current => {
-      return {
-        ...current,
-        [array]: exists
-          ? current[array].filter(
-              item => item !== id
-            )
-          : [
-              ...current[array],
-              id
-            ]
-      };
-    });
+    updateState(current => ({
+      ...current,
+
+      [array]: exists
+        ? current[array].filter(
+            item =>
+              item !== id
+          )
+        : [
+            ...current[array],
+            id
+          ]
+    }));
   } catch (error) {
     console.error(
       "Failed to update media state:",
