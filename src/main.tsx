@@ -2474,47 +2474,51 @@ setProfileId(
   <>
     <div className="toolbar">
 
-           <div className="filters">
+      <div className="filters">
 
-          <button
-            className={
-              filter === "watchlist"
-                ? "selected"
-                : ""
-            }
-            onClick={() => {
-              setFilter("watchlist");
-              setFilterClicked(true);
-            }}
-          >
-            Watchlist
-          </button>
+        <button
+          className={
+            filter === "watchlist"
+              ? "selected"
+              : ""
+          }
+          onClick={() => {
+            setFilter("watchlist");
+            setFilterClicked(true);
+          }}
+        >
+          Watchlist
+        </button>
 
-          <button
-            className={
-              filter === "watched"
-                ? "selected"
-                : ""
-            }
-            onClick={() => {
-              setFilter("watched");
-              setFilterClicked(true);
-            }}
-          >
-            Watched
-          </button>
+        <button
+          className={
+            filter === "watched"
+              ? "selected"
+              : ""
+          }
+          onClick={() => {
+            setFilter("watched");
+            setFilterClicked(true);
+          }}
+        >
+          Watched
+        </button>
 
-          <button
-            className=""
-            onClick={() => {
-              setTab("rewatch");
-              setFilterClicked(true);
-            }}
-          >
-            Re-watch
-          </button>
+        <button
+          className={
+            filter === "rewatch"
+              ? "selected"
+              : ""
+          }
+          onClick={() => {
+            setFilter("rewatch");
+            setFilterClicked(true);
+          }}
+        >
+          Re-watch
+        </button>
 
-        </div>
+      </div>
 
       <div className="search">
 
@@ -2525,13 +2529,7 @@ setProfileId(
           onChange={event =>
             setQ(event.target.value)
           }
-      placeholder={
-  filter === "watchlist"
-    ? "Search watchlist"
-    : filter === "watched"
-      ? "Search watched"
-      : "Search library"
-}
+          placeholder="Search library"
         />
 
       </div>
@@ -2686,21 +2684,21 @@ setProfileId(
       </div>
     )}
 
-    <div className="search">
+   <div className="search">
 
-      <Search size={18} />
+  <Search size={18} />
 
-      <input
-        value={q}
-        onChange={event =>
-          setQ(event.target.value)
-        }
-        placeholder="Search re-watch"
-      />
+  <input
+    value={q}
+    onChange={event =>
+      setQ(event.target.value)
+    }
+    placeholder="Search library"
+  />
 
-    </div>
+</div>
 
-  </div>
+</div>
 )}
 
 {/* LIBRARY */}
