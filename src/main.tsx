@@ -2074,33 +2074,30 @@ async function showJustAddedAgain(
           item.id === id
       );
      
-    setHiddenJustAdded(
-      current =>
+   setHiddenJustAdded(
+  current =>
+    current.filter(
+      title =>
+        title.id !== id
+    )
+);
+
+if (title) {
+  setJustAdded(
+    current => {
+      const withoutDuplicate =
         current.filter(
-          title =>
-            title.id !== id
-        )
-    );
-      if (title) {
-      setJustAdded(
-        current => {
-          const alreadyExists =
-            current.some(
-              item =>
-                item.id === id
-            );
+          item =>
+            item.id !== id
+        );
 
-          if (alreadyExists) {
-            return current;
-          }
-
-          return [
-            ...current,
-            title
-          ];
-        }
-      );
+      return [
+        ...withoutDuplicate,
+        title
+      ];
     }
+  );
+}
   } catch (error) {
     console.error(
       "Failed to show Just Added title again:",
@@ -2108,6 +2105,7 @@ async function showJustAddedAgain(
     );
   }
 }
+   
 /* =======================================================
 PROFILE MANAGEMENT
 ======================================================= */
