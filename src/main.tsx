@@ -2720,7 +2720,22 @@ setProfileId(
 
       </>
     )}
-
+{tab === "rewatch" && (
+  <div className="toolbar">
+    <div className="search">
+      <Search size={18} />
+      <input
+        value={q}
+        onChange={event =>
+          setQ(
+            event.target.value
+          )
+        }
+        placeholder="Search re-watch"
+      />
+    </div>
+  </div>
+)}
     {/* LIBRARY */}
 
     <div className="grid">
