@@ -2754,7 +2754,7 @@ setProfileId(
                 )
               }
             >
-              Edit This Hero
+              Edit Hero
             </button>
           )}
         </>
