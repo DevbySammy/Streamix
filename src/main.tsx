@@ -2541,17 +2541,13 @@ setProfileId(
           onChange={event =>
             setQ(event.target.value)
           }
-          placeholder={
-            sort === "just-added"
-              ? justAddedView === "hidden"
-                ? "Search hidden"
-                : "Search Just Added"
-              : filter === "watchlist"
-                ? "Search watchlist"
-                : filter === "watched"
-                  ? "Search watched"
-                  : "Search library"
-          }
+      placeholder={
+  filter === "watchlist"
+    ? "Search watchlist"
+    : filter === "watched"
+      ? "Search watched"
+      : "Search library"
+}
         />
 
       </div>
