@@ -783,7 +783,7 @@ function App() {
    useState<"all" | Kind>("all");
 
  const [kindClicked, setKindClicked] =
-   useState(false);
+   useState(true);
 
 
  const [sort, setSort] =
@@ -953,6 +953,7 @@ function App() {
 
  const [menu, setMenu] =
    useState(false);
+   
 /* =======================================================
 PROFILE DRAGGING
 ======================================================= */
