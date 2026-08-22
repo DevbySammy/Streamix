@@ -3592,7 +3592,7 @@ setProfileId(
             error
           );
         }
-      }
+      )}
 
 
   {/* ADD MEDIA */}
