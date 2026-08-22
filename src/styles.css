@@ -1193,6 +1193,8 @@ footer span {
     min-height: 44px;
     height: 44px;
     box-sizing: border-box;
+    text-align: center;
+    text-align-last: center;
   }
 
   .view-hidden-btn {
