@@ -1376,7 +1376,7 @@ useEffect(() => {
   loadMediaState();
 }, [effectiveProfileId]);
 
-      const hero =
+const hero =
   heroSettings.titleId
     ? library.find(
         item =>
