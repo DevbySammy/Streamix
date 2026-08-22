@@ -2477,14 +2477,8 @@ return ( <div className="app"> <main> <div className="login-screen"> <div classN
 
           <div className="profiles">
 
-    {orderedProfiles
-  .filter(
-    item =>
-      isAdminUser ||
-      item.id !== "testing"
-  )
-  .map(
-                item => (
+{orderedProfiles.map(
+            item => (
                   <div
                     className="profile-row"
                     key={item.id}
@@ -3208,13 +3202,7 @@ LIBRARY CONTROLS
 
     <div className="profiles">
 
-   {orderedProfiles
-  .filter(
-    item =>
-      isAdminUser ||
-      item.id !== "testing"
-  )
-  .map(
+ {orderedProfiles.map(
           item => {
 
             const isDragging =
@@ -3299,13 +3287,43 @@ LIBRARY CONTROLS
   }
 }
 
-if (
-  isAdminUser
-) {
-  if (
-    item.id ===
-    "admin"
-  ) {
+if (isAdminUser) {
+  if (item.id === "admin") {
+    setViewingAs(null);
+
+    localStorage.removeItem(
+      "sx-viewing-as"
+    );
+
+    setProfileId(
+      "admin"
+    );
+  } else if (item.id === "testing") {
+    setLoginProfile(item);
+    setShowProfile(false);
+
+    return;
+  } else {
+    setViewingAs(
+      item.id
+    );
+
+    localStorage.setItem(
+      "sx-viewing-as",
+      item.id
+    );
+
+    setProfileId(
+      "admin"
+    );
+  }
+
+  setShowProfile(
+    false
+  );
+
+  return;
+}
   setViewingAs(
   null
 );
