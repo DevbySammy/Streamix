@@ -1233,6 +1233,13 @@ const state: State =
         watchlist: [],
         rewatch: []
       };
+/* =======================================================
+LOAD WATCHED / WATCHLIST / REWATCH
+======================================================= */
+
+useEffect(() => {
+  // ...new code...
+}, [effectiveProfileId]);
 
 const hero =
   heroSettings.titleId
@@ -1242,6 +1249,7 @@ const hero =
           heroSettings.titleId
       ) || null
     : null;
+   
 
 /* =======================================================
 LOAD DELETED PROFILES
