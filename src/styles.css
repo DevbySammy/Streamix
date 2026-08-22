@@ -1175,6 +1175,7 @@ footer span {
   .filters button,
   .format button {
     min-height: 44px;
+    height: 44px;
   }
 
   .format {
@@ -1322,7 +1323,6 @@ footer span {
     padding-right: 14px;
   }
 }
-
 
 /* =========================================================
    VERY SMALL PHONES
