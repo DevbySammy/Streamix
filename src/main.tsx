@@ -435,8 +435,9 @@ function App() {
               hiddenData.results
             )
           ) {
-            const hiddenTitles: Title[] =
-              hiddenData.results.map(
+        const hiddenTitles: Title[] =
+  hiddenData.results
+    .map(
                 (item: any): Title => {
 
                   // Hidden titles saved by the app
@@ -533,9 +534,18 @@ function App() {
                 }
               );
 
-            setHiddenJustAdded(
-              hiddenTitles
-            );
+           setHiddenJustAdded(
+  Array.from(
+    new Map(
+      hiddenTitles.map(
+        title => [
+          title.id,
+          title
+        ]
+      )
+    ).values()
+  )
+);
           }
         }
       } catch (error) {
