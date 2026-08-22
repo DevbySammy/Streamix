@@ -2691,20 +2691,20 @@ setProfileId(
           Watched
         </button>
 
-        <button
-          className={
-            filter === "rewatch"
-              ? "selected"
-              : ""
-          }
-          onClick={() => {
-            setTab("library");
-            setFilter("rewatch");
-            setFilterClicked(true);
-          }}
-        >
-          Re-watch
-        </button>
+      <button
+  className={
+    filter === "rewatch"
+      ? "selected"
+      : ""
+  }
+  onClick={() => {
+    setTab("library");
+    setFilter("rewatch");
+    setFilterClicked(true);
+  }}
+>
+  Re-watch
+</button>
 
       </div>
 
@@ -2831,7 +2831,6 @@ setProfileId(
   </>
 )}
 
-{tab === "rewatch" && (
   <div className="toolbar">
 
     <div className="filters">
