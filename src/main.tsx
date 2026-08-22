@@ -2777,7 +2777,6 @@ LIBRARY CONTROLS
       </button>
 
       {isAdmin &&
-        sort === "just-added" && (
           <button
             type="button"
             className={
