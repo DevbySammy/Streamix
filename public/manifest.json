@@ -5,5 +5,11 @@
   "display": "standalone",
   "background_color": "#101012",
   "theme_color": "#101012",
-  "icons": []
+  "icons": [
+    {
+      "src": "/streamix_s_logo.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
 }
