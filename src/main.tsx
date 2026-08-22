@@ -2877,6 +2877,8 @@ setProfileId(
 </div>
 
 {sort === "just-added" &&
+  filter === "all" &&
+  visible.length > 0 &&
   visible.length < justAdded.length && (
     <button
       type="button"
