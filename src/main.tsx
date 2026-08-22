@@ -1144,6 +1144,7 @@ const orderedProfiles = useMemo(() => {
     ...regularProfiles
   ];
 }, [profiles]);
+   
 /* =======================================================
 PROFILE DRAG POINTER TRACKING
 ======================================================= */
@@ -3207,13 +3208,13 @@ LIBRARY CONTROLS
 
     <div className="profiles">
 
-      {orderedProfiles
-        .filter(
-          item =>
-            item.id !==
-            "testing"
-        )
-        .map(
+   {orderedProfiles
+  .filter(
+    item =>
+      isAdminUser ||
+      item.id !== "testing"
+  )
+  .map(
           item => {
 
             const isDragging =
