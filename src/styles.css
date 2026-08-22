@@ -1493,6 +1493,7 @@ footer span {
     width: 100%;
     max-width: 100%;
 
+    height: auto;
     max-height: 82dvh;
 
     margin: 0;
@@ -1512,14 +1513,14 @@ footer span {
     overscroll-behavior: contain;
     -webkit-overflow-scrolling: touch;
 
-    flex-shrink: 1;
+    flex-shrink: 0;
   }
 
   .modal-head {
     position: sticky;
     top: 0;
 
-    z-index: 20;
+    z-index: 30;
 
     margin: -16px -16px 0;
     padding: 16px;
@@ -1542,19 +1543,24 @@ footer span {
     padding: 0;
   }
 
- /* SEARCH AREA */
+  /* =======================================================
+     SEARCH AREA
+  ======================================================= */
 
-.modal .search {
-  position: sticky;
-  top: 0px;
-  z-index: 20;
+  .modal .search {
+    position: sticky;
+    top: 68px;
 
-  margin: 0 0 12px;
-  padding: 14px 0 10px;
+    z-index: 20;
 
-  background: #171719;
-}
-  /* KEEP THE EXISTING SEARCH BAR APPEARANCE */
+    margin: 0 0 12px;
+
+    padding: 12px 0 10px;
+
+    background: #171719;
+  }
+
+  /* KEEP SEARCH BAR WHITE */
 
   .modal .search input {
     width: 100%;
@@ -1563,6 +1569,7 @@ footer span {
     height: 42px;
 
     margin-top: 0;
+
     padding: 10px 12px;
 
     background: #fff;
@@ -1574,13 +1581,20 @@ footer span {
     outline: none;
 
     font-size: 16px;
+
+    box-sizing: border-box;
+
+    -webkit-appearance: none;
+    appearance: none;
   }
 
   .modal .search input::placeholder {
     color: #777;
   }
 
-  /* SMALLER SEARCH RESULTS */
+  /* =======================================================
+     SMALLER SEARCH RESULTS
+  ======================================================= */
 
   .result {
     grid-template-columns:
