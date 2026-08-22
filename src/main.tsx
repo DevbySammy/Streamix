@@ -2736,7 +2736,29 @@ setProfileId(
     </div>
   </div>
 )}
-    {/* LIBRARY */}
+
+{sort === "just-added" && (
+  <div className="toolbar">
+    <div className="search">
+      <Search size={18} />
+      <input
+        value={q}
+        onChange={event =>
+          setQ(
+            event.target.value
+          )
+        }
+        placeholder={
+          justAddedView === "hidden"
+            ? "Search hidden"
+            : "Search Just Added"
+        }
+      />
+    </div>
+  </div>
+)}
+
+{/* LIBRARY */}
 
     <div className="grid">
 
