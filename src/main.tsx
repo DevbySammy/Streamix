@@ -3423,178 +3423,179 @@ setProfileId(
       adminOverride={
         isAdminUser
       }
-   onChangePassword={async password => {
-  if (editing.id === "new") {
-    return;
-  }
+      onChangePassword={async password => {
+        if (editing.id === "new") {
+          return;
+        }
 
-  if (!isAdminUser) {
-    throw new Error(
-      "Only Admin can reset a profile password."
-    );
-  }
+        if (!isAdminUser) {
+          throw new Error(
+            "Only Admin can reset a profile password."
+          );
+        }
 
-  const sessionId =
-    localStorage.getItem(
-      "sx-session-token"
-    );
+        const sessionId =
+          localStorage.getItem(
+            "sx-session-token"
+          );
 
-  const response =
-    await fetch(
-      "https://streamix.gaintrainstrong.workers.dev/api/auth/admin-reset-password",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type":
-            "application/json",
-          ...(sessionId
-            ? {
-                Authorization:
-                  `Bearer ${sessionId}`
-              }
-            : {})
-        },
-        body: JSON.stringify({
-          profileId:
-            editing.id,
-          newPassword:
-            password
-        })
-      }
-    );
+        const response =
+          await fetch(
+            "https://streamix.gaintrainstrong.workers.dev/api/auth/admin-reset-password",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type":
+                  "application/json",
+                ...(sessionId
+                  ? {
+                      Authorization:
+                        `Bearer ${sessionId}`
+                    }
+                  : {})
+              },
+              body: JSON.stringify({
+                profileId:
+                  editing.id,
+                newPassword:
+                  password
+              })
+            }
+          );
 
-  const data =
-    await response.json();
+        const data =
+          await response.json();
 
-  if (!response.ok) {
-    throw new Error(
-      data?.error ||
-        "Unable to reset password."
-    );
-  }
-}}
- onDelete={
-  editing.id ===
-  "new"
-    ? undefined
-    : async () => {
-        const deletedProfileId =
-          editing.id;
+        if (!response.ok) {
+          throw new Error(
+            data?.error ||
+              "Unable to reset password."
+          );
+        }
+      }}
+      onDelete={
+        editing.id ===
+        "new"
+          ? undefined
+          : async () => {
+              const deletedProfileId =
+                editing.id;
 
-        try {
-          const sessionId =
-            localStorage.getItem(
-              "sx-session-token"
-            );
+              try {
+                const sessionId =
+                  localStorage.getItem(
+                    "sx-session-token"
+                  );
 
-          const response =
-            await fetch(
-              "https://streamix.gaintrainstrong.workers.dev/api/profiles?id=" +
-                encodeURIComponent(
-                  deletedProfileId
-                ),
-              {
-                method: "DELETE",
-                headers: {
-                  ...(sessionId
-                    ? {
-                        Authorization:
-                          `Bearer ${sessionId}`
+                const response =
+                  await fetch(
+                    "https://streamix.gaintrainstrong.workers.dev/api/profiles?id=" +
+                      encodeURIComponent(
+                        deletedProfileId
+                      ),
+                    {
+                      method: "DELETE",
+                      headers: {
+                        ...(sessionId
+                          ? {
+                              Authorization:
+                                `Bearer ${sessionId}`
+                            }
+                          : {})
                       }
-                    : {})
-                }
-              }
-            );
+                    }
+                  );
 
-          const data =
-            await response.json();
+                const data =
+                  await response.json();
 
-          console.log(
-            "DELETE PROFILE:",
-            response.status,
-            JSON.stringify(data)
-          );
-
-          if (!response.ok) {
-            throw new Error(
-              data?.error ||
-                "Failed to delete profile."
-            );
-          }
-
-          setProfiles(
-            current =>
-              current.filter(
-                item =>
-                  item.id !==
-                  deletedProfileId
-              )
-          );
-
-          setDeletedProfiles(
-            current => {
-              const deletedProfile =
-                profiles.find(
-                  item =>
-                    item.id ===
-                    deletedProfileId
+                console.log(
+                  "DELETE PROFILE:",
+                  response.status,
+                  JSON.stringify(data)
                 );
 
-              if (
-                !deletedProfile ||
-                current.some(
-                  item =>
-                    item.id ===
-                    deletedProfileId
-                )
-              ) {
-                return current;
+                if (!response.ok) {
+                  throw new Error(
+                    data?.error ||
+                      "Failed to delete profile."
+                  );
+                }
+
+                setProfiles(
+                  current =>
+                    current.filter(
+                      item =>
+                        item.id !==
+                        deletedProfileId
+                    )
+                );
+
+                setDeletedProfiles(
+                  current => {
+                    const deletedProfile =
+                      profiles.find(
+                        item =>
+                          item.id ===
+                          deletedProfileId
+                      );
+
+                    if (
+                      !deletedProfile ||
+                      current.some(
+                        item =>
+                          item.id ===
+                          deletedProfileId
+                      )
+                    ) {
+                      return current;
+                    }
+
+                    return [
+                      ...current,
+                      deletedProfile
+                    ];
+                  }
+                );
+
+                setStates(
+                  current => {
+                    const next = {
+                      ...current
+                    };
+
+                    delete next[
+                      deletedProfileId
+                    ];
+
+                    return next;
+                  }
+                );
+
+                if (
+                  deletedProfileId ===
+                  profileId
+                ) {
+                  signOut();
+                } else {
+                  setViewingAs(
+                    null
+                  );
+
+                  setEditing(
+                    null
+                  );
+                }
+              } catch (error) {
+                console.error(
+                  "Failed to delete profile:",
+                  error
+                );
               }
-
-              return [
-                ...current,
-                deletedProfile
-              ];
             }
-          );
-
-          setStates(
-            current => {
-              const next = {
-                ...current
-              };
-
-              delete next[
-                deletedProfileId
-              ];
-
-              return next;
-            }
-          );
-
-          if (
-            deletedProfileId ===
-            profileId
-          ) {
-            signOut();
-          } else {
-            setViewingAs(
-              null
-            );
-
-            setEditing(
-              null
-            );
-          }
-        } catch (error) {
-          console.error(
-            "Failed to delete profile:",
-            error
-           );
       }
-    }
-  }
-/>
+    />
+  )}
 
   {/* ADD MEDIA */}
 
