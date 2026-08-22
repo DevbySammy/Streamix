@@ -442,16 +442,20 @@ header {
 
 .actions button,
 .small-actions button {
-  min-height: 38px;
-  padding: 7px 9px;
+  min-height: 40px;
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 7px 8px;
   border-radius: 8px;
   background: #202023;
   color: #aaa;
   cursor: pointer;
-}
-
-.actions button {
-  flex: 1;
+  font-size: 12px;
+  line-height: 1.2;
+  text-align: center;
 }
 
 .actions button.on,
@@ -463,12 +467,6 @@ header {
 .small-actions {
   margin-top: 7px;
 }
-
-.small-actions button {
-  flex: 1;
-  font-size: 12px;
-}
-
 
 /* =========================================================
    BUTTONS
@@ -1185,7 +1183,7 @@ footer span {
     gap: 7px;
   }
 
-   .sort-select {
+  .sort-select {
     grid-column: 1 / -1;
     width: 100%;
     min-height: 44px;
@@ -1214,12 +1212,16 @@ footer span {
   .actions,
   .small-actions {
     flex-direction: column;
+    gap: 7px;
   }
 
   .actions button,
   .small-actions button {
     width: 100%;
     min-height: 42px;
+    height: 42px;
+    font-size: 12px;
+    padding: 7px 8px;
   }
 
   .remove {
@@ -1325,7 +1327,6 @@ footer span {
     padding-right: 14px;
   }
 }
-
 /* =========================================================
    VERY SMALL PHONES
 ========================================================= */
