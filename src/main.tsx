@@ -2692,10 +2692,14 @@ setProfileId(
         </button>
 
         <button
-          className=""
+          className={
+            filter === "rewatch"
+              ? "selected"
+              : ""
+          }
           onClick={() => {
-            setTab("rewatch");
-            setFilter("all");
+            setTab("library");
+            setFilter("rewatch");
             setFilterClicked(true);
           }}
         >
