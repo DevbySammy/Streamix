@@ -3591,7 +3591,6 @@ setProfileId(
             "Failed to delete profile:",
             error
           );
-        }
       }}
   />
 
