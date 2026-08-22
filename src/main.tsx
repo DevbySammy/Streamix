@@ -2616,21 +2616,38 @@ return ( <div className="app">
 {(isViewingAs || profileId === "testing") && (
         <button
           className="admin-badge"
-          onClick={() => {
-        setViewingAs(null);
+        onClick={() => {
+  const adminSession =
+    localStorage.getItem(
+      "sx-admin-session-token"
+    );
 
-localStorage.removeItem(
-  "sx-viewing-as"
-);
+  if (adminSession) {
+    localStorage.setItem(
+      "sx-session-token",
+      adminSession
+    );
 
-setProfileId(
-  "admin"
-);
-            setTab("library");
-            setFilter("all");
-            setKind("all");
-            setMenu(false);
-          }}
+    localStorage.removeItem(
+      "sx-admin-session-token"
+    );
+  }
+
+  setViewingAs(null);
+
+  localStorage.removeItem(
+    "sx-viewing-as"
+  );
+
+  setProfileId(
+    "admin"
+  );
+
+  setTab("library");
+  setFilter("all");
+  setKind("all");
+  setMenu(false);
+}}
           aria-label="Back to Admin"
         >
           ← ADMIN
