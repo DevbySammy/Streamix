@@ -2653,11 +2653,12 @@ setProfileId(
               ? "selected"
               : ""
           }
-          onClick={() => {
-            setTab("library");
-            setFilter("watchlist");
-            setFilterClicked(true);
-          }}
+       onClick={() => {
+  setTab("library");
+  setFilter("watchlist");
+  setFilterClicked(true);
+  setKindClicked(false);
+}}
         >
           Watchlist
         </button>
