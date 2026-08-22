@@ -2488,8 +2488,7 @@ setProfileId(
   <>
     <div className="toolbar">
 
-      {!isAdmin && (
-        <div className="filters">
+           <div className="filters">
 
           <button
             className={
@@ -2530,7 +2529,6 @@ setProfileId(
           </button>
 
         </div>
-      )}
 
       <div className="search">
 
