@@ -1144,7 +1144,6 @@ const orderedProfiles = useMemo(() => {
     ...regularProfiles
   ];
 }, [profiles]);
-
 /* =======================================================
 PROFILE DRAG POINTER TRACKING
 ======================================================= */
