@@ -1110,16 +1110,16 @@ footer span {
     width: 108px;
   }
 
-  .header-right {
-    flex: 1;
-    overflow-x: auto;
-    justify-content: flex-end;
-    scrollbar-width: none;
-  }
+.header-right {
+  flex: 1;
+  overflow: visible;
+  justify-content: flex-end;
+  min-width: 0;
+}
 
-  .header-right::-webkit-scrollbar {
-    display: none;
-  }
+.header-right::-webkit-scrollbar {
+  display: none;
+}
 
   .admin-badge {
     min-height: 38px;
