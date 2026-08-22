@@ -2737,7 +2737,7 @@ setProfileId(
   </div>
 )}
 
-{sort === "just-added" && (
+{tab === "rewatch" && (
   <div className="toolbar">
     <div className="search">
       <Search size={18} />
@@ -2748,11 +2748,7 @@ setProfileId(
             event.target.value
           )
         }
-        placeholder={
-          justAddedView === "hidden"
-            ? "Search hidden"
-            : "Search Just Added"
-        }
+        placeholder="Search re-watch"
       />
     </div>
   </div>
