@@ -4749,60 +4749,51 @@ MODAL
 ========================================================= */
 
 function Modal({
-title,
-onClose,
-children,
-compact = false
+  title,
+  onClose,
+  children,
+  compact = false
 }: {
-title: string;
-onClose: () => void;
-children: React.ReactNode;
-compact?: boolean;
+  title: string;
+  onClose: () => void;
+  children: React.ReactNode;
+  compact?: boolean;
 }) {
-return (
-<div
-className="overlay"
-onMouseDown={event => {
-if (
-event.currentTarget ===
-event.target
-) {
-onClose();
-}
-}}
->
-
-
-  <div
-    className={
-      compact
-        ? "modal compact"
-        : "modal"
-    }
-  >
-
-    <div className="modal-head">
-
-      <h2>{title}</h2>
-
-      <button
-        className="icon"
-        onClick={onClose}
-        aria-label="Close"
+  return (
+    <div
+      className="overlay"
+      onMouseDown={event => {
+        if (
+          event.currentTarget ===
+          event.target
+        ) {
+          onClose();
+        }
+      }}
+    >
+      <div
+        className={
+          compact
+            ? "modal compact"
+            : "modal"
+        }
       >
-        <X />
-      </button>
+        <div className="modal-head">
+          <h2>{title}</h2>
 
+          <button
+            className="icon"
+            onClick={onClose}
+            aria-label="Close"
+          >
+            <X />
+          </button>
+        </div>
+
+        {children}
+      </div>
     </div>
-
-    {children}
-
-  </div>
-
-</div>
-
-
-);
+  );
 }
 
 /* =========================================================
