@@ -2498,45 +2498,88 @@ setProfileId(
         Library
       </button>
 
-      {!isAdmin && (
-        <button
-          className={
-            tab === "rewatch"
-              ? "active rewatch-tab"
-              : "rewatch-tab"
-          }
-          onClick={() =>
-            setTab("rewatch")
-          }
-        >
-          Re-watch
-        </button>
-      )}
-
     </div>
 
   {/* LIBRARY CONTROLS */}
 
-{tab === "library" && (
-  <>
+  {tab === "library" && (
+    <>
 
-    <div className="toolbar">
+      <div className="toolbar">
 
-      {!isAdmin && (
-        <div className="filters">
+        {!isAdmin && (
+          <div className="filters">
 
-          <button
-            className={
-              filter === "all" &&
-              filterClicked
-                ? "selected"
-                : ""
+            <button
+              className={
+                filter === "watchlist"
+                  ? "selected"
+                  : ""
+              }
+              onClick={() => {
+                setFilter("watchlist");
+                setFilterClicked(true);
+              }}
+            >
+              Watchlist
+            </button>
+
+            <button
+              className={
+                filter === "watched"
+                  ? "selected"
+                  : ""
+              }
+              onClick={() => {
+                setFilter("watched");
+                setFilterClicked(true);
+              }}
+            >
+              Watched
+            </button>
+
+            <button
+              className={
+                tab === "rewatch"
+                  ? "selected"
+                  : ""
+              }
+              onClick={() => {
+                setTab("rewatch");
+                setFilterClicked(true);
+              }}
+            >
+              Re-watch
+            </button>
+
+          </div>
+        )}
+
+        <div className="search">
+
+          <Search
+            size={18}
+          />
+
+          <input
+            value={q}
+            onChange={event =>
+              setQ(
+                event.target.value
+              )
             }
-            onClick={() => {
-              setFilter("all");
-              setFilterClicked(true);
-            }}
-          >
+            placeholder={
+              filter === "watchlist"
+                ? "Search watchlist"
+                : filter === "watched"
+                  ? "Search watched"
+                  : "Search library"
+            }
+          />
+
+        </div>
+
+      </div>
             All
           </button>
 
@@ -2722,8 +2765,49 @@ setProfileId(
     )}
 {tab === "rewatch" && (
   <div className="toolbar">
+
+    {!isAdmin && (
+      <div className="filters">
+
+        <button
+          className=""
+          onClick={() => {
+            setTab("library");
+            setFilter("watchlist");
+            setFilterClicked(true);
+          }}
+        >
+          Watchlist
+        </button>
+
+        <button
+          className=""
+          onClick={() => {
+            setTab("library");
+            setFilter("watched");
+            setFilterClicked(true);
+          }}
+        >
+          Watched
+        </button>
+
+        <button
+          className="selected"
+          onClick={() => {
+            setTab("rewatch");
+            setFilterClicked(true);
+          }}
+        >
+          Re-watch
+        </button>
+
+      </div>
+    )}
+
     <div className="search">
+
       <Search size={18} />
+
       <input
         value={q}
         onChange={event =>
@@ -2733,26 +2817,12 @@ setProfileId(
         }
         placeholder="Search re-watch"
       />
+
     </div>
+
   </div>
 )}
 
-{tab === "rewatch" && (
-  <div className="toolbar">
-    <div className="search">
-      <Search size={18} />
-      <input
-        value={q}
-        onChange={event =>
-          setQ(
-            event.target.value
-          )
-        }
-        placeholder="Search re-watch"
-      />
-    </div>
-  </div>
-)}
 
 {/* LIBRARY */}
 
@@ -4265,181 +4335,169 @@ CARD
 ========================================================= */
 
 function Card({
-t,
-st,
-isAdmin,
-hiddenJustAdded,
-onWatch,
-onList,
-onRewatch,
-onRemove,
-onReminder,
-onSchedule
+  t,
+  st,
+  isAdmin,
+  hiddenJustAdded,
+  onWatch,
+  onList,
+  onRewatch,
+  onRemove,
+  onReminder,
+  onSchedule
 }: {
-t: Title;
-st: State;
-isAdmin: boolean;
-hiddenJustAdded?: boolean;
-onWatch: () => void;
-onList: () => void;
-onRewatch: () => void;
-onRemove: () => void;
-onReminder: () => void;
-onSchedule: () => void;
+  t: Title;
+  st: State;
+  isAdmin: boolean;
+  hiddenJustAdded?: boolean;
+  onWatch: () => void;
+  onList: () => void;
+  onRewatch: () => void;
+  onRemove: () => void;
+  onReminder: () => void;
+  onSchedule: () => void;
 }) {
-const isOnWatchlist =
-st.watchlist.includes(
-t.id
-);
+  const isOnWatchlist =
+    st.watchlist.includes(t.id);
 
-const isWatched =
-st.watched.includes(
-t.id
-);
+  const isWatched =
+    st.watched.includes(t.id);
 
-const isRewatch =
-st.rewatch.includes(
-t.id
-);
+  const isRewatch =
+    st.rewatch.includes(t.id);
 
-return ( <article className="card">
+  return (
+    <article className="card">
 
+      <div className="poster-wrap">
 
-  <div className="poster-wrap">
+        <img
+          src={t.poster}
+          alt={t.name}
+          onError={event => {
+            event.currentTarget.src =
+              "https://placehold.co/500x750/171717/ffffff?text=" +
+              encodeURIComponent(t.name);
+          }}
+        />
 
-    <img
-      src={t.poster}
-      alt={t.name}
-      onError={event => {
-        event.currentTarget.src =
-          "https://placehold.co/500x750/171717/ffffff?text=" +
-          encodeURIComponent(
-            t.name
-          );
-      }}
-    />
+        <span className="kind">
+          {t.kind === "movie"
+            ? "MOVIE"
+            : "TV"}
+        </span>
 
-    <span className="kind">
-      {t.kind === "movie"
-        ? "MOVIE"
-        : "TV"}
-    </span>
-
-{isAdmin && (
-  <button
-    type="button"
-    className="remove"
-    onClick={event => {
-      event.preventDefault();
-      event.stopPropagation();
-      onRemove();
-    }}
-    title={
-      hiddenJustAdded
-        ? "Show Again"
-        : "Hide from Just Added"
-    }
-    aria-label={
-      hiddenJustAdded
-        ? "Show Again"
-        : "Hide " +
-          t.name +
-          " from Just Added"
-    }
-    style={{
-      position: "absolute",
-      zIndex: 20,
-      pointerEvents: "auto",
-      cursor: "pointer"
-    }}
-  >
-    {hiddenJustAdded ? (
-        <Eye size={16} />
-          ) : (
-      <EyeOff size={16} />
-    )}
-  </button>
-)}
- 
-  </div>
-
-  <div className="card-body">
-
-    <h3>{t.name}</h3>
-
-    <p>{t.year}</p>
-
-    {!isAdmin && (
-      <>
-        <div className="actions">
-
+        {isAdmin && (
           <button
-            className={
-              isOnWatchlist
-                ? "on"
-                : ""
+            type="button"
+            className="remove"
+            onClick={event => {
+              event.preventDefault();
+              event.stopPropagation();
+              onRemove();
+            }}
+            title={
+              hiddenJustAdded
+                ? "Show Again"
+                : "Hide from Just Added"
             }
-            onClick={
-              onList
+            aria-label={
+              hiddenJustAdded
+                ? "Show Again"
+                : "Hide " +
+                  t.name +
+                  " from Just Added"
             }
+            style={{
+              position: "absolute",
+              zIndex: 20,
+              pointerEvents: "auto",
+              cursor: "pointer"
+            }}
           >
-            {isOnWatchlist
-              ? "✓ Watchlist"
-              : "+ Watchlist"}
+            {hiddenJustAdded ? (
+              <Eye size={16} />
+            ) : (
+              <EyeOff size={16} />
+            )}
           </button>
+        )}
 
-          <button
-            className={
-              isWatched
-                ? "on"
-                : ""
-            }
-            onClick={
-              onWatch
-            }
-          >
-            {isWatched
-              ? "✓ Watched"
-              : "Mark watched"}
-          </button>
+      </div>
 
-        </div>
+      <div className="card-body">
 
-        <div className="small-actions">
+        <h3>{t.name}</h3>
 
-          <button
-            className={
-              isRewatch
-                ? "rewatch-action on"
-                : "rewatch-action"
-            }
-            onClick={
-              onRewatch
-            }
-          >
-            ↻ Re-watch
-          </button>
+        <p>{t.year}</p>
 
-          <button
-            onClick={
-              onReminder
-            }
-          >
-            Remind me
-          </button>
+        {!isAdmin && (
+          <>
 
-        </div>
-      </>
-    )}
+            <div className="actions">
 
-  </div>
+              <button
+                type="button"
+                className={
+                  isOnWatchlist
+                    ? "on"
+                    : ""
+                }
+                onClick={onList}
+              >
+                {isOnWatchlist
+                  ? "✓ Watchlist"
+                  : "+ Watchlist"}
+              </button>
 
-</article>
+              <button
+                type="button"
+                className={
+                  isWatched
+                    ? "on"
+                    : ""
+                }
+                onClick={onWatch}
+              >
+                {isWatched
+                  ? "✓ Watched"
+                  : "Mark watched"}
+              </button>
 
+            </div>
 
-);
+            <div className="small-actions">
+
+              <button
+                type="button"
+                className={
+                  isRewatch
+                    ? "rewatch-action on"
+                    : "rewatch-action"
+                }
+                onClick={onRewatch}
+              >
+                ↻ Re-watch
+              </button>
+
+              <button
+                type="button"
+                onClick={onReminder}
+              >
+                <Bell size={14} />
+                Remind me
+              </button>
+
+            </div>
+
+          </>
+        )}
+
+      </div>
+
+    </article>
+  );
 }
-
 /* =========================================================
 MODAL
 ========================================================= */
