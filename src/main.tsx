@@ -958,6 +958,9 @@ function App() {
  const [showHero, setShowHero] =
    useState(false);
 
+ const [showDeleted, setShowDeleted] =
+   useState(false);
+
  const [editing, setEditing] =
    useState<Profile | null>(null);
 
@@ -2532,6 +2535,16 @@ setProfileId(
               Edit hero
             </button>
 
+            <button
+              onClick={() => {
+                setShowDeleted(true);
+                setMenu(false);
+              }}
+            >
+              <Trash2 />
+              Deleted profiles
+            </button>
+
           </div>
         )}
 
@@ -2779,9 +2792,10 @@ LIBRARY CONTROLS
         <button
           type="button"
           className={
-            justAddedView === "hidden"
-              ? "selected"
-              : ""
+            "view-hidden-btn" +
+            (justAddedView === "hidden"
+              ? " selected"
+              : "")
           }
           onClick={() => {
             setFilter("all");
@@ -3772,6 +3786,114 @@ onAdd={async title => {
   }
 }}
       />
+    )}
+
+  {/* DELETED PROFILES */}
+
+  {showDeleted &&
+    isAdmin && (
+      <Modal
+        title="Deleted Profiles"
+        compact
+        onClose={() =>
+          setShowDeleted(false)
+        }
+      >
+        {deletedProfilesLoading ? (
+          <p className="muted">
+            Loading...
+          </p>
+        ) : deletedProfiles.length === 0 ? (
+          <p className="muted">
+            No deleted profiles.
+          </p>
+        ) : (
+          <div className="profiles">
+            {deletedProfiles.map(
+              item => (
+                <div
+                  className="profile-row"
+                  key={item.id}
+                >
+                  <button
+                    onClick={() => {
+                      setShowDeleted(
+                        false
+                      );
+                    }}
+                  >
+                    <span className="avatar">
+                      {item.avatar ||
+                        "🙂"}
+                    </span>
+                    {item.name}
+                  </button>
+
+                  <button
+                    className="ghost"
+                    onClick={async () => {
+                      try {
+                        const sessionId =
+                          localStorage.getItem(
+                            "sx-session-token"
+                          );
+
+                        const response =
+                          await fetch(
+                            "https://streamix.gaintrainstrong.workers.dev/api/profiles/restore?id=" +
+                              encodeURIComponent(
+                                item.id
+                              ),
+                            {
+                              method: "POST",
+                              headers: sessionId
+                                ? {
+                                    Authorization:
+                                      `Bearer ${sessionId}`
+                                  }
+                                : {}
+                            }
+                          );
+
+                        if (
+                          !response.ok
+                        ) {
+                          throw new Error(
+                            "Failed to restore profile."
+                          );
+                        }
+
+                        setDeletedProfiles(
+                          current =>
+                            current.filter(
+                              p =>
+                                p.id !==
+                                item.id
+                            )
+                        );
+
+                        setProfiles(
+                          current => [
+                            ...current,
+                            item
+                          ]
+                        );
+                      } catch (error) {
+                        console.error(
+                          "Failed to restore profile:",
+                          error
+                        );
+                      }
+                    }}
+                  >
+                    Restore
+                  </button>
+                </div>
+              )
+            )}
+          </div>
+        )}
+      </Modal>
     )}
 
   {/* FOOTER */}
