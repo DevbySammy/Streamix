@@ -393,246 +393,276 @@ useEffect(() => {
   };
 }, []);
    
-  useEffect(() => {
-    async function loadLibrary() {
-      try {
-        const response =
-          await fetch("/api/library");
+useEffect(() => {
+  async function loadLibrary() {
+    try {
+      const response =
+        await fetch("/api/library");
 
-        if (!response.ok) {
-          throw new Error(
-            "Failed to load library"
-          );
-        }
-
-        const data =
-          await response.json();
-
-        const titles: Title[] =
-          Array.isArray(data)
-            ? data.map(
-                (item: any): Title => {
-                  const kind: Kind =
-                    item.media_type === "tv"
-                      ? "tv"
-                      : "movie";
-
-                  const releaseDate =
-                    item.release_date || "";
-
-                  return {
-                    id:
-                      item.id ||
-                      (
-                        "tmdb-" +
-                        kind +
-                        "-" +
-                        String(
-                          item.tmdb_id
-                        )
-                      ),
-
-                    name:
-                      item.title ||
-                      "Untitled",
-
-                    kind,
-
-                    year:
-                      releaseDate
-                        ? Number(
-                            String(
-                              releaseDate
-                            ).slice(0, 4)
-                          )
-                        : 0,
-
-                    poster:
-                      getPosterUrl(
-                        item.poster_path
-                      ),
-
-                    backdrop:
-                      getBackdropUrl(
-                        item.backdrop_path
-                      ),
-
-                    overview:
-                      item.overview || "",
-
-                    addedAt:
-                      item.created_at || ""
-                  };
-                }
-              )
-            : [];
-
-        setLibrary(titles);
-
-        /* =================================================
-        LOAD HIDDEN JUST ADDED
-        ================================================= */
-
-        const sessionId =
-          localStorage.getItem(
-            "sx-session-token"
-          );
-
-        const hiddenResponse =
-          await fetch(
-            "https://streamix.gaintrainstrong.workers.dev/api/tmdb/just-added/hidden",
-            {
-              headers: sessionId
-                ? {
-                    Authorization:
-                      `Bearer ${sessionId}`
-                  }
-                : {}
-            }
-          );
-
-        console.log(
-          "HIDDEN RESPONSE:",
-          hiddenResponse.status
+      if (!response.ok) {
+        throw new Error(
+          "Failed to load library"
         );
+      }
 
-        console.log(
-          "HIDDEN RESPONSE BODY:",
-          await hiddenResponse.clone().text()
-        );
+      const data =
+        await response.json();
 
-        if (hiddenResponse.ok) {
-          const hiddenData =
-            await hiddenResponse.json();
+      const titles: Title[] =
+        Array.isArray(data)
+          ? data.map(
+              (item: any): Title => {
+                const kind: Kind =
+                  item.media_type === "tv"
+                    ? "tv"
+                    : "movie";
 
-          if (
-            Array.isArray(
-              hiddenData.results
-            )
-          ) {
-        const hiddenTitles: Title[] =
-  hiddenData.results
-    .map(
-                (item: any): Title => {
+                const releaseDate =
+                  item.release_date || "";
 
-                  // Hidden titles saved by the app
-                  // already contain the complete
-                  // Title object.
-                  if (
-                    item.name &&
-                    item.kind &&
-                    typeof item.year ===
-                      "number"
-                  ) {
-                    return {
-                      id:
-                        item.id,
-
-                      name:
-                        item.name,
-
-                      kind:
-                        item.kind,
-
-                      year:
-                        item.year,
-
-                      poster:
-                        item.poster || "",
-
-                      backdrop:
-                        item.backdrop || "",
-
-                      overview:
-                        item.overview || "",
-
-                      addedAt:
-                        item.addedAt ||
-                        item.hidden_at ||
-                        ""
-                    };
-                  }
-
-                  // Fallback for any older
-                  // TMDB-format hidden records.
-                  const kind: Kind =
-                    item.media_type === "tv"
-                      ? "tv"
-                      : "movie";
-
-                  const releaseDate =
-                    kind === "movie"
-                      ? item.release_date
-                      : item.first_air_date;
-
-                  return {
-                    id:
+                return {
+                  id:
+                    item.id ||
+                    (
                       "tmdb-" +
                       kind +
                       "-" +
-                      String(item.id),
+                      String(
+                        item.tmdb_id
+                      )
+                    ),
+
+                  name:
+                    item.title ||
+                    "Untitled",
+
+                  kind,
+
+                  year:
+                    releaseDate
+                      ? Number(
+                          String(
+                            releaseDate
+                          ).slice(0, 4)
+                        )
+                      : 0,
+
+                  poster:
+                    getPosterUrl(
+                      item.poster_path
+                    ),
+
+                  backdrop:
+                    getBackdropUrl(
+                      item.backdrop_path
+                    ),
+
+                  overview:
+                    item.overview || "",
+
+                  addedAt:
+                    item.created_at || ""
+                };
+              }
+            )
+          : [];
+
+      setLibrary(titles);
+
+      /* =================================================
+      LOAD HIDDEN JUST ADDED
+      ================================================= */
+
+      const sessionId =
+        localStorage.getItem(
+          "sx-session-token"
+        );
+
+      const hiddenResponse =
+        await fetch(
+          "https://streamix.gaintrainstrong.workers.dev/api/tmdb/just-added/hidden",
+          {
+            headers: sessionId
+              ? {
+                  Authorization:
+                    `Bearer ${sessionId}`
+                }
+              : {}
+          }
+        );
+
+      console.log(
+        "HIDDEN RESPONSE:",
+        hiddenResponse.status
+      );
+
+      console.log(
+        "HIDDEN RESPONSE BODY:",
+        await hiddenResponse.clone().text()
+      );
+
+      if (hiddenResponse.ok) {
+        const hiddenData =
+          await hiddenResponse.json();
+
+        if (
+          Array.isArray(
+            hiddenData.results
+          )
+        ) {
+          const hiddenTitles: Title[] =
+            hiddenData.results.map(
+              (item: any): Title => {
+
+                // Hidden titles saved by the app
+                // already contain the complete
+                // Title object.
+                if (
+                  item.name &&
+                  item.kind &&
+                  typeof item.year ===
+                    "number"
+                ) {
+                  return {
+                    id:
+                      item.id,
 
                     name:
-                      kind === "movie"
-                        ? item.title ||
-                          "Untitled"
-                        : item.name ||
-                          "Untitled",
+                      item.name,
 
-                    kind,
+                    kind:
+                      item.kind,
 
                     year:
-                      releaseDate
-                        ? Number(
-                            String(
-                              releaseDate
-                            ).slice(0, 4)
-                          )
-                        : 0,
+                      item.year,
 
                     poster:
-                      getPosterUrl(
-                        item.poster_path
-                      ),
+                      item.poster || "",
 
                     backdrop:
-                      getBackdropUrl(
-                        item.backdrop_path
-                      ),
+                      item.backdrop || "",
 
                     overview:
                       item.overview || "",
 
                     addedAt:
-                      item.hidden_at || ""
+                      item.addedAt ||
+                      item.hidden_at ||
+                      ""
                   };
                 }
-              );
 
-           setHiddenJustAdded(
-  Array.from(
-    new Map(
-      hiddenTitles.map(
-        title => [
-          title.id,
-          title
-        ]
-      )
-    ).values()
-  )
-);
-          }
+                // Fallback for any older
+                // TMDB-format hidden records.
+                const kind: Kind =
+                  item.media_type === "tv"
+                    ? "tv"
+                    : "movie";
+
+                const releaseDate =
+                  kind === "movie"
+                    ? item.release_date
+                    : item.first_air_date;
+
+                return {
+                  id:
+                    "tmdb-" +
+                    kind +
+                    "-" +
+                    String(item.id),
+
+                  name:
+                    kind === "movie"
+                      ? item.title ||
+                        "Untitled"
+                      : item.name ||
+                        "Untitled",
+
+                  kind,
+
+                  year:
+                    releaseDate
+                      ? Number(
+                          String(
+                            releaseDate
+                          ).slice(0, 4)
+                        )
+                      : 0,
+
+                  poster:
+                    getPosterUrl(
+                      item.poster_path
+                    ),
+
+                  backdrop:
+                    getBackdropUrl(
+                      item.backdrop_path
+                    ),
+
+                  overview:
+                    item.overview || "",
+
+                  addedAt:
+                    item.hidden_at || ""
+                };
+              }
+            );
+
+          setHiddenJustAdded(
+            Array.from(
+              new Map(
+                hiddenTitles.map(
+                  title => [
+                    title.id,
+                    title
+                  ]
+                )
+              ).values()
+            )
+          );
         }
-      } catch (error) {
-        console.error(
-          "Failed to load library:",
-          error
-        );
       }
+    } catch (error) {
+      console.error(
+        "Failed to load library:",
+        error
+      );
     }
+  }
 
-    loadLibrary();
-  }, []);
+  loadLibrary();
+
+  const handleAppResume = () => {
+    if (
+      document.visibilityState ===
+      "visible"
+    ) {
+      loadLibrary();
+    }
+  };
+
+  document.addEventListener(
+    "visibilitychange",
+    handleAppResume
+  );
+
+  window.addEventListener(
+    "focus",
+    handleAppResume
+  );
+
+  return () => {
+    document.removeEventListener(
+      "visibilitychange",
+      handleAppResume
+    );
+
+    window.removeEventListener(
+      "focus",
+      handleAppResume
+    );
+  };
+}, []);
 
   const [
     profiles,
