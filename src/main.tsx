@@ -1122,14 +1122,14 @@ const orderedProfiles = useMemo(() => {
 
   const testingProfile = profiles.find(
     profile =>
-      profile.id === "testing"
+      profile.name.toUpperCase() === "TESTING"
   );
 
   const regularProfiles =
     profiles.filter(
       profile =>
         profile.id !== "admin" &&
-        profile.id !== "testing"
+        profile.name.toUpperCase() !== "TESTING"
     );
 
   return [
