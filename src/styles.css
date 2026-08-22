@@ -1649,21 +1649,24 @@ footer span {
 ========================================================= */
 
 .hidden-search {
+  min-height: 42px;
+  width: 100%;
+
   display: flex;
   align-items: center;
-  gap: 10px;
-
-  width: 100%;
-  margin: 12px 0 20px;
-  padding: 10px 12px;
+  gap: 9px;
 
   box-sizing: border-box;
 
-  background: #171719;
-  border: 1px solid #303035;
-  border-radius: 8px;
+  padding: 0 13px;
 
-  color: #aaa;
+  background: #fff;
+  border: none;
+  border-radius: 999px;
+
+  color: #888;
+
+  margin: 12px 0 20px;
 }
 
 .hidden-search svg {
@@ -1674,6 +1677,8 @@ footer span {
   width: 100%;
   min-width: 0;
 
+  min-height: 42px;
+
   margin: 0;
   padding: 0;
 
@@ -1681,7 +1686,7 @@ footer span {
   outline: none;
 
   background: transparent;
-  color: #fff;
+  color: #171719;
 
   font-size: 14px;
 }
@@ -1692,10 +1697,13 @@ footer span {
 
 @media (max-width: 600px) {
   .hidden-search {
+    min-height: 42px;
     margin: 12px 0 16px;
+    padding: 0 13px;
   }
 
   .hidden-search input {
+    min-height: 42px;
     font-size: 16px;
   }
 }
