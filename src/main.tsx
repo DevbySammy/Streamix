@@ -4870,13 +4870,14 @@ function Card({
                 ↻ Re-watch
               </button>
 
-              <button
-                type="button"
-                onClick={onReminder}
-              >
-                <Bell size={14} />
-                Remind me
-              </button>
+             <button
+  type="button"
+  className="remind-button"
+  onClick={onReminder}
+>
+  <Bell size={14} />
+  Remind me
+</button>
 
             </div>
 
