@@ -2639,9 +2639,9 @@ setProfileId(
   <main>
 
 
-/* =======================================================
+{/* =======================================================
 LIBRARY CONTROLS
-======================================================= */
+======================================================= */}
 
 {tab === "library" && (
   <>
@@ -2782,13 +2782,18 @@ LIBRARY CONTROLS
                 ? "selected"
                 : ""
             }
-            onClick={() =>
+            onClick={() => {
+              setFilter("all");
+              setFilterClicked(false);
+              setKind("all");
+              setKindClicked(false);
+
               setJustAddedView(current =>
                 current === "visible"
                   ? "hidden"
                   : "visible"
-              )
-            }
+              );
+            }}
           >
             {justAddedView === "hidden"
               ? "Back to Just Added"
@@ -2830,7 +2835,6 @@ LIBRARY CONTROLS
     </div>
   </>
 )}
-
 
 {/* LIBRARY */}
 
