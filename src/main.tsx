@@ -1375,7 +1375,7 @@ useEffect(() => {
   recommendation
 ]);
 
- /* =======================================================
+/* =======================================================
  FILTERING + SORTING
  ======================================================= */
 
@@ -1413,24 +1413,28 @@ useEffect(() => {
            return true;
          }
 
+         // Re-watch uses the rewatch tab
+         if (tab === "rewatch") {
+           return state.rewatch.includes(
+             title.id
+           );
+         }
+
+         // Watchlist uses the watchlist filter
          if (filter === "watchlist") {
            return state.watchlist.includes(
              title.id
            );
          }
 
+         // Watched uses the watched filter
          if (filter === "watched") {
            return state.watched.includes(
              title.id
            );
          }
 
-         if (filter === "rewatch") {
-           return state.rewatch.includes(
-             title.id
-           );
-         }
-
+         // Library / All
          return true;
        });
 
@@ -1477,6 +1481,7 @@ useEffect(() => {
    q,
    kind,
    filter,
+   tab,
    sort,
    justAddedView,
    justAddedLimit,
