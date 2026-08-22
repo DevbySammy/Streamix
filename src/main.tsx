@@ -2561,6 +2561,7 @@ return ( <div className="app"> <main> <div className="login-screen"> <div classN
 
 
 }
+   
 /* =======================================================
 MAIN APP
 ======================================================= */
@@ -2604,7 +2605,7 @@ return ( <div className="app">
         />
       </button>
 
-      {isViewingAs && (
+{(isViewingAs || profileId === "testing") && (
         <button
           className="admin-badge"
           onClick={() => {
