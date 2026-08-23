@@ -2638,7 +2638,7 @@ return ( <div className="app">
 {isViewingAs && (
   <span className="admin-viewing-label">
     <span className="viewing-label-desktop">
-      👁️ VIEWING AS{" "}
+      👁️ VIEWING AS {" "}
     </span>
 
     <span className="viewing-label-mobile">
