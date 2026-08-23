@@ -1132,12 +1132,32 @@ useEffect(() => {
     }
      
     try {
-      const data =
-        await apiFetch(
-          `/api/reminders?profileId=${encodeURIComponent(
-            profileId
-          )}`
-        );
+    const sessionId =
+  localStorage.getItem(
+    "sx-session-token"
+  );
+
+const response = await fetch(
+  "https://streamix.gaintrainstrong.workers.dev/api/reminders?profileId=" +
+    encodeURIComponent(profileId),
+  {
+    headers: sessionId
+      ? {
+          Authorization:
+            `Bearer ${sessionId}`
+        }
+      : {}
+  }
+);
+
+if (!response.ok) {
+  throw new Error(
+    "Failed to load reminders."
+  );
+}
+
+const data =
+  await response.json();
 
       const loadedReminders =
         Array.isArray(data)
