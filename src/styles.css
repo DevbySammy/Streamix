@@ -362,10 +362,10 @@ header {
   cursor: pointer;
 }
 
-.filters button.selected {
-  background: #FBCB05;
-  color: #000;
-  border: none;
+.filters button.selected,
+.format button.selected {
+  border-color: #ff3d8d;
+  color: #fff;
 }
 
 .search {
