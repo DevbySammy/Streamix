@@ -146,6 +146,18 @@ header {
   border-radius: 50%;
   background: #FBCB05;
   flex: 0 0 6px;
+  animation: status-pulse 2s ease-in-out infinite;
+}
+
+@keyframes status-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.35;
+  }
 }
 
 .viewing-label-mobile {
