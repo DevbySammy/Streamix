@@ -5,7 +5,7 @@ useState
 } from "react";
 import { createRoot } from "react-dom/client";
 import {
-Bell,fcard
+Bell,
 Check,
 ChevronDown,
 GripVertical,
