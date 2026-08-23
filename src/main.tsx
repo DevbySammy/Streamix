@@ -2635,67 +2635,60 @@ return ( <div className="app">
         />
       </button>
 
-{(isViewingAs || profileId === "testing") && (
-        <button
-          className="admin-badge"
-        onClick={() => {
-  const adminSession =
-    localStorage.getItem(
-      "sx-admin-session-token"
-    );
+{isViewingAs && (
+  <span className="admin-viewing-label">
+    👑 Viewing as{" "}
+    {profiles.find(
+      item =>
+        item.id === viewingAs
+    )?.name || "user"}
+  </span>
+)}
 
-  if (adminSession) {
-    localStorage.setItem(
-      "sx-session-token",
-      adminSession
-    );
+{profileId === "testing" && (
+  <button
+    className="admin-badge"
+    onClick={() => {
+      const adminSession =
+        localStorage.getItem(
+          "sx-admin-session-token"
+        );
 
-    localStorage.removeItem(
-      "sx-admin-session-token"
-    );
-  }
+      if (adminSession) {
+        localStorage.setItem(
+          "sx-session-token",
+          adminSession
+        );
 
-  setViewingAs(null);
+        localStorage.removeItem(
+          "sx-admin-session-token"
+        );
+      }
 
-  localStorage.removeItem(
-    "sx-viewing-as"
-  );
+      setViewingAs(null);
 
-  localStorage.removeItem(
-    "sx-testing-active"
-  );
+      localStorage.removeItem(
+        "sx-viewing-as"
+      );
 
-  setProfileId(
-    "admin"
-  );
+      localStorage.removeItem(
+        "sx-testing-active"
+      );
 
-  setTab("library");
-  setFilter("all");
-  setKind("all");
-  setMenu(false);
-}}
-         aria-label={
-  profileId === "testing"
-    ? "Back to Admin"
-    : "Viewing as " +
-      (profiles.find(
-        item =>
-          item.id === viewingAs
-      )?.name || "user")
-}
->
-  {profileId === "testing" ? (
-    "← BACK TO ADMIN"
-  ) : (
-    <>
-      👑 Viewing as{" "}
-      {profiles.find(
-        item =>
-          item.id === viewingAs
-      )?.name || "user"}
-    </>
-  )}
-</button>
+      setProfileId(
+        "admin"
+      );
+
+      setTab("library");
+      setFilter("all");
+      setKind("all");
+      setMenu(false);
+    }}
+    aria-label="Back to Admin"
+  >
+    ← BACK TO ADMIN
+  </button>
+)}
       )}
 
       {isAdmin &&
