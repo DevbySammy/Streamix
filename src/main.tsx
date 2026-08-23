@@ -1100,6 +1100,51 @@ useEffect(() => {
     setReminders
   ] = useState<Reminder[]>([]);
 
+   useEffect(() => {
+  async function loadReminders() {
+    if (!profileId) {
+      return;
+    }
+
+    try {
+      const data =
+        await apiFetch(
+          `/api/reminders?profileId=${encodeURIComponent(
+            profileId
+          )}`
+        );
+
+      const loadedReminders =
+        Array.isArray(data)
+          ? data
+          : [];
+
+      setReminders(
+        loadedReminders.map(
+          (reminder: any) => ({
+            id: reminder.id,
+            profileId:
+              reminder.profile_id,
+            libraryItemId:
+              reminder.library_item_id,
+            reminderDate:
+              reminder.reminder_date,
+            reminderTime:
+              reminder.reminder_time
+          })
+        )
+      );
+    } catch (error) {
+      console.error(
+        "Failed to load reminders:",
+        error
+      );
+    }
+  }
+
+  loadReminders();
+}, [profileId]);
+   
   const [
     scheduled,
     setScheduled
