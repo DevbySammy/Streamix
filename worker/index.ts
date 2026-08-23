@@ -1748,56 +1748,93 @@ if (
       "type"
     ) || "all";
 
+  const pagesPerRequest = 3;
+
+  const startPage =
+    ((page - 1) *
+      pagesPerRequest) +
+    1;
+
+  const endPage =
+    startPage +
+    pagesPerRequest -
+    1;
+
   async function discover(
     mediaType:
       | "movie"
       | "tv"
   ) {
-    const response =
-      await fetch(
-        "https://api.themoviedb.org/3/discover/" +
-          mediaType +
-          "?include_adult=false" +
-          "&include_video=false" +
-          "&language=en-US" +
-          "&with_original_language=en" +
-          "&sort_by=popularity.desc" +
-          "&page=" +
-          page,
-        {
-          headers: {
-            Authorization:
-              "Bearer " +
-              env.TMDB_READ_ACCESS_TOKEN,
-            accept:
-              "application/json"
+    const allResults: any[] = [];
+    let totalPages = 1;
+
+    for (
+      let tmdbPage = startPage;
+      tmdbPage <= endPage;
+      tmdbPage++
+    ) {
+      const response =
+        await fetch(
+          "https://api.themoviedb.org/3/discover/" +
+            mediaType +
+            "?include_adult=false" +
+            "&include_video=false" +
+            "&language=en-US" +
+            "&with_original_language=en" +
+            "&sort_by=popularity.desc" +
+            "&page=" +
+            tmdbPage,
+          {
+            headers: {
+              Authorization:
+                "Bearer " +
+                env.TMDB_READ_ACCESS_TOKEN,
+              accept:
+                "application/json"
+            }
           }
-        }
-      );
+        );
 
-    const data =
-      await response.json();
+      const data =
+        await response.json();
 
-    if (!response.ok) {
-      throw new Error(
-        typeof data?.status_message ===
-        "string"
-          ? data.status_message
-          : "TMDB request failed."
-      );
+      if (!response.ok) {
+        throw new Error(
+          typeof data?.status_message ===
+          "string"
+            ? data.status_message
+            : "TMDB request failed."
+        );
+      }
+
+      if (
+        Array.isArray(
+          data.results
+        )
+      ) {
+        allResults.push(
+          ...data.results
+        );
+      }
+
+      totalPages =
+        Number(
+          data.total_pages || 1
+        );
+
+      if (
+        tmdbPage >=
+        totalPages
+      ) {
+        break;
+      }
     }
 
     return {
       results:
-        Array.isArray(
-          data.results
-        )
-          ? data.results
-          : [],
+        allResults,
       total_pages:
-        Number(
-          data.total_pages || 1
-        )
+        totalPages
     };
   }
 
@@ -1813,7 +1850,10 @@ if (
         movieData.results;
 
       totalPages =
-        movieData.total_pages;
+        Math.ceil(
+          movieData.total_pages /
+          pagesPerRequest
+        );
     } else if (type === "tv") {
       const tvData =
         await discover("tv");
@@ -1822,7 +1862,10 @@ if (
         tvData.results;
 
       totalPages =
-        tvData.total_pages;
+        Math.ceil(
+          tvData.total_pages /
+          pagesPerRequest
+        );
     } else {
       const [
         movieData,
@@ -1851,8 +1894,14 @@ if (
 
       totalPages =
         Math.max(
-          movieData.total_pages,
-          tvData.total_pages
+          Math.ceil(
+            movieData.total_pages /
+            pagesPerRequest
+          ),
+          Math.ceil(
+            tvData.total_pages /
+            pagesPerRequest
+          )
         );
 
       results.sort(
