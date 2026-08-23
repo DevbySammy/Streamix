@@ -3734,168 +3734,129 @@ LIBRARY CONTROLS
     title="Profiles"
     compact
     onClose={() =>
-      setShowProfile(
-        false
-      )
+      setShowProfile(false)
     }
   >
-
     <div className="profiles">
 
-      {orderedProfiles.map(
-        item => {
+      {orderedProfiles.map(item => {
 
-          const isDragging =
-            draggedProfileId ===
-            item.id;
+        const isDragging =
+          draggedProfileId === item.id;
 
-          const isDropTarget =
-            dragOverProfileId ===
-            item.id;
+        const isDropTarget =
+          dragOverProfileId === item.id;
 
-          const dropClass =
-            isDropTarget
-              ? dragPosition ===
-                "before"
-                ? " drop-before"
-                : " drop-after"
-              : "";
+        const dropClass =
+          isDropTarget
+            ? dragPosition === "before"
+              ? " drop-before"
+              : " drop-after"
+            : "";
 
-          return (
-            <div
-              className={
-                "profile-row" +
-                (isDragging
-                  ? " dragging"
-                  : "") +
-                dropClass
-              }
-              key={item.id}
-              data-profile-id={
-                item.id
-              }
-              style={{
-                opacity:
-                  isDragging
-                    ? 0.45
-                    : 1
-              }}
-            >
+        return (
+          <div
+            className={
+              "profile-row" +
+              (isDragging
+                ? " dragging"
+                : "") +
+              dropClass
+            }
+            key={item.id}
+            data-profile-id={item.id}
+            style={{
+              opacity: isDragging
+                ? 0.45
+                : 1
+            }}
+          >
 
-              <button
-                onClick={() => {
-                  if (
-                    draggedProfileId
-                  ) {
-                    return;
-                  }
+            <button
+              onClick={() => {
 
-                  if (
-                    item.id ===
-                    effectiveProfileId
-                  ) {
-                    setShowProfile(
-                      false
+                if (draggedProfileId) {
+                  return;
+                }
+
+                if (
+                  item.id ===
+                  effectiveProfileId
+                ) {
+                  setShowProfile(false);
+                  return;
+                }
+
+                /*
+                 * TESTING → ADMIN
+                 */
+                if (
+                  profileId === "testing" &&
+                  item.id === "admin"
+                ) {
+                  const adminSession =
+                    localStorage.getItem(
+                      "sx-admin-session-token"
                     );
-                    return;
+
+                  if (adminSession) {
+                    localStorage.setItem(
+                      "sx-session-token",
+                      adminSession
+                    );
                   }
 
-                  if (
-                    profileId === "testing" &&
-                    item.id === "admin"
-                  ) {
-                    const adminSession =
-                      localStorage.getItem(
-                        "sx-admin-session-token"
-                      );
+                  localStorage.removeItem(
+                    "sx-testing-active"
+                  );
 
-                    if (adminSession) {
-                      localStorage.setItem(
-                        "sx-session-token",
-                        adminSession
-                      );
-                    }
+                  setProfileId("admin");
+                  setViewingAs(null);
+                  setShowProfile(false);
+
+                  return;
+                }
+
+                /*
+                 * ADMIN PROFILE SWITCHING
+                 */
+                if (isAdminUser) {
+
+                  if (item.id === "admin") {
 
                     localStorage.removeItem(
                       "sx-testing-active"
                     );
 
+                    setViewingAs(null);
+
                     localStorage.removeItem(
                       "sx-viewing-as"
                     );
 
-                    setProfileId(
-                      "admin"
+                    setProfileId("admin");
+
+                  } else if (
+                    item.id === "testing"
+                  ) {
+
+                    localStorage.setItem(
+                      "sx-testing-active",
+                      "true"
                     );
 
-                    setViewingAs(
-                      null
+                    setProfileId("testing");
+                    setViewingAs(null);
+
+                    localStorage.removeItem(
+                      "sx-viewing-as"
                     );
 
-                    setShowProfile(
-                      false
-                    );
+                    setShowProfile(false);
 
                     return;
-                  }
 
-                  if (
-                    isAdminUser
-                  ) {
-                    if (
-                      item.id ===
-                      "admin"
-                    ) {
-                      localStorage.removeItem(
-                        "sx-testing-active"
-                      );
-
-                      setViewingAs(
-                        null
-                      );
-
-                      localStorage.removeItem(
-                        "sx-viewing-as"
-                      );
-
-                      setProfileId(
-                        "admin"
-                      );
-
-                      setShowProfile(
-                        false
-                      );
-
-                      return;
-                    }
-
-                    if (
-                      item.id ===
-                      "testing"
-                    ) {
-                      localStorage.setItem(
-                        "sx-testing-active",
-                        "true"
-                      );
-
-                      setProfileId(
-                        "testing"
-                      );
-
-                      setViewingAs(
-                        null
-                      );
-
-                      localStorage.removeItem(
-                        "sx-viewing-as"
-                      );
-
-                      setShowProfile(
-                        false
-                      );
-
-                      return;
-                    }
+                  } else {
 
                     setViewingAs(
                       item.id
@@ -3906,141 +3867,124 @@ LIBRARY CONTROLS
                       item.id
                     );
 
-                    setProfileId(
-                      "admin"
-                    );
-
-                    setShowProfile(
-                      false
-                    );
-
-                    return;
+                    setProfileId("admin");
                   }
 
-                  setLoginProfile(
-                    item
-                  );
+                  setShowProfile(false);
 
-                  setShowProfile(
-                    false
-                  );
-                }}
-                className={
-                  item.id ===
-                  effectiveProfileId
-                    ? "current"
-                    : ""
+                  return;
                 }
-              >
 
-                <span className="avatar">
-                  {
-                    item.avatar
-                  }
-                </span>
+                /*
+                 * NORMAL USER → LOGIN
+                 */
+                setLoginProfile(item);
+                setShowProfile(false);
+              }}
 
-                <span>
-                  {item.name}
-                </span>
+              className={
+                item.id ===
+                effectiveProfileId
+                  ? "current"
+                  : ""
+              }
+            >
 
-                {item.id ===
-                  effectiveProfileId && (
-                  <Check
-                    size={18}
-                  />
-                )}
+              <span className="avatar">
+                {item.avatar}
+              </span>
 
-              </button>
+              <span>
+                {item.name}
+              </span>
 
-              <button
-                className="icon"
-                disabled={
+              {item.id ===
+                effectiveProfileId && (
+                <Check size={18} />
+              )}
+
+            </button>
+
+            <button
+              className="icon"
+              disabled={
+                !isAdminUser &&
+                item.id !== profileId
+              }
+              onClick={() => {
+
+                if (
                   !isAdminUser &&
-                  item.id !==
-                    profileId
+                  item.id !== profileId
+                ) {
+                  return;
                 }
-                onClick={() => {
-                  if (
-                    !isAdminUser &&
-                    item.id !==
-                      profileId
-                  ) {
-                    return;
-                  }
 
-                  setEditing(
-                    item
-                  );
+                setEditing(item);
+                setShowProfile(false);
+              }}
+              aria-label={
+                item.id ===
+                  effectiveProfileId ||
+                isAdminUser
+                  ? "Profile settings"
+                  : "Switch to this profile to edit settings"
+              }
+              title={
+                item.id ===
+                  effectiveProfileId ||
+                isAdminUser
+                  ? "Profile settings"
+                  : "Switch to this profile to edit settings"
+              }
+            >
+              <Settings size={17} />
+            </button>
 
-                  setShowProfile(
-                    false
-                  );
-                }}
-                aria-label={
-                  item.id ===
-                    effectiveProfileId ||
-                  isAdminUser
-                    ? "Profile settings"
-                    : "Switch to this profile to edit settings"
-                }
-                title={
-                  item.id ===
-                    effectiveProfileId ||
-                  isAdminUser
-                    ? "Profile settings"
-                    : "Switch to this profile to edit settings"
-                }
-              >
-                <Settings
-                  size={17}
-                />
-              </button>
-
-              {isAdmin &&
-                item.id !== "admin" &&
-                item.id !== "testing" && (
-                  <div
-                    className="profile-drag-handle"
-                    onPointerDown={event =>
-                      startProfileDrag(
-                        event,
-                        item.id
-                      )
-                    }
-                    role="button"
-                    tabIndex={0}
-                    aria-label={
-                      "Drag to reorder " +
-                      item.name
-                    }
-                    title="Drag to reorder"
-                  >
-                    <GripVertical
-                      size={20}
-                    />
-                  </div>
-                )}
-
-              {isDropTarget && (
+            {isAdmin &&
+              item.id !== "admin" &&
+              item.id !== "testing" && (
                 <div
-                  className={
-                    dragPosition ===
-                    "before"
-                      ? "drop-label drop-label-before"
-                      : "drop-label drop-label-after"
+                  className="profile-drag-handle"
+                  onPointerDown={event =>
+                    startProfileDrag(
+                      event,
+                      item.id
+                    )
                   }
+                  role="button"
+                  tabIndex={0}
+                  aria-label={
+                    "Drag to reorder " +
+                    item.name
+                  }
+                  title="Drag to reorder"
                 >
-                  {dragPosition ===
-                  "before"
-                    ? "Drop above"
-                    : "Drop below"}
+                  <GripVertical size={20} />
                 </div>
               )}
 
-            </div>
-          );
-        }
-      )}
+            {isDropTarget && (
+              <div
+                className={
+                  dragPosition === "before"
+                    ? "drop-label drop-label-before"
+                    : "drop-label drop-label-after"
+                }
+              >
+                {dragPosition === "before"
+                  ? "Drop above"
+                  : "Drop below"}
+              </div>
+            )}
+
+          </div>
+        );
+      })}
+
+    </div>
+  </Modal>
+)}
 
       {isAdmin && (
         <button
