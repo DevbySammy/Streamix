@@ -2640,11 +2640,11 @@ return ( <div className="app">
     <span className="status-dot" />
 
     <span className="viewing-label-desktop">
-      VIEWING AS{" "}
+      VIEWING AS
     </span>
 
     <span className="viewing-label-mobile">
-      AS{" "}
+      AS
     </span>
 
     {profiles.find(
