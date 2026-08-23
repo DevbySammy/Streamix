@@ -289,6 +289,84 @@ item.media_type === "tv"
 
 }
 
+async function ensureTMDBLibraryItem(
+  title: Title
+): Promise<Title> {
+  const API_BASE_URL =
+    "https://streamix.gaintrainstrong.workers.dev";
+
+  const sessionId =
+    localStorage.getItem(
+      "sx-session-token"
+    );
+
+  const response =
+    await fetch(
+      API_BASE_URL +
+        "/api/library/ensure",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type":
+            "application/json",
+          ...(sessionId
+            ? {
+                Authorization:
+                  `Bearer ${sessionId}`
+              }
+            : {})
+        },
+        body: JSON.stringify({
+          tmdb_id: Number(
+            title.id
+              .split("-")
+              .pop()
+          ),
+          media_type:
+            title.kind,
+          title:
+            title.name,
+          poster_path:
+            title.poster
+              ? title.poster.replace(
+                  "https://image.tmdb.org/t/p/w500",
+                  ""
+                )
+              : null,
+          backdrop_path:
+            title.backdrop
+              ? title.backdrop.replace(
+                  "https://image.tmdb.org/t/p/w1280",
+                  ""
+                )
+              : null,
+          overview:
+            title.overview,
+          release_date:
+            title.year
+              ? `${title.year}-01-01`
+              : null
+        })
+      }
+    );
+
+  const data =
+    await response.json();
+
+  if (!response.ok) {
+    throw new Error(
+      data?.error ||
+        "Failed to save TMDB title."
+    );
+  }
+
+  return {
+    ...title,
+    id:
+      data.id ||
+      title.id
+  };
+}
 /* =========================================================
 APP
 ========================================================= */
@@ -1893,78 +1971,98 @@ setStates(currentStates => {
 
 async function toggle(
   array: keyof State,
-  id: string
+  id: string,
+  title?: Title
 ) {
-   console.log(
-  "TOGGLE CLICKED:",
-  array,
-  id,
-  effectiveProfileId
-);
+  console.log(
+    "TOGGLE CLICKED:",
+    array,
+    id,
+    effectiveProfileId
+  );
+
   if (!effectiveProfileId) {
     return;
   }
 
-  const currentState =
-    states[effectiveProfileId] || {
-      watched: [],
-      watchlist: [],
-      rewatch: []
-    };
+  let libraryItemId = id;
 
-  const exists =
-    currentState[array].includes(id);
-
-  const endpoint =
-    array === "watched"
-      ? "/api/watch-history"
-      : array === "watchlist"
-        ? "/api/watchlist"
-        : "/api/rewatch";
-
-  const sessionId =
-    localStorage.getItem(
-      "sx-session-token"
-    );
-  
   try {
-    const response = await fetch(
-      exists
-        ? `${endpoint}?profileId=${encodeURIComponent(
-            effectiveProfileId
-          )}&libraryItemId=${encodeURIComponent(
-            id
-          )}`
-        : endpoint,
-      {
-        method: exists
-          ? "DELETE"
-          : "POST",
+    if (
+      title &&
+      id.startsWith("tmdb-")
+    ) {
+      const ensuredTitle =
+        await ensureTMDBLibraryItem(
+          title
+        );
 
-        headers: {
-          "Content-Type":
-            "application/json",
+      libraryItemId =
+        ensuredTitle.id;
+    }
 
-          ...(sessionId
-            ? {
-                Authorization:
-                  `Bearer ${sessionId}`
-              }
-            : {})
-        },
+    const currentState =
+      states[effectiveProfileId] || {
+        watched: [],
+        watchlist: [],
+        rewatch: []
+      };
 
-        ...(exists
-          ? {}
-          : {
-              body: JSON.stringify({
-                profileId:
-                  effectiveProfileId,
-                libraryItemId:
-                  id
+    const exists =
+      currentState[array].includes(
+        libraryItemId
+      );
+
+    const endpoint =
+      array === "watched"
+        ? "/api/watch-history"
+        : array === "watchlist"
+          ? "/api/watchlist"
+          : "/api/rewatch";
+
+    const sessionId =
+      localStorage.getItem(
+        "sx-session-token"
+      );
+
+    const response =
+      await fetch(
+        exists
+          ? `${endpoint}?profileId=${encodeURIComponent(
+              effectiveProfileId
+            )}&libraryItemId=${encodeURIComponent(
+              libraryItemId
+            )}`
+          : endpoint,
+        {
+          method: exists
+            ? "DELETE"
+            : "POST",
+
+          headers: {
+            "Content-Type":
+              "application/json",
+
+            ...(sessionId
+              ? {
+                  Authorization:
+                    `Bearer ${sessionId}`
+                }
+              : {})
+          },
+
+          ...(exists
+            ? {}
+            : {
+                body: JSON.stringify({
+                  profileId:
+                    effectiveProfileId,
+                  libraryItemId:
+                    libraryItemId
+                })
               })
-            })
-      }
-    );
+        }
+      );
 
     if (!response.ok) {
       throw new Error(
@@ -1978,11 +2076,12 @@ async function toggle(
       [array]: exists
         ? current[array].filter(
             item =>
-              item !== id
+              item !==
+              libraryItemId
           )
         : [
             ...current[array],
-            id
+            libraryItemId
           ]
     }));
   } catch (error) {
@@ -3125,19 +3224,22 @@ LIBRARY CONTROLS
       onWatch={() =>
         toggle(
           "watched",
-          title.id
+          title.id,
+          title
         )
       }
       onList={() =>
         toggle(
           "watchlist",
-          title.id
+          title.id,
+          title
         )
       }
       onRewatch={() =>
         toggle(
           "rewatch",
-          title.id
+          title.id,
+          title
         )
       }
       onRemove={() =>
@@ -3204,7 +3306,6 @@ LIBRARY CONTROLS
   )}
 
 </main>
-
 
   {/* TODAY'S RECOMMENDATION */}
 
