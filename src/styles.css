@@ -567,6 +567,10 @@ header {
   font-size: 13px;
 }
 
+/* =========================================================
+card actions
+========================================================= */
+
 .actions {
   display: flex;
   gap: 7px;
@@ -582,8 +586,8 @@ header {
   padding: 7px 8px;
   border: none;
   border-radius: 8px;
-  background: rgba(0, 0, 0, .72);
-  color: #fff;
+  background: rgba(0, 0, 0, .72) !important;
+  color: #fff !important;
   cursor: pointer;
   font-size: 12px;
   line-height: 1.2;
@@ -592,8 +596,10 @@ header {
 
 .actions button.on {
   border: 1px solid #ff4f9a;
-  color: #fff;
+  background: rgba(0, 0, 0, .72) !important;
+  color: #fff !important;
 }
+   
 /* =========================================================
    BUTTONS
 ========================================================= */
