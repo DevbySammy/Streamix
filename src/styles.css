@@ -480,6 +480,9 @@ header {
 }
 
 .poster-action-buttons {
+  position: absolute;
+  top: 8px;
+  right: 8px;
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -564,16 +567,14 @@ header {
   font-size: 13px;
 }
 
-/* =========================================================
-card actions
-========================================================= */
-
-.actions {
+.actions,
+.small-actions {
   display: flex;
   gap: 7px;
 }
 
-.actions button {
+.actions button,
+.small-actions button {
   min-height: 40px;
   flex: 1;
   display: inline-flex;
@@ -581,22 +582,25 @@ card actions
   justify-content: center;
   gap: 5px;
   padding: 7px 8px;
-  border: none;
   border-radius: 8px;
-  background: rgba(0, 0, 0, .72) !important;
-  color: #fff !important;
+  background: #202023;
+  color: #aaa;
   cursor: pointer;
   font-size: 12px;
   line-height: 1.2;
   text-align: center;
 }
 
-.actions button.on {
+.actions button.on,
+.small-actions button.on {
   border: 1px solid #ff4f9a;
-  background: rgba(0, 0, 0, .72) !important;
-  color: #fff !important;
+  color: #fff;
 }
-   
+
+.small-actions {
+  margin-top: 7px;
+}
+
 /* =========================================================
    BUTTONS
 ========================================================= */
