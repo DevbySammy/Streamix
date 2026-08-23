@@ -1883,9 +1883,9 @@ useEffect(() => {
 ]);
 
 
- /* =======================================================
- FILTERING + SORTING
- ======================================================= */
+/* =======================================================
+FILTERING + SORTING
+======================================================= */
 
 const visible = useMemo(() => {
   const usingPersonalFilter =
@@ -1912,25 +1912,25 @@ const visible = useMemo(() => {
       isAdmin &&
       justAddedView === "hidden"
         ? hiddenJustAdded
-        : justAdded;
+        : tmdbCatalog;
   } else {
     source = library;
   }
 
- const filtered =
-  source
-    .filter(title =>
-      title.name
-        .toLowerCase()
-        .includes(
-          (
-            isAdmin &&
-            justAddedView === "hidden"
-              ? hiddenSearch
-              : q
-          ).toLowerCase()
-        )
-    )
+  const filtered =
+    source
+      .filter(title =>
+        title.name
+          .toLowerCase()
+          .includes(
+            (
+              isAdmin &&
+              justAddedView === "hidden"
+                ? hiddenSearch
+                : q
+            ).toLowerCase()
+          )
+      )
       .filter(title => {
         if (kind === "all") {
           return true;
@@ -1947,21 +1947,21 @@ const visible = useMemo(() => {
           ) === index
       );
 
-if (
-  sort === "just-added" &&
-  !usingPersonalFilter
-) {
-  const limit =
-    isAdmin &&
-    justAddedView === "hidden"
-      ? hiddenJustAddedLimit
-      : justAddedLimit;
+  if (
+    sort === "just-added" &&
+    !usingPersonalFilter
+  ) {
+    const limit =
+      isAdmin &&
+      justAddedView === "hidden"
+        ? hiddenJustAddedLimit
+        : justAddedLimit;
 
-  return filtered.slice(
-    0,
-    limit
-  );
-}
+    return filtered.slice(
+      0,
+      limit
+    );
+  }
 
   return [...filtered].sort(
     (a, b) => {
@@ -1988,6 +1988,7 @@ if (
 
 }, [
   library,
+  tmdbCatalog,
   justAdded,
   hiddenJustAdded,
   q,
@@ -1995,12 +1996,12 @@ if (
   filter,
   sort,
   justAddedView,
- justAddedLimit,
- hiddenJustAddedLimit,
- hiddenSearch,
- isMobile,
- state,
- isAdmin
+  justAddedLimit,
+  hiddenJustAddedLimit,
+  hiddenSearch,
+  isMobile,
+  state,
+  isAdmin
 ]);
    
 /* =======================================================
