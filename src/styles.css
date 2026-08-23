@@ -568,12 +568,14 @@ header {
 card actions
 ========================================================= */
 
-.actions {
+.actions,
+.small-actions {
   display: flex;
   gap: 7px;
 }
 
-.actions button {
+.actions button,
+.small-actions button {
   min-height: 40px;
   flex: 1;
   display: inline-flex;
@@ -581,20 +583,23 @@ card actions
   justify-content: center;
   gap: 5px;
   padding: 7px 8px;
-  border: 1px solid transparent;
   border-radius: 8px;
   background: #202023;
-  color: #fff;
+  color: #aaa;
   cursor: pointer;
   font-size: 12px;
   line-height: 1.2;
   text-align: center;
 }
 
-.actions button.on {
+.actions button.on,
+.small-actions button.on {
   border: 1px solid #ff4f9a;
-  background: #202023;
   color: #fff;
+}
+
+.small-actions {
+  margin-top: 7px;
 }
 
 /* =========================================================
