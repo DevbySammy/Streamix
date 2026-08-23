@@ -3561,27 +3561,32 @@ LIBRARY CONTROLS
         )
       : tmdbCatalogHasMore
   ) && (
-     
     <button
       type="button"
       className="show-more-button"
       onClick={() => {
         if (
-          justAddedView ===
-          "hidden"
+          sort === "just-added"
         ) {
-          setHiddenJustAddedLimit(
-            current =>
-              current +
-              (isMobile
-                ? 20
-                : 30)
-          );
+          if (
+            justAddedView ===
+            "hidden"
+          ) {
+            setHiddenJustAddedLimit(
+              current =>
+                current +
+                (isMobile
+                  ? 20
+                  : 30)
+            );
+          } else {
+            setJustAddedLimit(
+              current =>
+                current + 30
+            );
+          }
         } else {
-          setJustAddedLimit(
-            current =>
-              current + 30
-          );
+          loadNextTMDBCatalogPage();
         }
       }}
     >
