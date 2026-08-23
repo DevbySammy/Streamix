@@ -3317,25 +3317,30 @@ LIBRARY CONTROLS
   return;
 }
 
-                  if (
-                    isAdminUser
-                  ) {
-                    if (
-                      item.id ===
-                      "admin"
-                    ) {
-                      setViewingAs(
-                        null
-                      );
+   if (
+    isAdminUser
+ ) {
+if (
+  item.id ===
+  "admin"
+) {
+  localStorage.removeItem(
+    "sx-testing-active"
+  );
 
-                      localStorage.removeItem(
-                        "sx-viewing-as"
-                      );
+  setViewingAs(
+    null
+  );
 
- setProfileId(
- "admin"
- );
-} else if (
+  localStorage.removeItem(
+    "sx-viewing-as"
+  );
+
+  setProfileId(
+    "admin"
+  );
+}
+ else if (
   item.id ===
   "testing"
 ) {
