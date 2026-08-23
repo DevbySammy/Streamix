@@ -3325,24 +3325,16 @@ LIBRARY CONTROLS
   item.id ===
   "testing"
 ) {
-  const adminSession =
-    localStorage.getItem(
-      "sx-session-token"
-    );
-
-  if (adminSession) {
-    localStorage.setItem(
-      "sx-admin-session-token",
-      adminSession
-    );
-  }
-
   setProfileId(
     "testing"
   );
 
   setViewingAs(
     null
+  );
+
+  localStorage.removeItem(
+    "sx-viewing-as"
   );
 
   setShowProfile(
