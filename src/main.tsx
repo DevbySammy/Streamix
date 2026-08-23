@@ -3800,104 +3800,115 @@ LIBRARY CONTROLS
                     return;
                   }
 
-if (
-  profileId === "testing" &&
-  item.id === "admin"
-) {
-  const adminSession =
-    localStorage.getItem(
-      "sx-admin-session-token"
-    );
-
-  if (adminSession) {
-    localStorage.setItem(
-      "sx-session-token",
-      adminSession
-    );
-  }
-
-  localStorage.removeItem(
-    "sx-testing-active"
-  );
-
-  setProfileId(
-    "admin"
-  );
-
-  setViewingAs(
-    null
-  );
-
-  setShowProfile(
-    false
-  );
-
-  return;
-}
-
-   if (
-    isAdminUser
- ) {
-if (
-  item.id ===
-  "admin"
-) {
-  localStorage.removeItem(
-    "sx-testing-active"
-  );
-
-  setViewingAs(
-    null
-  );
-
-  localStorage.removeItem(
-    "sx-viewing-as"
-  );
-
-  setProfileId(
-    "admin"
-  );
-} else if (
-  item.id ===
-  "testing"
-) {
-  localStorage.setItem(
-    "sx-testing-active",
-    "true"
-  );
-
-  setProfileId(
-    "testing"
-  );
-
-  setViewingAs(
-    null
-  );
-
-  localStorage.removeItem(
-    "sx-viewing-as"
-  );
-
-  setShowProfile(
-    false
-  );
-
-  return;
-}
-                    else {
-                      setViewingAs(
-                        item.id
+                  if (
+                    profileId === "testing" &&
+                    item.id === "admin"
+                  ) {
+                    const adminSession =
+                      localStorage.getItem(
+                        "sx-admin-session-token"
                       );
 
+                    if (adminSession) {
                       localStorage.setItem(
-                        "sx-viewing-as",
-                        item.id
+                        "sx-session-token",
+                        adminSession
+                      );
+                    }
+
+                    localStorage.removeItem(
+                      "sx-testing-active"
+                    );
+
+                    localStorage.removeItem(
+                      "sx-viewing-as"
+                    );
+
+                    setProfileId(
+                      "admin"
+                    );
+
+                    setViewingAs(
+                      null
+                    );
+
+                    setShowProfile(
+                      false
+                    );
+
+                    return;
+                  }
+
+                  if (
+                    isAdminUser
+                  ) {
+                    if (
+                      item.id ===
+                      "admin"
+                    ) {
+                      localStorage.removeItem(
+                        "sx-testing-active"
+                      );
+
+                      setViewingAs(
+                        null
+                      );
+
+                      localStorage.removeItem(
+                        "sx-viewing-as"
                       );
 
                       setProfileId(
                         "admin"
                       );
+
+                      setShowProfile(
+                        false
+                      );
+
+                      return;
                     }
+
+                    if (
+                      item.id ===
+                      "testing"
+                    ) {
+                      localStorage.setItem(
+                        "sx-testing-active",
+                        "true"
+                      );
+
+                      setProfileId(
+                        "testing"
+                      );
+
+                      setViewingAs(
+                        null
+                      );
+
+                      localStorage.removeItem(
+                        "sx-viewing-as"
+                      );
+
+                      setShowProfile(
+                        false
+                      );
+
+                      return;
+                    }
+
+                    setViewingAs(
+                      item.id
+                    );
+
+                    localStorage.setItem(
+                      "sx-viewing-as",
+                      item.id
+                    );
+
+                    setProfileId(
+                      "admin"
+                    );
 
                     setShowProfile(
                       false
@@ -3985,9 +3996,9 @@ if (
                 />
               </button>
 
-         {isAdmin &&
-  item.id !== "admin" &&
-  item.id !== "testing" && (
+              {isAdmin &&
+                item.id !== "admin" &&
+                item.id !== "testing" && (
                   <div
                     className="profile-drag-handle"
                     onPointerDown={event =>
@@ -4030,6 +4041,32 @@ if (
           );
         }
       )}
+
+      {isAdmin && (
+        <button
+          className="add-profile"
+          onClick={() => {
+            setEditing({
+              id: "new",
+              name: "",
+              avatar:
+                "🙂"
+            });
+
+            setShowProfile(
+              false
+            );
+          }}
+        >
+          <Plus />
+          Add Profile
+        </button>
+      )}
+
+    </div>
+
+  </Modal>
+)}
 
       {isAdmin && (
         <button
