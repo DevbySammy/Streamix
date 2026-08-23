@@ -2705,7 +2705,6 @@ return ( <div className="app">
     )}
   </button>
 )}
-      )}
 
       {isAdmin &&
         !isViewingAs && (
