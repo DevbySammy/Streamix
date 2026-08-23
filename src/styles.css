@@ -581,7 +581,7 @@ card actions
   justify-content: center;
   gap: 5px;
   padding: 7px 8px;
-  border: none;
+  border: none !important;
   border-radius: 8px;
   background: rgba(0, 0, 0, .72) !important;
   color: #fff !important;
@@ -592,7 +592,7 @@ card actions
 }
 
 .actions button.on {
-  border: 1px solid #ff4f9a;
+  border: 1px solid #ff4f9a !important;
   background: rgba(0, 0, 0, .72) !important;
   color: #fff !important;
 }
