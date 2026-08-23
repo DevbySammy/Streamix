@@ -2989,7 +2989,7 @@ LIBRARY CONTROLS
         }}
       >
         <Tv size={15} />
-        TV
+        TV Shows
       </button>
 
       {isAdmin &&
