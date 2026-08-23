@@ -5419,170 +5419,173 @@ function Card({
       </span>
 
       {!isAdmin && (
-       <div className="poster-actions">
- <div className="poster-action-buttons">
+        <div className="poster-actions">
 
-  <button
-    type="button"
-    className="poster-list-button"
-    onClick={event => {
-      event.preventDefault();
-      event.stopPropagation();
-      onList();
-    }}
-    aria-label={
-      isOnWatchlist
-        ? "Remove " +
-          t.name +
-          " from Watchlist"
-        : "Add " +
-          t.name +
-          " to Watchlist"
-    }
-    title={
-      isOnWatchlist
-        ? "Remove from Watchlist"
-        : "Add to Watchlist"
-    }
-  >
-    {isOnWatchlist ? (
-      <Check size={15} />
-    ) : (
-      <Plus size={15} />
-    )}
-  </button>
+          <div className="poster-action-buttons">
 
-  <button
-    type="button"
-    className="poster-reminder-button"
-    onClick={event => {
-      event.preventDefault();
-      event.stopPropagation();
-      onReminder();
-    }}
-    aria-label={
-      "Set reminder for " +
-      t.name
-    }
-    title="Remind me"
-  >
-    <Bell size={15} />
-  </button>
+            <button
+              type="button"
+              className="poster-list-button"
+              onClick={event => {
+                event.preventDefault();
+                event.stopPropagation();
+                onList();
+              }}
+              aria-label={
+                isOnWatchlist
+                  ? "Remove " +
+                    t.name +
+                    " from Watchlist"
+                  : "Add " +
+                    t.name +
+                    " to Watchlist"
+              }
+              title={
+                isOnWatchlist
+                  ? "Remove from Watchlist"
+                  : "Add to Watchlist"
+              }
+            >
+              {isOnWatchlist ? (
+                <Check size={15} />
+              ) : (
+                <Plus size={15} />
+              )}
+            </button>
 
-</div>
+            <button
+              type="button"
+              className="poster-reminder-button"
+              onClick={event => {
+                event.preventDefault();
+                event.stopPropagation();
+                onReminder();
+              }}
+              aria-label={
+                "Set reminder for " +
+                t.name
+              }
+              title="Remind me"
+            >
+              <Bell size={15} />
+            </button>
+
+          </div>
+
+        </div>
       )}
-         
+
       {isAdmin && (
-  <button
-    type="button"
-    className="remove"
-    onClick={event => {
-      event.preventDefault();
-      event.stopPropagation();
-      onRemove();
-    }}
-    title={
-      hiddenJustAdded
-        ? "Show Again"
-        : "Hide from Just Added"
-    }
-    aria-label={
-      hiddenJustAdded
-        ? "Show Again"
-        : "Hide " +
-          t.name +
-          " from Just Added"
-    }
-    style={{
-      position: "absolute",
-      zIndex: 20,
-      pointerEvents: "auto",
-      cursor: "pointer"
-    }}
-  >
-    {hiddenJustAdded ? (
-      <Eye size={16} />
-    ) : (
-      <EyeOff size={16} />
-    )}
-  </button>
-)}
-
-</div>
-
-<div className="card-body">
-
-  <h3>{t.name}</h3>
-
-  <p>{t.year}</p>
-
-  {!isAdmin && (
-    <>
-
-      <div className="actions">
-
         <button
           type="button"
-          className={
-            isOnWatchlist
-              ? "on"
-              : ""
+          className="remove"
+          onClick={event => {
+            event.preventDefault();
+            event.stopPropagation();
+            onRemove();
+          }}
+          title={
+            hiddenJustAdded
+              ? "Show Again"
+              : "Hide from Just Added"
           }
-          onClick={onList}
-        >
-          {isOnWatchlist
-            ? "✓ Added"
-            : "+ Watchlist"}
-        </button>
-
-        <button
-          type="button"
-          className={
-            isWatched
-              ? "on"
-              : ""
+          aria-label={
+            hiddenJustAdded
+              ? "Show Again"
+              : "Hide " +
+                t.name +
+                " from Just Added"
           }
-          onClick={onWatch}
+          style={{
+            position: "absolute",
+            zIndex: 20,
+            pointerEvents: "auto",
+            cursor: "pointer"
+          }}
         >
-          {isWatched
-            ? "✓ Watched"
-            : "Mark watched"}
+          {hiddenJustAdded ? (
+            <Eye size={16} />
+          ) : (
+            <EyeOff size={16} />
+          )}
         </button>
+      )}
 
-      </div>
+    </div>
 
-      <div className="small-actions">
+    <div className="card-body">
 
-        <button
-          type="button"
-          className={
-            isRewatch
-              ? "rewatch-action on"
-              : "rewatch-action"
-          }
-          onClick={onRewatch}
-        >
-          ↻ Re-watch
-        </button>
+      <h3>{t.name}</h3>
 
-        <button
-          type="button"
-          className="remind-button"
-          onClick={onReminder}
-        >
-          <Bell size={14} />
-          Remind me
-        </button>
+      <p>{t.year}</p>
 
-      </div>
+      {!isAdmin && (
+        <>
 
-    </>
-  )}
+          <div className="actions">
 
-</div>
+            <button
+              type="button"
+              className={
+                isOnWatchlist
+                  ? "on"
+                  : ""
+              }
+              onClick={onList}
+            >
+              {isOnWatchlist
+                ? "✓ Added"
+                : "+ Watchlist"}
+            </button>
 
-</article>
-);
+            <button
+              type="button"
+              className={
+                isWatched
+                  ? "on"
+                  : ""
+              }
+              onClick={onWatch}
+            >
+              {isWatched
+                ? "✓ Watched"
+                : "Mark watched"}
+            </button>
+
+          </div>
+
+          <div className="small-actions">
+
+            <button
+              type="button"
+              className={
+                isRewatch
+                  ? "rewatch-action on"
+                  : "rewatch-action"
+              }
+              onClick={onRewatch}
+            >
+              ↻ Re-watch
+            </button>
+
+            <button
+              type="button"
+              className="remind-button"
+              onClick={onReminder}
+            >
+              <Bell size={14} />
+              Remind me
+            </button>
+
+          </div>
+
+        </>
+      )}
+
+    </div>
+
+  </article>
+  );
 }
 
 /* =========================================================
