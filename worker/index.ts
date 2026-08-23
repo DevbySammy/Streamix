@@ -1707,7 +1707,7 @@ if (
   return json(result);
 }
 
-    // ==================================================
+// ==================================================
 // TMDB - CATALOG
 // ==================================================
 
@@ -1787,40 +1787,60 @@ if (
       );
     }
 
-    return Array.isArray(
-      data.results
-    )
-      ? data.results
-      : [];
+    return {
+      results:
+        Array.isArray(
+          data.results
+        )
+          ? data.results
+          : [],
+      total_pages:
+        Number(
+          data.total_pages || 1
+        )
+    };
   }
 
   try {
     let results: any[] = [];
+    let totalPages = 1;
 
     if (type === "movie") {
-      results =
+      const movieData =
         await discover("movie");
-    } else if (type === "tv") {
+
       results =
+        movieData.results;
+
+      totalPages =
+        movieData.total_pages;
+    } else if (type === "tv") {
+      const tvData =
         await discover("tv");
+
+      results =
+        tvData.results;
+
+      totalPages =
+        tvData.total_pages;
     } else {
       const [
-        movies,
-        tvShows
+        movieData,
+        tvData
       ] = await Promise.all([
         discover("movie"),
         discover("tv")
       ]);
 
       results = [
-        ...movies.map(
+        ...movieData.results.map(
           item => ({
             ...item,
             media_type:
               "movie"
           })
         ),
-        ...tvShows.map(
+        ...tvData.results.map(
           item => ({
             ...item,
             media_type:
@@ -1828,6 +1848,12 @@ if (
           })
         )
       ];
+
+      totalPages =
+        Math.max(
+          movieData.total_pages,
+          tvData.total_pages
+        );
 
       results.sort(
         (a, b) =>
@@ -1861,6 +1887,8 @@ if (
 
     return json({
       page,
+      total_pages:
+        totalPages,
       results
     });
   } catch (error) {
