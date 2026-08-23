@@ -490,21 +490,20 @@ header {
   border: none;
   border-radius: 6px;
   cursor: pointer;
+  background: rgba(0, 0, 0, .72);
 }
 
 .poster-reminder-button {
-  background: transparent;
   color: #FBCB05;
 }
 
 .poster-list-button {
-  background: rgba(0, 0, 0, .72);
   color: #fff;
 }
 
 .poster-reminder-button:hover,
 .poster-reminder-button:active {
-  background: transparent;
+  background: rgba(0, 0, 0, .72);
   color: #FBCB05;
 }
 
