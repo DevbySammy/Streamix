@@ -1124,6 +1124,13 @@ useEffect(() => {
   setReminders
 ] = useState<Reminder[]>([]);
 
+
+   useEffect(() => {
+  async function loadReminders() {
+    if (!profileId) {
+      return;
+    }
+     
     try {
       const data =
         await apiFetch(
@@ -1219,11 +1226,11 @@ useEffect(() => {
     loadHeroSettings();
   }, []);
    
- /* =======================================================
- AUTHENTICATION / SESSION
- ======================================================= */
+/* =======================================================
+AUTHENTICATION / SESSION
+======================================================= */
 
- const [profileId, setProfileId] =
+const [profileId, setProfileId] =
   useState<string | null>(null);
 
 const [viewingAs, setViewingAs] =
@@ -1233,278 +1240,274 @@ const [viewingAs, setViewingAs] =
     )
   );
 
- const [sessionRestoring, setSessionRestoring] =
-   useState(true);
+const [sessionRestoring, setSessionRestoring] =
+  useState(true);
 
- useEffect(() => {
-   async function restoreSession() {
-     const sessionId =
-       localStorage.getItem(
-         "sx-session-token"
-       );
+useEffect(() => {
+  async function restoreSession() {
+    const sessionId =
+      localStorage.getItem(
+        "sx-session-token"
+      );
 
-     if (!sessionId) {
-       setSessionRestoring(false);
-       return;
-     }
+    if (!sessionId) {
+      setSessionRestoring(false);
+      return;
+    }
 
-     try {
-       const response = await fetch(
-         "https://streamix.gaintrainstrong.workers.dev/api/auth/session",
-         {
-           method: "GET",
-           headers: {
-             Authorization:
-               `Bearer ${sessionId}`
-           }
-         }
-       );
+    try {
+      const response = await fetch(
+        "https://streamix.gaintrainstrong.workers.dev/api/auth/session",
+        {
+          method: "GET",
+          headers: {
+            Authorization:
+              `Bearer ${sessionId}`
+          }
+        }
+      );
 
-    if (!response.ok) {
-  // The saved session is no longer valid.
-  localStorage.removeItem(
-    "sx-session-token"
-  );
-  setProfileId(null);
-  setViewingAs(null);
-  setSessionRestoring(false);
-  return;
-}
+      if (!response.ok) {
+        // The saved session is no longer valid.
+        localStorage.removeItem(
+          "sx-session-token"
+        );
+        setProfileId(null);
+        setViewingAs(null);
+        setSessionRestoring(false);
+        return;
+      }
 
-const data =
-  await response.json();
+      const data =
+        await response.json();
 
-if (
-  data.authenticated &&
-  data.profile?.id
-) {
-  const savedTestingProfile =
-    localStorage.getItem(
-      "sx-testing-active"
-    );
+      if (
+        data.authenticated &&
+        data.profile?.id
+      ) {
+        const savedTestingProfile =
+          localStorage.getItem(
+            "sx-testing-active"
+          );
 
-  if (
-    data.profile.id === "admin" &&
-    savedTestingProfile === "true"
-  ) {
-    setProfileId(
-      "testing"
-    );
-  } else {
-    setProfileId(
-      data.profile.id
-    );
+        if (
+          data.profile.id === "admin" &&
+          savedTestingProfile === "true"
+        ) {
+          setProfileId(
+            "testing"
+          );
+        } else {
+          setProfileId(
+            data.profile.id
+          );
+        }
+      } else {
+        localStorage.removeItem(
+          "sx-session-token"
+        );
+        setProfileId(null);
+        setViewingAs(null);
+      }
+    } catch (error) {
+      console.error(
+        "Failed to restore session:",
+        error
+      );
+
+      // Keep the saved session if this was
+      // only a temporary network problem.
+    } finally {
+      setSessionRestoring(false);
+    }
   }
-}
-else {
-  localStorage.removeItem(
-    "sx-session-token"
-  );
-  setProfileId(null);
-  setViewingAs(null);
-}
-} catch (error) {
-  console.error(
-    "Failed to restore session:",
-    error
+
+  restoreSession();
+}, []);
+
+const [tab, setTab] =
+  useState<"library" | "rewatch">(
+    "library"
   );
 
-       // Keep the saved session if this was
-       // only a temporary network problem.
-     } finally {
-       setSessionRestoring(false);
-     }
-   }
+const [filter, setFilter] =
+  useState<
+    "all" | "watchlist" | "watched" | "rewatch"
+  >("all");
 
-   restoreSession();
- }, []);
+const [filterClicked, setFilterClicked] =
+  useState(false);
 
- const [tab, setTab] =
-   useState<"library" | "rewatch">(
-     "library"
-   );
+const [kind, setKind] =
+  useState<"all" | Kind>("all");
 
- const [filter, setFilter] =
-   useState<
-     "all" | "watchlist" | "watched" | "rewatch"
-   >("all");
-
- const [filterClicked, setFilterClicked] =
-   useState(false);
-
- const [kind, setKind] =
-   useState<"all" | Kind>("all");
-
- const [kindClicked, setKindClicked] =
-   useState(true);
-
+const [kindClicked, setKindClicked] =
+  useState(true);
 
 const [sort, setSort] =
   useState<SortOption>("year-desc");
 
- useEffect(() => {
-   if (sort !== "just-added") {
-     return;
-   }
+useEffect(() => {
+  if (sort !== "just-added") {
+    return;
+  }
 
-   async function loadJustAdded() {
-     try {
-       const sessionId =
-         localStorage.getItem(
-           "sx-session-token"
-         );
+  async function loadJustAdded() {
+    try {
+      const sessionId =
+        localStorage.getItem(
+          "sx-session-token"
+        );
 
+      const response = await fetch(
+        "https://streamix.gaintrainstrong.workers.dev/api/tmdb/just-added",
+        {
+          headers: sessionId
+            ? {
+                Authorization:
+                  `Bearer ${sessionId}`
+              }
+            : {}
+        }
+      );
 
-       const response = await fetch(
-         "https://streamix.gaintrainstrong.workers.dev/api/tmdb/just-added",
-         {
-           headers: sessionId
-             ? {
-                 Authorization:
-                   `Bearer ${sessionId}`
-               }
-             : {}
-         }
-       );
+      const data =
+        await response.json();
 
-       const data =
-         await response.json();
+      if (!response.ok) {
+        throw new Error(
+          data?.error ||
+            "Unable to load Just Added."
+        );
+      }
 
-       if (!response.ok) {
-         throw new Error(
-           data?.error ||
-             "Unable to load Just Added."
-         );
-       }
+      const results =
+        Array.isArray(data.results)
+          ? data.results
+          : [];
 
-       const results =
-         Array.isArray(data.results)
-           ? data.results
-           : [];
+      const titles: Title[] =
+        results
+          .filter(
+            (item: any) =>
+              typeof item.poster_path === "string" &&
+              item.poster_path.trim() !== ""
+          )
+          .map(
+            (item: any): Title => {
+              const kind: Kind =
+                item.media_type === "tv"
+                  ? "tv"
+                  : "movie";
 
-       const titles: Title[] =
-         results
-           .filter(
-             (item: any) =>
-               typeof item.poster_path === "string" &&
-               item.poster_path.trim() !== ""
-           )
-           .map(
-             (item: any): Title => {
-               const kind: Kind =
-                 item.media_type === "tv"
-                   ? "tv"
-                   : "movie";
+              const releaseDate =
+                kind === "movie"
+                  ? item.release_date
+                  : item.first_air_date;
 
-               const releaseDate =
-                 kind === "movie"
-                   ? item.release_date
-                   : item.first_air_date;
+              const year =
+                releaseDate &&
+                typeof releaseDate ===
+                  "string"
+                  ? Number(
+                      releaseDate.slice(0, 4)
+                    )
+                  : 0;
 
-               const year =
-                 releaseDate &&
-                 typeof releaseDate ===
-                   "string"
-                   ? Number(
-                       releaseDate.slice(0, 4)
-                     )
-                   : 0;
+              const name =
+                kind === "movie"
+                  ? item.title ||
+                    "Untitled"
+                  : item.name ||
+                    "Untitled";
 
-               const name =
-                 kind === "movie"
-                   ? item.title ||
-                     "Untitled"
-                   : item.name ||
-                     "Untitled";
+              return {
+                id:
+                  "tmdb-" +
+                  kind +
+                  "-" +
+                  String(item.id),
+                name,
+                kind,
+                year,
+                poster:
+                  getPosterUrl(
+                    item.poster_path
+                  ),
+                backdrop:
+                  getBackdropUrl(
+                    item.backdrop_path
+                  ),
+                overview:
+                  typeof item.overview ===
+                  "string"
+                    ? item.overview
+                    : "",
+                addedAt:
+                  releaseDate || ""
+              };
+            }
+          );
 
-               return {
-                 id:
-                   "tmdb-" +
-                   kind +
-                   "-" +
-                   String(item.id),
-                 name,
-                 kind,
-                 year,
-                 poster:
-                   getPosterUrl(
-                     item.poster_path
-                   ),
-                 backdrop:
-                   getBackdropUrl(
-                     item.backdrop_path
-                   ),
-                 overview:
-                   typeof item.overview ===
-                   "string"
-                     ? item.overview
-                     : "",
-                 addedAt:
-                   releaseDate || ""
-               };
-             }
-           );
+      const dedupedTitles =
+        Array.from(
+          new Map(
+            titles.map(
+              title => [
+                title.id,
+                title
+              ]
+            )
+          ).values()
+        );
 
-       const dedupedTitles =
-         Array.from(
-           new Map(
-             titles.map(
-               title => [
-                 title.id,
-                 title
-               ]
-             )
-           ).values()
-         );
+      setJustAdded(
+        dedupedTitles
+      );
+    } catch (error) {
+      console.error(
+        "Failed to load Just Added:",
+        error
+      );
 
-       setJustAdded(
-         dedupedTitles
-       );
-     } catch (error) {
-       console.error(
-         "Failed to load Just Added:",
-         error
-       );
+      setJustAdded([]);
+    }
+  }
 
-       setJustAdded([]);
-     }
-   }
+  loadJustAdded();
+}, [sort]);
 
-   loadJustAdded();
- }, [sort]);
+const [q, setQ] = useState("");
 
- const [q, setQ] = useState("");
+const [showProfile, setShowProfile] =
+  useState(false);
 
- const [showProfile, setShowProfile] =
-   useState(false);
+const [loginProfile, setLoginProfile] =
+  useState<Profile | null>(null);
 
- const [loginProfile, setLoginProfile] =
-   useState<Profile | null>(null);
+const [showAdd, setShowAdd] =
+  useState(false);
 
- const [showAdd, setShowAdd] =
-   useState(false);
+const [showReco, setShowReco] =
+  useState(false);
 
- const [showReco, setShowReco] =
-   useState(false);
+const [showReminder, setShowReminder] =
+  useState<Title | null>(null);
 
- const [showReminder, setShowReminder] =
-   useState<Title | null>(null);
+const [showSchedule, setShowSchedule] =
+  useState<Title | null>(null);
 
- const [showSchedule, setShowSchedule] =
-   useState<Title | null>(null);
+const [showHero, setShowHero] =
+  useState(false);
 
- const [showHero, setShowHero] =
-   useState(false);
+const [showDeleted, setShowDeleted] =
+  useState(false);
 
- const [showDeleted, setShowDeleted] =
-   useState(false);
+const [editing, setEditing] =
+  useState<Profile | null>(null);
 
- const [editing, setEditing] =
-   useState<Profile | null>(null);
-
- const [menu, setMenu] =
-   useState(false);
-   
+const [menu, setMenu] =
+  useState(false);
 /* =======================================================
 PROFILE DRAGGING
 ======================================================= */
