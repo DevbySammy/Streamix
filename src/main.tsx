@@ -1278,23 +1278,6 @@ else {
 
 const [sort, setSort] =
   useState<SortOption>("year-desc");
-     const savedSort =
-       localStorage.getItem(
-         "sx-sort"
-       );
-
-     return (
-       (savedSort as SortOption) ||
-       "name-asc"
-     );
-   });
-
- useEffect(() => {
-   localStorage.setItem(
-     "sx-sort",
-     sort
-   );
- }, [sort]);
 
  useEffect(() => {
    if (sort !== "just-added") {
