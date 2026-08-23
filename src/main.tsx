@@ -1096,15 +1096,9 @@ useEffect(() => {
   >({});
 
   const [
-    reminders,
-    setReminders
-  ] = useState<Reminder[]>([]);
-
-   useEffect(() => {
-  async function loadReminders() {
-    if (!profileId) {
-      return;
-    }
+  reminders,
+  setReminders
+] = useState<Reminder[]>([]);
 
     try {
       const data =
@@ -1206,14 +1200,59 @@ useEffect(() => {
  ======================================================= */
 
  const [profileId, setProfileId] =
-   useState<string | null>(null);
+  useState<string | null>(null);
 
- const [viewingAs, setViewingAs] =
-   useState<string | null>(() =>
-     localStorage.getItem(
-       "sx-viewing-as"
-     )
-   );
+useEffect(() => {
+  async function loadReminders() {
+    if (!profileId) {
+      return;
+    }
+
+    try {
+      const data =
+        await apiFetch(
+          `/api/reminders?profileId=${encodeURIComponent(
+            profileId
+          )}`
+        );
+
+      const loadedReminders =
+        Array.isArray(data)
+          ? data
+          : [];
+
+      setReminders(
+        loadedReminders.map(
+          (reminder: any) => ({
+            id: reminder.id,
+            profileId:
+              reminder.profile_id,
+            libraryItemId:
+              reminder.library_item_id,
+            reminderDate:
+              reminder.reminder_date,
+            reminderTime:
+              reminder.reminder_time
+          })
+        )
+      );
+    } catch (error) {
+      console.error(
+        "Failed to load reminders:",
+        error
+      );
+    }
+  }
+
+  loadReminders();
+}, [profileId]);
+
+const [viewingAs, setViewingAs] =
+  useState<string | null>(() =>
+    localStorage.getItem(
+      "sx-viewing-as"
+    )
+  );
 
  const [sessionRestoring, setSessionRestoring] =
    useState(true);
