@@ -4330,7 +4330,7 @@ if (
   {showReminder && (
     <ReminderModal
       title={
-       <moda showReminder
+       showReminder
       }
       onClose={() =>
         setShowReminder(
