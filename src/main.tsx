@@ -1123,72 +1123,6 @@ useEffect(() => {
   reminders,
   setReminders
 ] = useState<Reminder[]>([]);
-
-
-   useEffect(() => {
-  async function loadReminders() {
-    if (!profileId) {
-      return;
-    }
-     
-    try {
-    const sessionId =
-  localStorage.getItem(
-    "sx-session-token"
-  );
-
-const response = await fetch(
-  "https://streamix.gaintrainstrong.workers.dev/api/reminders?profileId=" +
-    encodeURIComponent(profileId),
-  {
-    headers: sessionId
-      ? {
-          Authorization:
-            `Bearer ${sessionId}`
-        }
-      : {}
-  }
-);
-
-if (!response.ok) {
-  throw new Error(
-    "Failed to load reminders."
-  );
-}
-
-const data =
-  await response.json();
-
-      const loadedReminders =
-        Array.isArray(data)
-          ? data
-          : [];
-
-      setReminders(
-        loadedReminders.map(
-          (reminder: any) => ({
-            id: reminder.id,
-            profileId:
-              reminder.profile_id,
-            libraryItemId:
-              reminder.library_item_id,
-            reminderDate:
-              reminder.reminder_date,
-            reminderTime:
-              reminder.reminder_time
-          })
-        )
-      );
-    } catch (error) {
-      console.error(
-        "Failed to load reminders:",
-        error
-      );
-    }
-  }
-
-  loadReminders();
-}, [profileId]);
    
   const [
     scheduled,
@@ -1252,6 +1186,71 @@ AUTHENTICATION / SESSION
 
 const [profileId, setProfileId] =
   useState<string | null>(null);
+
+    useEffect(() => {
+  async function loadReminders() {
+    if (!profileId) {
+      return;
+    }
+     
+    try {
+    const sessionId =
+  localStorage.getItem(
+    "sx-session-token"
+  );
+
+const response = await fetch(
+  "https://streamix.gaintrainstrong.workers.dev/api/reminders?profileId=" +
+    encodeURIComponent(profileId),
+  {
+    headers: sessionId
+      ? {
+          Authorization:
+            `Bearer ${sessionId}`
+        }
+      : {}
+  }
+);
+
+if (!response.ok) {
+  throw new Error(
+    "Failed to load reminders."
+  );
+}
+
+const data =
+  await response.json();
+
+      const loadedReminders =
+        Array.isArray(data)
+          ? data
+          : [];
+
+      setReminders(
+        loadedReminders.map(
+          (reminder: any) => ({
+            id: reminder.id,
+            profileId:
+              reminder.profile_id,
+            libraryItemId:
+              reminder.library_item_id,
+            reminderDate:
+              reminder.reminder_date,
+            reminderTime:
+              reminder.reminder_time
+          })
+        )
+      );
+    } catch (error) {
+      console.error(
+        "Failed to load reminders:",
+        error
+      );
+    }
+  }
+
+  loadReminders();
+}, [profileId]);
 
 const [viewingAs, setViewingAs] =
   useState<string | null>(() =>
