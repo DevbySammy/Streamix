@@ -3079,7 +3079,7 @@ return ( <div className="app">
     }}
     aria-label="Back to Admin"
 >
-  {isMobile ? "< ADMIN" : "← BACK TO ADMIN"}
+  {isMobile ? "← ADMIN" : "← BACK TO ADMIN"}
 </button>
 )}
 
