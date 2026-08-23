@@ -142,6 +142,8 @@ header {
 .profile-pill {
   padding: 8px 13px;
   background: #1a1a1d;
+ border: 1px solid #2c2c31;
+  color: #ddd;
   font-size: 11px;
   font-weight: 700;
   letter-spacing: .05em;
