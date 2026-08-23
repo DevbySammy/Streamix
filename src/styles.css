@@ -137,7 +137,7 @@ header {
   letter-spacing: .05em;
   text-transform: uppercase;
   white-space: nowrap;
-  margin: 0 2px;
+  margin: 0 6px 0 2px;
 }
 
 .status-dot {
