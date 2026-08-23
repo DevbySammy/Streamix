@@ -557,6 +557,12 @@ const [
     const data =
       await response.json();
 
+     setTmdbCatalogHasMore(
+  Boolean(
+    data.total_pages &&
+    nextPage < data.total_pages
+  )
+);
     const titles: Title[] =
       Array.isArray(data.results)
         ? data.results.map(
@@ -3542,16 +3548,20 @@ LIBRARY CONTROLS
 
 </div>
 
-{sort === "just-added" &&
-  filter === "all" &&
+{filter === "all" &&
   visible.length > 0 &&
   (
-    justAddedView === "hidden"
-      ? visible.length <
-        hiddenJustAdded.length
-      : visible.length <
-        justAdded.length
+    sort === "just-added"
+      ? (
+          justAddedView === "hidden"
+            ? visible.length <
+              hiddenJustAdded.length
+            : visible.length <
+              justAdded.length
+        )
+      : tmdbCatalogHasMore
   ) && (
+     
     <button
       type="button"
       className="show-more-button"
