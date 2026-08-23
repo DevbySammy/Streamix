@@ -837,53 +837,39 @@ useEffect(() => {
          }
        );
 
-       if (!response.ok) {
-         // The saved session is no longer valid.
-         localStorage.removeItem(
-           "sx-session-token"
-         );
-         setProfileId(null);
-         setViewingAs(null);
-         setSessionRestoring(false);
-         return;
-       }
+    if (!response.ok) {
+  // The saved session is no longer valid.
+  localStorage.removeItem(
+    "sx-session-token"
+  );
+  setProfileId(null);
+  setViewingAs(null);
+  setSessionRestoring(false);
+  return;
+}
 
-       const data =
-         await response.json();
+const data =
+  await response.json();
 
-     if (
+if (
   data.authenticated &&
   data.profile?.id
 ) {
-  const savedTestingProfile =
-    localStorage.getItem(
-      "sx-testing-active"
-    );
-
-  if (
-    data.profile.id === "admin" &&
-    savedTestingProfile === "true"
-  ) {
-    setProfileId(
-      "testing"
-    );
-  } else {
-    setProfileId(
-      data.profile.id
-    );
-  }
+  setProfileId(
+    data.profile.id
+  );
 } else {
-         localStorage.removeItem(
-           "sx-session-token"
-         );
-         setProfileId(null);
-         setViewingAs(null);
-       }
-     } catch (error) {
-       console.error(
-         "Failed to restore session:",
-         error
-       );
+  localStorage.removeItem(
+    "sx-session-token"
+  );
+  setProfileId(null);
+  setViewingAs(null);
+}
+} catch (error) {
+  console.error(
+    "Failed to restore session:",
+    error
+  );
 
        // Keep the saved session if this was
        // only a temporary network problem.
