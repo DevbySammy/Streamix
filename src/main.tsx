@@ -5377,7 +5377,6 @@ function Card({
             : "TV"}
         </span>
 
-  >
     <button
       type="button"
       onClick={event => {
