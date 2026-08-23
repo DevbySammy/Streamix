@@ -374,6 +374,21 @@ APP
 function App() {
   const [library, setLibrary] = useState<Title[]>([]);
 
+   const [
+  tmdbCatalog,
+  setTmdbCatalog
+] = useState<Title[]>([]);
+
+const [
+  tmdbCatalogPage,
+  setTmdbCatalogPage
+] = useState(1);
+
+const [
+  tmdbCatalogLoading,
+  setTmdbCatalogLoading
+] = useState(false);
+   
   const [
     justAdded,
     setJustAdded
