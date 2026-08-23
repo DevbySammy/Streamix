@@ -5522,14 +5522,14 @@ function Card({
       {!isAdmin && (
         <>
 
-       <div className="actions">
+     <div className="actions">
 
   <button
     type="button"
     className={
       isWatched
-        ? "card-action-button on"
-        : "card-action-button"
+        ? "on"
+        : ""
     }
     onClick={onWatch}
   >
@@ -5542,8 +5542,8 @@ function Card({
     type="button"
     className={
       isRewatch
-        ? "card-action-button on"
-        : "card-action-button"
+        ? "rewatch-action on"
+        : "rewatch-action"
     }
     onClick={onRewatch}
   >
