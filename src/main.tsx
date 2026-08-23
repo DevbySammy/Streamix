@@ -1911,6 +1911,15 @@ async function toggle(
     localStorage.getItem(
       "sx-session-token"
     );
+   console.log(
+  "WATCHLIST DEBUG:",
+  {
+    array,
+    id,
+    effectiveProfileId,
+    sessionId
+  }
+);
 
   try {
     const response = await fetch(
@@ -4883,7 +4892,8 @@ function Card({
                 onClick={onList}
               >
                 {isOnWatchlist
-                  ? "✓ Watchlist"
+                      ? "✓ Added"
+
                   : "+ Watchlist"}
               </button>
 
