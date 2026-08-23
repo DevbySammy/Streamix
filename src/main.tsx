@@ -2635,7 +2635,17 @@ return ( <div className="app">
         />
       </button>
 
-{(isViewingAs || profileId === "testing") && (
+{isViewingAs && (
+  <span className="admin-viewing-label">
+    Viewing as{" "}
+    {profiles.find(
+      item =>
+        item.id === viewingAs
+    )?.name || "user"}
+  </span>
+)}
+
+{profileId === "testing" && (
   <button
     className="admin-badge"
     onClick={() => {
@@ -2674,35 +2684,9 @@ return ( <div className="app">
       setKind("all");
       setMenu(false);
     }}
-    aria-label={
-      profileId === "testing"
-        ? "Back to Admin"
-        : "Viewing as " +
-          (
-            profiles.find(
-              item =>
-                item.id ===
-                viewingAs
-            )?.name ||
-            "user"
-          )
-    }
+    aria-label="Back to Admin"
   >
-    {profileId === "testing" ? (
-      "← BACK TO ADMIN"
-    ) : (
-      <>
-        Viewing as{" "}
-        {
-          profiles.find(
-            item =>
-              item.id ===
-              viewingAs
-          )?.name ||
-          "user"
-        }
-      </>
-    )}
+    ← BACK TO ADMIN
   </button>
 )}
 
