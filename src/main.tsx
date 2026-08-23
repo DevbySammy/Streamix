@@ -3505,7 +3505,6 @@ LIBRARY CONTROLS
     {isAdmin && (
   <button
     className="add-profile"
-    ...
   >
     <Plus />
     Add Profile
