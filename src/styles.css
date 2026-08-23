@@ -149,6 +149,19 @@ header {
   animation: status-pulse 2s ease-in-out infinite;
 }
 
+.viewing-label-mobile {
+  display: none;
+}
+
+.viewing-label-desktop {
+  display: inline;
+}
+
+.viewing-label-desktop,
+.viewing-label-mobile {
+  margin-right: 4px;
+}
+
 @keyframes status-pulse {
   0%,
   100% {
