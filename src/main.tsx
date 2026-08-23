@@ -3835,76 +3835,50 @@ if (
   return;
 }
 
-   if (
-    isAdminUser
- ) {
-if (
-  item.id ===
-  "admin"
-) {
-  localStorage.removeItem(
-    "sx-testing-active"
-  );
+ if (isAdminUser) {
+  if (item.id === "admin") {
+    localStorage.removeItem(
+      "sx-testing-active"
+    );
 
-  setViewingAs(
-    null
-  );
+    localStorage.removeItem(
+      "sx-viewing-as"
+    );
 
-  localStorage.removeItem(
-    "sx-viewing-as"
-  );
+    setViewingAs(null);
+    setProfileId("admin");
 
-  setProfileId(
-    "admin"
-  );
-} else if (
-  item.id ===
-  "testing"
-) {
-  localStorage.setItem(
-    "sx-testing-active",
-    "true"
-  );
+  } else if (item.id === "testing") {
+    localStorage.setItem(
+      "sx-testing-active",
+      "true"
+    );
 
-  setProfileId(
-    "testing"
-  );
+    localStorage.removeItem(
+      "sx-viewing-as"
+    );
 
-  setViewingAs(
-    null
-  );
+    setProfileId("testing");
+    setViewingAs(null);
 
-  localStorage.removeItem(
-    "sx-viewing-as"
-  );
+  } else {
+    localStorage.removeItem(
+      "sx-testing-active"
+    );
 
-  setShowProfile(
-    false
-  );
+    setViewingAs(item.id);
 
+    localStorage.setItem(
+      "sx-viewing-as",
+      item.id
+    );
+
+    setProfileId("admin");
+  }
+
+  setShowProfile(false);
   return;
 }
-                    else {
-                      setViewingAs(
-                        item.id
-                      );
-
-                      localStorage.setItem(
-                        "sx-viewing-as",
-                        item.id
-                      );
-
-                      setProfileId(
-                        "admin"
-                      );
-                    }
-
-                    setShowProfile(
-                      false
-                    );
-
-                    return;
-                  }
 
                   setLoginProfile(
                     item
