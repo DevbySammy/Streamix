@@ -3290,9 +3290,10 @@ LIBRARY CONTROLS
   profileId === "testing" &&
   item.id === "admin"
 ) {
-  localStorage.removeItem(
-    "sx-testing-active"
-  );
+localStorage.setItem(
+  "sx-testing-active",
+  "false"
+);
 
   const adminSession =
     localStorage.getItem(
