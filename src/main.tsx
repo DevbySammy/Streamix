@@ -3835,50 +3835,76 @@ if (
   return;
 }
 
- if (isAdminUser) {
-  if (item.id === "admin") {
-    localStorage.removeItem(
-      "sx-testing-active"
-    );
+   if (
+    isAdminUser
+ ) {
+if (
+  item.id ===
+  "admin"
+) {
+  localStorage.removeItem(
+    "sx-testing-active"
+  );
 
-    localStorage.removeItem(
-      "sx-viewing-as"
-    );
+  setViewingAs(
+    null
+  );
 
-    setViewingAs(null);
-    setProfileId("admin");
+  localStorage.removeItem(
+    "sx-viewing-as"
+  );
 
-  } else if (item.id === "testing") {
-    localStorage.setItem(
-      "sx-testing-active",
-      "true"
-    );
+  setProfileId(
+    "admin"
+  );
+} else if (
+  item.id ===
+  "testing"
+) {
+  localStorage.setItem(
+    "sx-testing-active",
+    "true"
+  );
 
-    localStorage.removeItem(
-      "sx-viewing-as"
-    );
+  setProfileId(
+    "testing"
+  );
 
-    setProfileId("testing");
-    setViewingAs(null);
+  setViewingAs(
+    null
+  );
 
-  } else {
-    localStorage.removeItem(
-      "sx-testing-active"
-    );
+  localStorage.removeItem(
+    "sx-viewing-as"
+  );
 
-    setViewingAs(item.id);
+  setShowProfile(
+    false
+  );
 
-    localStorage.setItem(
-      "sx-viewing-as",
-      item.id
-    );
-
-    setProfileId("admin");
-  }
-
-  setShowProfile(false);
   return;
 }
+                    else {
+                      setViewingAs(
+                        item.id
+                      );
+
+                      localStorage.setItem(
+                        "sx-viewing-as",
+                        item.id
+                      );
+
+                      setProfileId(
+                        "admin"
+                      );
+                    }
+
+                    setShowProfile(
+                      false
+                    );
+
+                    return;
+                  }
 
                   setLoginProfile(
                     item
@@ -5496,35 +5522,62 @@ function Card({
       {!isAdmin && (
         <>
 
-     <div className="actions">
+          <div className="actions">
 
-  <button
-    type="button"
-    className={
-      isWatched
-        ? "on"
-        : ""
-    }
-    onClick={onWatch}
-  >
-    {isWatched
-      ? "✓ Watched"
-      : "Mark watched"}
-  </button>
+            <button
+              type="button"
+              className={
+                isOnWatchlist
+                  ? "on"
+                  : ""
+              }
+              onClick={onList}
+            >
+              {isOnWatchlist
+                ? "✓ Added"
+                : "+ Watchlist"}
+            </button>
 
-  <button
-    type="button"
-    className={
-      isRewatch
-        ? "rewatch-action on"
-        : "rewatch-action"
-    }
-    onClick={onRewatch}
-  >
-    ↻ Re-watch
-  </button>
+            <button
+              type="button"
+              className={
+                isWatched
+                  ? "on"
+                  : ""
+              }
+              onClick={onWatch}
+            >
+              {isWatched
+                ? "✓ Watched"
+                : "Mark watched"}
+            </button>
 
-</div>
+          </div>
+
+          <div className="small-actions">
+
+            <button
+              type="button"
+              className={
+                isRewatch
+                  ? "rewatch-action on"
+                  : "rewatch-action"
+              }
+              onClick={onRewatch}
+            >
+              ↻ Re-watch
+            </button>
+
+            <button
+              type="button"
+              className="remind-button"
+              onClick={onReminder}
+            >
+              <Bell size={14} />
+              Remind me
+            </button>
+
+          </div>
 
         </>
       )}
