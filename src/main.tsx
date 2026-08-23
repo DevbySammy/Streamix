@@ -3502,36 +3502,15 @@ LIBRARY CONTROLS
         </button>
       )}
 
-      {isAdmin && (
-        <button
-          className="add-profile"
-          onClick={() => {
-            const testingProfile =
-              profiles.find(
-                item =>
-                  item.id ===
-                  "testing"
-              );
-
-            if (
-              testingProfile
-            ) {
-              setLoginProfile(
-                testingProfile
-              );
-
-              setShowProfile(
-                false
-              );
-            }
-          }}
-        >
-          <span className="avatar">
-            🧪
-          </span>
-          TESTING
-        </button>
-      )}
+    {isAdmin && (
+  <button
+    className="add-profile"
+    ...
+  >
+    <Plus />
+    Add Profile
+  </button>
+)}
 
     </div>
 
