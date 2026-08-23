@@ -53,11 +53,12 @@ rewatch: string[];
 };
 
 type Reminder = {
-id: string;
-profileId: string;
-titleId: string;
-date: string;
-time: string;
+  id: string;
+  profileId: string;
+  titleId: string;
+  date: string;
+  time: string;
+  method: "push" | "calendar" | "both";
 };
 
 type Scheduled = {
@@ -4329,32 +4330,45 @@ if (
   {showReminder && (
     <ReminderModal
       title={
-        showReminder
+       <moda showReminder
       }
       onClose={() =>
         setShowReminder(
           null
         )
       }
-      onSave={(
-        date,
-        time
-      ) => {
-        if (!profileId) {
-          return;
-        }
+onSave={(
+  date,
+  time,
+  method
+) => {
+  if (
+    method === "calendar" ||
+    method === "both"
+  ) {
+    addReminderToCalendar(
+      showReminder,
+      date,
+      time
+    );
+  }
+
+  if (!profileId) {
+    return;
+  }
 
         setReminders(
           current => [
             ...current,
             {
-              id: uid(),
-              profileId,
-              titleId:
-                showReminder.id,
-              date,
-              time
-            }
+  id: uid(),
+  profileId,
+  titleId:
+    showReminder.id,
+  date,
+  time,
+  method
+}
           ]
         );
 
@@ -6094,87 +6108,167 @@ return ( <Modal
 REMINDER
 ========================================================= */
 
-function ReminderModal({
-title,
-onClose,
-onSave
-}: {
-title: Title;
-onClose: () => void;
-onSave: (
-date: string,
-time: string
-) => void;
-}) {
-const [date, setDate] =
-useState("");
+function addReminderToCalendar(
+  title: Title,
+  date: string,
+  time: string
+) {
+  const start =
+    new Date(
+      `${date}T${time}:00`
+    );
 
-const [time, setTime] =
-useState("19:00");
+  const end =
+    new Date(
+      start.getTime() +
+        60 * 60 * 1000
+    );
 
-return ( <Modal
-   title="Remind Me"
-   onClose={onClose}
- >
-
-
-  <p>
-    Set a reminder for{" "}
-    <b>{title.name}</b>.
-  </p>
-
-  <label>
-    Date
-
-    <input
-      type="date"
-      value={date}
-      onChange={event =>
-        setDate(
-          event.target.value
-        )
-      }
-    />
-  </label>
-
-  <label>
-    Time
-
-    <input
-      type="time"
-      value={time}
-      onChange={event =>
-        setTime(
-          event.target.value
-        )
-      }
-    />
-  </label>
-
-  <button
-    className="pink full"
-    disabled={!date}
-    onClick={() =>
-      onSave(
-        date,
-        time
+  const formatDate = (
+    value: Date
+  ) =>
+    value
+      .toISOString()
+      .replace(
+        /[-:]/g,
+        ""
       )
-    }
-  >
-    Save Reminder
-  </button>
+      .replace(
+        /\.\d{3}Z$/,
+        "Z"
+      );
 
-  <p className="muted">
-    Notification delivery will
-    be connected to the
-    Streamix notification
-    system.
-  </p>
+  const calendarUrl =
+    "https://calendar.google.com/calendar/render" +
+    "?action=TEMPLATE" +
+    "&text=" +
+    encodeURIComponent(
+      `Watch ${title.name}`
+    ) +
+    "&dates=" +
+    `${formatDate(start)}/${formatDate(end)}` +
+    "&details=" +
+    encodeURIComponent(
+      `Reminder from Streamix to watch ${title.name}.`
+    );
 
-</Modal>
+  window.open(
+    calendarUrl,
+    "_blank"
+  );
+}
+   
+function ReminderModal({
+  title,
+  onClose,
+  onSave
+}: {
+  title: Title;
+  onClose: () => void;
+  onSave: (
+    date: string,
+    time: string,
+    method: "push" | "calendar" | "both"
+  ) => void;
+}) {
+  const [date, setDate] =
+    useState("");
 
+  const [time, setTime] =
+    useState("19:00");
 
-);
+  const [method, setMethod] =
+    useState<
+      "push" | "calendar" | "both"
+    >("push");
+
+  return (
+    <Modal
+      title="Remind Me"
+      onClose={onClose}
+    >
+      <p>
+        Set a reminder to watch{" "}
+        <b>{title.name}</b>.
+      </p>
+
+      <label>
+        Date
+
+        <input
+          type="date"
+          value={date}
+          onChange={event =>
+            setDate(
+              event.target.value
+            )
+          }
+        />
+      </label>
+
+      <label>
+        Time
+
+        <input
+          type="time"
+          value={time}
+          onChange={event =>
+            setTime(
+              event.target.value
+            )
+          }
+        />
+      </label>
+
+      <label>
+        How would you like to be
+        reminded?
+
+        <select
+          value={method}
+          onChange={event =>
+            setMethod(
+              event.target.value as
+                | "push"
+                | "calendar"
+                | "both"
+            )
+          }
+        >
+          <option value="push">
+            🔔 Streamix notification
+          </option>
+
+          <option value="calendar">
+            📅 Add to phone calendar
+          </option>
+
+          <option value="both">
+            🔔📅 Both
+          </option>
+        </select>
+      </label>
+
+      <button
+        className="pink full"
+        disabled={!date}
+        onClick={() =>
+          onSave(
+            date,
+            time,
+            method
+          )
+        }
+      >
+        Save Reminder
+      </button>
+
+      <p className="muted">
+        Streamix notifications require
+        notification permission.
+      </p>
+    </Modal>
+  );
 }
 
 /* =========================================================
