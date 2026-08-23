@@ -126,17 +126,26 @@ header {
   cursor: pointer;
 }
 
-.admin-viewing-label {
+.admin-viewing-status {
   min-height: 40px;
   display: inline-flex;
   align-items: center;
+  gap: 6px;
   color: #FBCB05;
   font-size: 11px;
   font-weight: 700;
   letter-spacing: .05em;
   text-transform: uppercase;
   white-space: nowrap;
-  margin: 0 8px;
+  margin: 0 2px;
+}
+
+.status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #FBCB05;
+  flex: 0 0 6px;
 }
 
 .viewing-label-mobile {
