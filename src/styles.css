@@ -139,6 +139,14 @@ header {
   margin: 0 8px;
 }
 
+.viewing-label-mobile {
+  display: none;
+}
+
+.viewing-label-desktop {
+  display: inline;
+}
+
 .profile-pill {
   padding: 8px 13px;
   background: #1a1a1d;
