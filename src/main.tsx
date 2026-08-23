@@ -3266,42 +3266,36 @@ LIBRARY CONTROLS
                     return;
                   }
 
-                  if (
-                    profileId === "testing" &&
-                    item.id === "admin"
-                  ) {
-                    const adminSession =
-                      localStorage.getItem(
-                        "sx-admin-session-token"
-                      );
+               if (
+  profileId === "testing" &&
+  item.id === "admin"
+) {
+  const adminSession =
+    localStorage.getItem(
+      "sx-admin-session-token"
+    );
 
-                    if (
-                      adminSession
-                    ) {
-                      localStorage.setItem(
-                        "sx-session-token",
-                        adminSession
-                      );
+  if (adminSession) {
+    localStorage.setItem(
+      "sx-session-token",
+      adminSession
+    );
+  }
 
-                      localStorage.removeItem(
-                        "sx-admin-session-token"
-                      );
+  setProfileId(
+    "admin"
+  );
 
-                      setProfileId(
-                        "admin"
-                      );
+  setViewingAs(
+    null
+  );
 
-                      setViewingAs(
-                        null
-                      );
+  setShowProfile(
+    false
+  );
 
-                      setShowProfile(
-                        false
-                      );
-
-                      return;
-                    }
-                  }
+  return;
+}
 
                   if (
                     isAdminUser
