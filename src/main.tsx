@@ -1276,8 +1276,8 @@ else {
    useState(true);
 
 
- const [sort, setSort] =
-   useState<SortOption>(() => {
+const [sort, setSort] =
+  useState<SortOption>("year-desc");
      const savedSort =
        localStorage.getItem(
          "sx-sort"
