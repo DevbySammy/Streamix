@@ -493,17 +493,11 @@ header {
   background: rgba(0, 0, 0, .72);
 }
 
-.poster-reminder-button {
-  color: #FBCB05;
-}
-
 .poster-list-button {
   color: #fff;
 }
 
-.poster-reminder-button:hover,
-.poster-reminder-button:active {
-  background: rgba(0, 0, 0, .72);
+.poster-reminder-button {
   color: #FBCB05;
 }
 
@@ -511,6 +505,12 @@ header {
 .poster-list-button:active {
   background: rgba(0, 0, 0, .72);
   color: #fff;
+}
+
+.poster-reminder-button:hover,
+.poster-reminder-button:active {
+  background: rgba(0, 0, 0, .72);
+  color: #FBCB05;
 }
 
 .remove {
