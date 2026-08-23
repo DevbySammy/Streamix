@@ -2873,8 +2873,15 @@ LIBRARY CONTROLS
           }
           onClick={() => {
             setTab("library");
-            setFilter("watchlist");
-            setFilterClicked(true);
+
+            if (filter === "watchlist") {
+              setFilter("all");
+              setFilterClicked(false);
+            } else {
+              setFilter("watchlist");
+              setFilterClicked(true);
+            }
+
             setKind("all");
             setKindClicked(false);
             setJustAddedView("visible");
@@ -2891,8 +2898,15 @@ LIBRARY CONTROLS
           }
           onClick={() => {
             setTab("library");
-            setFilter("watched");
-            setFilterClicked(true);
+
+            if (filter === "watched") {
+              setFilter("all");
+              setFilterClicked(false);
+            } else {
+              setFilter("watched");
+              setFilterClicked(true);
+            }
+
             setKind("all");
             setKindClicked(false);
             setJustAddedView("visible");
@@ -2909,8 +2923,15 @@ LIBRARY CONTROLS
           }
           onClick={() => {
             setTab("library");
-            setFilter("rewatch");
-            setFilterClicked(true);
+
+            if (filter === "rewatch") {
+              setFilter("all");
+              setFilterClicked(false);
+            } else {
+              setFilter("rewatch");
+              setFilterClicked(true);
+            }
+
             setKind("all");
             setKindClicked(false);
             setJustAddedView("visible");
