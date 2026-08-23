@@ -2674,13 +2674,27 @@ return ( <div className="app">
   setKind("all");
   setMenu(false);
 }}
-           aria-label="Back to Admin"
+         aria-label={
+  profileId === "testing"
+    ? "Back to Admin"
+    : "Viewing as " +
+      (profiles.find(
+        item =>
+          item.id === viewingAs
+      )?.name || "user")
+}
 >
-  👑 Viewing as{" "}
-  {profiles.find(
-    item =>
-      item.id === viewingAs
-  )?.name || "TESTING"}
+  {profileId === "testing" ? (
+    "← BACK TO ADMIN"
+  ) : (
+    <>
+      👑 Viewing as{" "}
+      {profiles.find(
+        item =>
+          item.id === viewingAs
+      )?.name || "user"}
+    </>
+  )}
 </button>
       )}
 
