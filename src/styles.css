@@ -567,14 +567,12 @@ header {
   font-size: 13px;
 }
 
-.actions,
-.small-actions {
+.actions {
   display: flex;
   gap: 7px;
 }
 
-.actions button,
-.small-actions button {
+.actions button {
   min-height: 40px;
   flex: 1;
   display: inline-flex;
@@ -582,25 +580,20 @@ header {
   justify-content: center;
   gap: 5px;
   padding: 7px 8px;
+  border: none;
   border-radius: 8px;
-  background: #202023;
-  color: #aaa;
+  background: rgba(0, 0, 0, .72);
+  color: #fff;
   cursor: pointer;
   font-size: 12px;
   line-height: 1.2;
   text-align: center;
 }
 
-.actions button.on,
-.small-actions button.on {
+.actions button.on {
   border: 1px solid #ff4f9a;
   color: #fff;
 }
-
-.small-actions {
-  margin-top: 7px;
-}
-
 /* =========================================================
    BUTTONS
 ========================================================= */
