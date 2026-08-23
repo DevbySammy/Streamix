@@ -5,7 +5,7 @@ useState
 } from "react";
 import { createRoot } from "react-dom/client";
 import {
-Bell,
+Bell,fcard
 Check,
 ChevronDown,
 GripVertical,
@@ -5418,82 +5418,54 @@ function Card({
       </span>
 
       {!isAdmin && (
-        <div
-          className="poster-actions"
-          style={{
-            position: "absolute",
-            top: "8px",
-            right: "8px",
-            zIndex: 20,
-            display: "flex",
-            gap: "6px"
-          }}
-        >
+       <div className="poster-actions">
+  <button
+    type="button"
+    className="poster-reminder-button"
+    onClick={event => {
+      event.preventDefault();
+      event.stopPropagation();
+      onReminder();
+    }}
+    aria-label={
+      "Set reminder for " +
+      t.name
+    }
+    title="Remind me"
+  >
+    <Bell size={15} />
+  </button>
 
-          <button
-            type="button"
-            onClick={event => {
-              event.preventDefault();
-              event.stopPropagation();
-              onReminder();
-            }}
-            aria-label={
-              "Set reminder for " +
-              t.name
-            }
-            title="Remind me"
-            style={{
-              width: "36px",
-              height: "36px",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              borderRadius: "50%",
-              cursor: "pointer"
-            }}
-          >
-            <Bell size={16} />
-          </button>
-
-          <button
-            type="button"
-            onClick={event => {
-              event.preventDefault();
-              event.stopPropagation();
-              onList();
-            }}
-            aria-label={
-              isOnWatchlist
-                ? "Remove " +
-                  t.name +
-                  " from watchlist"
-                : "Add " +
-                  t.name +
-                  " to watchlist"
-            }
-            title={
-              isOnWatchlist
-                ? "Remove from watchlist"
-                : "Add to watchlist"
-            }
-            style={{
-              width: "36px",
-              height: "36px",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              borderRadius: "50%",
-              cursor: "pointer"
-            }}
-          >
-            {isOnWatchlist ? (
-              <Check size={16} />
-            ) : (
-              <Plus size={16} />
-            )}
-          </button>
-
-        </div>
+  <button
+    type="button"
+    className="poster-list-button"
+    onClick={event => {
+      event.preventDefault();
+      event.stopPropagation();
+      onList();
+    }}
+    aria-label={
+      isOnWatchlist
+        ? "Remove " +
+          t.name +
+          " from My List"
+        : "Add " +
+          t.name +
+          " to My List"
+    }
+    title={
+      isOnWatchlist
+        ? "Remove from My List"
+        : "Add to My List"
+    }
+  >
+    {isOnWatchlist ? (
+      <Check size={15} />
+    ) : (
+      <Plus size={15} />
+    )}
+  </button>
+</div>
       )}
          
       {isAdmin && (
