@@ -470,6 +470,50 @@ header {
   letter-spacing: .06em;
 }
 
+.poster-actions {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 20;
+  display: flex;
+  gap: 5px;
+}
+
+.poster-reminder-button,
+.poster-list-button {
+  width: 30px;
+  height: 30px;
+  min-height: 30px;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.poster-reminder-button {
+  background: transparent;
+  color: #FBCB05;
+}
+
+.poster-list-button {
+  background: rgba(0, 0, 0, .72);
+  color: #fff;
+}
+
+.poster-reminder-button:hover,
+.poster-reminder-button:active {
+  background: transparent;
+  color: #FBCB05;
+}
+
+.poster-list-button:hover,
+.poster-list-button:active {
+  background: rgba(0, 0, 0, .72);
+  color: #fff;
+}
+
 .remove {
   position: absolute;
   top: 8px;
