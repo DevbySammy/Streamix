@@ -3334,8 +3334,21 @@ if (
   item.id ===
   "testing"
 ) {
-  setLoginProfile(
-    item
+  localStorage.setItem(
+    "sx-testing-active",
+    "true"
+  );
+
+  setProfileId(
+    "testing"
+  );
+
+  setViewingAs(
+    null
+  );
+
+  localStorage.removeItem(
+    "sx-viewing-as"
   );
 
   setShowProfile(
