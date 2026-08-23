@@ -145,15 +145,7 @@ path
 TMDB
 ========================================================= */
 
-async function searchTMDB(
-query: string
-): Promise<Title[]> {
-const cleanQuery = query.trim();
-
-if (!cleanQuery) {
-return [];
-}
-  const API_BASE_URL =
+const API_BASE_URL =
   "https://streamix.gaintrainstrong.workers.dev";
 
 async function apiFetch(
@@ -187,7 +179,8 @@ async function apiFetch(
     }
   );
 
-  const data = await response.json();
+  const data =
+    await response.json();
 
   if (!response.ok) {
     throw new Error(
@@ -198,103 +191,134 @@ async function apiFetch(
 
   return data;
 }
-  
-const url =
-  API_BASE_URL +
-  "/api/tmdb/search?query=" +
-  encodeURIComponent(cleanQuery) +
-  "&type=multi";
 
-const sessionId =
-  localStorage.getItem("sx-session-token");
+async function searchTMDB(
+  query: string
+): Promise<Title[]> {
+  const cleanQuery =
+    query.trim();
 
-const response = await fetch(
-  url,
-  {
-    headers: sessionId
-      ? {
-          Authorization:
-            `Bearer ${sessionId}`
-        }
-      : {}
+  if (!cleanQuery) {
+    return [];
   }
-);
 
-if (!response.ok) {
-  throw new Error("TMDB search failed");
-}
+  const url =
+    API_BASE_URL +
+    "/api/tmdb/search?query=" +
+    encodeURIComponent(
+      cleanQuery
+    ) +
+    "&type=multi";
 
-const data = await response.json();
+  const sessionId =
+    localStorage.getItem(
+      "sx-session-token"
+    );
 
-const results = Array.isArray(data.results)
-? data.results
-: [];
+  const response =
+    await fetch(
+      url,
+      {
+        headers: sessionId
+          ? {
+              Authorization:
+                `Bearer ${sessionId}`
+            }
+          : {}
+      }
+    );
 
-return results
-.filter(
-(item: any) =>
-item &&
-(item.media_type === "movie" ||
-item.media_type === "tv")
-)
-.map((item: any): Title => {
-const kind: Kind =
-item.media_type === "tv"
-? "tv"
-: "movie";
+  if (!response.ok) {
+    throw new Error(
+      "TMDB search failed"
+    );
+  }
 
+  const data =
+    await response.json();
 
-  const releaseDate =
-    kind === "movie"
-      ? item.release_date
-      : item.first_air_date;
+  const results =
+    Array.isArray(
+      data.results
+    )
+      ? data.results
+      : [];
 
-  const year =
-    releaseDate &&
-    typeof releaseDate === "string"
-      ? Number(
-          releaseDate.slice(0, 4)
+  return results
+    .filter(
+      (item: any) =>
+        item &&
+        (
+          item.media_type ===
+            "movie" ||
+          item.media_type ===
+            "tv"
         )
-      : 0;
+    )
+    .map(
+      (item: any): Title => {
+        const kind: Kind =
+          item.media_type ===
+          "tv"
+            ? "tv"
+            : "movie";
 
-  const name =
-    kind === "movie"
-      ? item.title || "Untitled"
-      : item.name || "Untitled";
+        const releaseDate =
+          kind === "movie"
+            ? item.release_date
+            : item.first_air_date;
 
-  return {
-    id:
-      "tmdb-" +
-      kind +
-      "-" +
-      String(item.id),
-    name,
-    kind,
-    year,
-    poster: getPosterUrl(
-      item.poster_path
-    ),
-    backdrop: getBackdropUrl(
-      item.backdrop_path
-    ),
-    overview:
-      typeof item.overview === "string"
-        ? item.overview
-        : "",
-    addedAt:
-      new Date().toISOString()
-  };
-});
+        const year =
+          releaseDate &&
+          typeof releaseDate ===
+            "string"
+            ? Number(
+                releaseDate.slice(
+                  0,
+                  4
+                )
+              )
+            : 0;
 
+        const name =
+          kind === "movie"
+            ? item.title ||
+              "Untitled"
+            : item.name ||
+              "Untitled";
 
+        return {
+          id:
+            "tmdb-" +
+            kind +
+            "-" +
+            String(item.id),
+          name,
+          kind,
+          year,
+          poster:
+            getPosterUrl(
+              item.poster_path
+            ),
+          backdrop:
+            getBackdropUrl(
+              item.backdrop_path
+            ),
+          overview:
+            typeof item.overview ===
+            "string"
+              ? item.overview
+              : "",
+          addedAt:
+            new Date().toISOString()
+        };
+      }
+    );
 }
 
 async function ensureTMDBLibraryItem(
   title: Title
 ): Promise<Title> {
-  const API_BASE_URL =
-    "https://streamix.gaintrainstrong.workers.dev";
-
   const sessionId =
     localStorage.getItem(
       "sx-session-token"
@@ -350,15 +374,15 @@ async function ensureTMDBLibraryItem(
       }
     );
 
-const data =
-  await response.json();
+  const data =
+    await response.json();
 
-setTmdbCatalogHasMore(
-  Boolean(
-    data.total_pages &&
-    1 < data.total_pages
-  )
-);
+  setTmdbCatalogHasMore(
+    Boolean(
+      data.total_pages &&
+      1 < data.total_pages
+    )
+  );
 
   if (!response.ok) {
     throw new Error(
@@ -1096,54 +1120,9 @@ useEffect(() => {
   >({});
 
   const [
-    reminders,
-    setReminders
-  ] = useState<Reminder[]>([]);
-
-   useEffect(() => {
-  async function loadReminders() {
-    if (!profileId) {
-      return;
-    }
-
-    try {
-      const data =
-        await apiFetch(
-          `/api/reminders?profileId=${encodeURIComponent(
-            profileId
-          )}`
-        );
-
-      const loadedReminders =
-        Array.isArray(data)
-          ? data
-          : [];
-
-      setReminders(
-        loadedReminders.map(
-          (reminder: any) => ({
-            id: reminder.id,
-            profileId:
-              reminder.profile_id,
-            libraryItemId:
-              reminder.library_item_id,
-            reminderDate:
-              reminder.reminder_date,
-            reminderTime:
-              reminder.reminder_time
-          })
-        )
-      );
-    } catch (error) {
-      console.error(
-        "Failed to load reminders:",
-        error
-      );
-    }
-  }
-
-  loadReminders();
-}, [profileId]);
+  reminders,
+  setReminders
+] = useState<Reminder[]>([]);
    
   const [
     scheduled,
@@ -1201,292 +1180,353 @@ useEffect(() => {
     loadHeroSettings();
   }, []);
    
- /* =======================================================
- AUTHENTICATION / SESSION
- ======================================================= */
+/* =======================================================
+AUTHENTICATION / SESSION
+======================================================= */
 
- const [profileId, setProfileId] =
-   useState<string | null>(null);
+const [profileId, setProfileId] =
+  useState<string | null>(null);
 
- const [viewingAs, setViewingAs] =
-   useState<string | null>(() =>
-     localStorage.getItem(
-       "sx-viewing-as"
-     )
-   );
-
- const [sessionRestoring, setSessionRestoring] =
-   useState(true);
-
- useEffect(() => {
-   async function restoreSession() {
-     const sessionId =
-       localStorage.getItem(
-         "sx-session-token"
-       );
-
-     if (!sessionId) {
-       setSessionRestoring(false);
-       return;
-     }
-
-     try {
-       const response = await fetch(
-         "https://streamix.gaintrainstrong.workers.dev/api/auth/session",
-         {
-           method: "GET",
-           headers: {
-             Authorization:
-               `Bearer ${sessionId}`
-           }
-         }
-       );
-
-    if (!response.ok) {
-  // The saved session is no longer valid.
-  localStorage.removeItem(
+    useEffect(() => {
+  async function loadReminders() {
+    if (!profileId) {
+      return;
+    }
+     
+    try {
+    const sessionId =
+  localStorage.getItem(
     "sx-session-token"
   );
-  setProfileId(null);
-  setViewingAs(null);
-  setSessionRestoring(false);
-  return;
+
+const response = await fetch(
+  "https://streamix.gaintrainstrong.workers.dev/api/reminders?profileId=" +
+    encodeURIComponent(profileId),
+  {
+    headers: sessionId
+      ? {
+          Authorization:
+            `Bearer ${sessionId}`
+        }
+      : {}
+  }
+);
+
+if (!response.ok) {
+  throw new Error(
+    "Failed to load reminders."
+  );
 }
 
 const data =
   await response.json();
 
-if (
-  data.authenticated &&
-  data.profile?.id
-) {
-  const savedTestingProfile =
-    localStorage.getItem(
-      "sx-testing-active"
-    );
+      const loadedReminders =
+        Array.isArray(data)
+          ? data
+          : [];
 
-  if (
-    data.profile.id === "admin" &&
-    savedTestingProfile === "true"
-  ) {
-    setProfileId(
-      "testing"
-    );
-  } else {
-    setProfileId(
-      data.profile.id
-    );
+      setReminders(
+        loadedReminders.map(
+          (reminder: any) => ({
+            id: reminder.id,
+            profileId:
+              reminder.profile_id,
+            libraryItemId:
+              reminder.library_item_id,
+            reminderDate:
+              reminder.reminder_date,
+            reminderTime:
+              reminder.reminder_time
+          })
+        )
+      );
+    } catch (error) {
+      console.error(
+        "Failed to load reminders:",
+        error
+      );
+    }
   }
-}
-else {
-  localStorage.removeItem(
-    "sx-session-token"
-  );
-  setProfileId(null);
-  setViewingAs(null);
-}
-} catch (error) {
-  console.error(
-    "Failed to restore session:",
-    error
+
+  loadReminders();
+}, [profileId]);
+
+const [viewingAs, setViewingAs] =
+  useState<string | null>(() =>
+    localStorage.getItem(
+      "sx-viewing-as"
+    )
   );
 
-       // Keep the saved session if this was
-       // only a temporary network problem.
-     } finally {
-       setSessionRestoring(false);
-     }
-   }
+const [sessionRestoring, setSessionRestoring] =
+  useState(true);
 
-   restoreSession();
- }, []);
+useEffect(() => {
+  async function restoreSession() {
+    const sessionId =
+      localStorage.getItem(
+        "sx-session-token"
+      );
 
- const [tab, setTab] =
-   useState<"library" | "rewatch">(
-     "library"
-   );
+    if (!sessionId) {
+      setSessionRestoring(false);
+      return;
+    }
 
- const [filter, setFilter] =
-   useState<
-     "all" | "watchlist" | "watched" | "rewatch"
-   >("all");
+    try {
+      const response = await fetch(
+        "https://streamix.gaintrainstrong.workers.dev/api/auth/session",
+        {
+          method: "GET",
+          headers: {
+            Authorization:
+              `Bearer ${sessionId}`
+          }
+        }
+      );
 
- const [filterClicked, setFilterClicked] =
-   useState(false);
+      if (!response.ok) {
+        // The saved session is no longer valid.
+        localStorage.removeItem(
+          "sx-session-token"
+        );
+        setProfileId(null);
+        setViewingAs(null);
+        setSessionRestoring(false);
+        return;
+      }
 
- const [kind, setKind] =
-   useState<"all" | Kind>("all");
+      const data =
+        await response.json();
 
- const [kindClicked, setKindClicked] =
-   useState(true);
+      if (
+        data.authenticated &&
+        data.profile?.id
+      ) {
+        const savedTestingProfile =
+          localStorage.getItem(
+            "sx-testing-active"
+          );
 
+        if (
+          data.profile.id === "admin" &&
+          savedTestingProfile === "true"
+        ) {
+          setProfileId(
+            "testing"
+          );
+        } else {
+          setProfileId(
+            data.profile.id
+          );
+        }
+      } else {
+        localStorage.removeItem(
+          "sx-session-token"
+        );
+        setProfileId(null);
+        setViewingAs(null);
+      }
+    } catch (error) {
+      console.error(
+        "Failed to restore session:",
+        error
+      );
+
+      // Keep the saved session if this was
+      // only a temporary network problem.
+    } finally {
+      setSessionRestoring(false);
+    }
+  }
+
+  restoreSession();
+}, []);
+
+const [tab, setTab] =
+  useState<"library" | "rewatch">(
+    "library"
+  );
+
+const [filter, setFilter] =
+  useState<
+    "all" | "watchlist" | "watched" | "rewatch"
+  >("all");
+
+const [filterClicked, setFilterClicked] =
+  useState(false);
+
+const [kind, setKind] =
+  useState<"all" | Kind>("all");
+
+const [kindClicked, setKindClicked] =
+  useState(true);
 
 const [sort, setSort] =
   useState<SortOption>("year-desc");
 
- useEffect(() => {
-   if (sort !== "just-added") {
-     return;
-   }
+useEffect(() => {
+  if (sort !== "just-added") {
+    return;
+  }
 
-   async function loadJustAdded() {
-     try {
-       const sessionId =
-         localStorage.getItem(
-           "sx-session-token"
-         );
+  async function loadJustAdded() {
+    try {
+      const sessionId =
+        localStorage.getItem(
+          "sx-session-token"
+        );
 
+      const response = await fetch(
+        "https://streamix.gaintrainstrong.workers.dev/api/tmdb/just-added",
+        {
+          headers: sessionId
+            ? {
+                Authorization:
+                  `Bearer ${sessionId}`
+              }
+            : {}
+        }
+      );
 
-       const response = await fetch(
-         "https://streamix.gaintrainstrong.workers.dev/api/tmdb/just-added",
-         {
-           headers: sessionId
-             ? {
-                 Authorization:
-                   `Bearer ${sessionId}`
-               }
-             : {}
-         }
-       );
+      const data =
+        await response.json();
 
-       const data =
-         await response.json();
+      if (!response.ok) {
+        throw new Error(
+          data?.error ||
+            "Unable to load Just Added."
+        );
+      }
 
-       if (!response.ok) {
-         throw new Error(
-           data?.error ||
-             "Unable to load Just Added."
-         );
-       }
+      const results =
+        Array.isArray(data.results)
+          ? data.results
+          : [];
 
-       const results =
-         Array.isArray(data.results)
-           ? data.results
-           : [];
+      const titles: Title[] =
+        results
+          .filter(
+            (item: any) =>
+              typeof item.poster_path === "string" &&
+              item.poster_path.trim() !== ""
+          )
+          .map(
+            (item: any): Title => {
+              const kind: Kind =
+                item.media_type === "tv"
+                  ? "tv"
+                  : "movie";
 
-       const titles: Title[] =
-         results
-           .filter(
-             (item: any) =>
-               typeof item.poster_path === "string" &&
-               item.poster_path.trim() !== ""
-           )
-           .map(
-             (item: any): Title => {
-               const kind: Kind =
-                 item.media_type === "tv"
-                   ? "tv"
-                   : "movie";
+              const releaseDate =
+                kind === "movie"
+                  ? item.release_date
+                  : item.first_air_date;
 
-               const releaseDate =
-                 kind === "movie"
-                   ? item.release_date
-                   : item.first_air_date;
+              const year =
+                releaseDate &&
+                typeof releaseDate ===
+                  "string"
+                  ? Number(
+                      releaseDate.slice(0, 4)
+                    )
+                  : 0;
 
-               const year =
-                 releaseDate &&
-                 typeof releaseDate ===
-                   "string"
-                   ? Number(
-                       releaseDate.slice(0, 4)
-                     )
-                   : 0;
+              const name =
+                kind === "movie"
+                  ? item.title ||
+                    "Untitled"
+                  : item.name ||
+                    "Untitled";
 
-               const name =
-                 kind === "movie"
-                   ? item.title ||
-                     "Untitled"
-                   : item.name ||
-                     "Untitled";
+              return {
+                id:
+                  "tmdb-" +
+                  kind +
+                  "-" +
+                  String(item.id),
+                name,
+                kind,
+                year,
+                poster:
+                  getPosterUrl(
+                    item.poster_path
+                  ),
+                backdrop:
+                  getBackdropUrl(
+                    item.backdrop_path
+                  ),
+                overview:
+                  typeof item.overview ===
+                  "string"
+                    ? item.overview
+                    : "",
+                addedAt:
+                  releaseDate || ""
+              };
+            }
+          );
 
-               return {
-                 id:
-                   "tmdb-" +
-                   kind +
-                   "-" +
-                   String(item.id),
-                 name,
-                 kind,
-                 year,
-                 poster:
-                   getPosterUrl(
-                     item.poster_path
-                   ),
-                 backdrop:
-                   getBackdropUrl(
-                     item.backdrop_path
-                   ),
-                 overview:
-                   typeof item.overview ===
-                   "string"
-                     ? item.overview
-                     : "",
-                 addedAt:
-                   releaseDate || ""
-               };
-             }
-           );
+      const dedupedTitles =
+        Array.from(
+          new Map(
+            titles.map(
+              title => [
+                title.id,
+                title
+              ]
+            )
+          ).values()
+        );
 
-       const dedupedTitles =
-         Array.from(
-           new Map(
-             titles.map(
-               title => [
-                 title.id,
-                 title
-               ]
-             )
-           ).values()
-         );
+      setJustAdded(
+        dedupedTitles
+      );
+    } catch (error) {
+      console.error(
+        "Failed to load Just Added:",
+        error
+      );
 
-       setJustAdded(
-         dedupedTitles
-       );
-     } catch (error) {
-       console.error(
-         "Failed to load Just Added:",
-         error
-       );
+      setJustAdded([]);
+    }
+  }
 
-       setJustAdded([]);
-     }
-   }
+  loadJustAdded();
+}, [sort]);
 
-   loadJustAdded();
- }, [sort]);
+const [q, setQ] = useState("");
 
- const [q, setQ] = useState("");
+const [showProfile, setShowProfile] =
+  useState(false);
 
- const [showProfile, setShowProfile] =
-   useState(false);
+const [loginProfile, setLoginProfile] =
+  useState<Profile | null>(null);
 
- const [loginProfile, setLoginProfile] =
-   useState<Profile | null>(null);
+const [showAdd, setShowAdd] =
+  useState(false);
 
- const [showAdd, setShowAdd] =
-   useState(false);
+const [showReco, setShowReco] =
+  useState(false);
 
- const [showReco, setShowReco] =
-   useState(false);
+const [showReminder, setShowReminder] =
+  useState<Title | null>(null);
 
- const [showReminder, setShowReminder] =
-   useState<Title | null>(null);
+const [showSchedule, setShowSchedule] =
+  useState<Title | null>(null);
 
- const [showSchedule, setShowSchedule] =
-   useState<Title | null>(null);
+const [showHero, setShowHero] =
+  useState(false);
 
- const [showHero, setShowHero] =
-   useState(false);
+const [showDeleted, setShowDeleted] =
+  useState(false);
 
- const [showDeleted, setShowDeleted] =
-   useState(false);
+const [editing, setEditing] =
+  useState<Profile | null>(null);
 
- const [editing, setEditing] =
-   useState<Profile | null>(null);
-
- const [menu, setMenu] =
-   useState(false);
-   
+const [menu, setMenu] =
+  useState(false);
 /* =======================================================
 PROFILE DRAGGING
 ======================================================= */
@@ -5320,6 +5360,7 @@ function ProfileLogin({
     </Modal>
   );
 }
+
 /* =========================================================
 CARD
 ========================================================= */
@@ -5378,196 +5419,175 @@ function Card({
       </span>
 
       {!isAdmin && (
-        <div
-          className="poster-actions"
-          style={{
-            position: "absolute",
-            top: "8px",
-            right: "8px",
-            zIndex: 20,
-            display: "flex",
-            gap: "6px"
-          }}
-        >
+        <div className="poster-actions">
 
-          <button
-            type="button"
-            onClick={event => {
-              event.preventDefault();
-              event.stopPropagation();
-              onReminder();
-            }}
-            aria-label={
-              "Set reminder for " +
-              t.name
-            }
-            title="Remind me"
-            style={{
-              width: "36px",
-              height: "36px",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              borderRadius: "50%",
-              cursor: "pointer"
-            }}
-          >
-            <Bell size={16} />
-          </button>
+          <div className="poster-action-buttons">
 
-          <button
-            type="button"
-            onClick={event => {
-              event.preventDefault();
-              event.stopPropagation();
-              onList();
-            }}
-            aria-label={
-              isOnWatchlist
-                ? "Remove " +
-                  t.name +
-                  " from watchlist"
-                : "Add " +
-                  t.name +
-                  " to watchlist"
-            }
-            title={
-              isOnWatchlist
-                ? "Remove from watchlist"
-                : "Add to watchlist"
-            }
-            style={{
-              width: "36px",
-              height: "36px",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              borderRadius: "50%",
-              cursor: "pointer"
-            }}
-          >
-            {isOnWatchlist ? (
-              <Check size={16} />
-            ) : (
-              <Plus size={16} />
-            )}
-          </button>
+            <button
+              type="button"
+              className="poster-list-button"
+              onClick={event => {
+                event.preventDefault();
+                event.stopPropagation();
+                onList();
+              }}
+              aria-label={
+                isOnWatchlist
+                  ? "Remove " +
+                    t.name +
+                    " from Watchlist"
+                  : "Add " +
+                    t.name +
+                    " to Watchlist"
+              }
+              title={
+                isOnWatchlist
+                  ? "Remove from Watchlist"
+                  : "Add to Watchlist"
+              }
+            >
+              {isOnWatchlist ? (
+                <Check size={15} />
+              ) : (
+                <Plus size={15} />
+              )}
+            </button>
+
+            <button
+              type="button"
+              className="poster-reminder-button"
+              onClick={event => {
+                event.preventDefault();
+                event.stopPropagation();
+                onReminder();
+              }}
+              aria-label={
+                "Set reminder for " +
+                t.name
+              }
+              title="Remind me"
+            >
+              <Bell size={15} />
+            </button>
+
+          </div>
 
         </div>
       )}
-         
+
       {isAdmin && (
-  <button
-    type="button"
-    className="remove"
-    onClick={event => {
-      event.preventDefault();
-      event.stopPropagation();
-      onRemove();
-    }}
-    title={
-      hiddenJustAdded
-        ? "Show Again"
-        : "Hide from Just Added"
-    }
-    aria-label={
-      hiddenJustAdded
-        ? "Show Again"
-        : "Hide " +
-          t.name +
-          " from Just Added"
-    }
-    style={{
-      position: "absolute",
-      zIndex: 20,
-      pointerEvents: "auto",
-      cursor: "pointer"
-    }}
-  >
-    {hiddenJustAdded ? (
-      <Eye size={16} />
-    ) : (
-      <EyeOff size={16} />
-    )}
-  </button>
-)}
-
-</div>
-
-<div className="card-body">
-
-  <h3>{t.name}</h3>
-
-  <p>{t.year}</p>
-
-  {!isAdmin && (
-    <>
-
-      <div className="actions">
-
         <button
           type="button"
-          className={
-            isOnWatchlist
-              ? "on"
-              : ""
+          className="remove"
+          onClick={event => {
+            event.preventDefault();
+            event.stopPropagation();
+            onRemove();
+          }}
+          title={
+            hiddenJustAdded
+              ? "Show Again"
+              : "Hide from Just Added"
           }
-          onClick={onList}
-        >
-          {isOnWatchlist
-            ? "✓ Added"
-            : "+ Watchlist"}
-        </button>
-
-        <button
-          type="button"
-          className={
-            isWatched
-              ? "on"
-              : ""
+          aria-label={
+            hiddenJustAdded
+              ? "Show Again"
+              : "Hide " +
+                t.name +
+                " from Just Added"
           }
-          onClick={onWatch}
+          style={{
+            position: "absolute",
+            zIndex: 20,
+            pointerEvents: "auto",
+            cursor: "pointer"
+          }}
         >
-          {isWatched
-            ? "✓ Watched"
-            : "Mark watched"}
+          {hiddenJustAdded ? (
+            <Eye size={16} />
+          ) : (
+            <EyeOff size={16} />
+          )}
         </button>
+      )}
 
-      </div>
+    </div>
 
-      <div className="small-actions">
+    <div className="card-body">
 
-        <button
-          type="button"
-          className={
-            isRewatch
-              ? "rewatch-action on"
-              : "rewatch-action"
-          }
-          onClick={onRewatch}
-        >
-          ↻ Re-watch
-        </button>
+      <h3>{t.name}</h3>
 
-        <button
-          type="button"
-          className="remind-button"
-          onClick={onReminder}
-        >
-          <Bell size={14} />
-          Remind me
-        </button>
+      <p>{t.year}</p>
 
-      </div>
+      {!isAdmin && (
+        <>
 
-    </>
-  )}
+          <div className="actions">
 
-</div>
+            <button
+              type="button"
+              className={
+                isOnWatchlist
+                  ? "on"
+                  : ""
+              }
+              onClick={onList}
+            >
+              {isOnWatchlist
+                ? "✓ Added"
+                : "+ Watchlist"}
+            </button>
 
-</article>
-);
+            <button
+              type="button"
+              className={
+                isWatched
+                  ? "on"
+                  : ""
+              }
+              onClick={onWatch}
+            >
+              {isWatched
+                ? "✓ Watched"
+                : "Mark watched"}
+            </button>
+
+          </div>
+
+          <div className="small-actions">
+
+            <button
+              type="button"
+              className={
+                isRewatch
+                  ? "rewatch-action on"
+                  : "rewatch-action"
+              }
+              onClick={onRewatch}
+            >
+              ↻ Re-watch
+            </button>
+
+            <button
+              type="button"
+              className="remind-button"
+              onClick={onReminder}
+            >
+              <Bell size={14} />
+              Remind me
+            </button>
+
+          </div>
+
+        </>
+      )}
+
+    </div>
+
+  </article>
+  );
 }
+
 /* =========================================================
 MODAL
 ========================================================= */
