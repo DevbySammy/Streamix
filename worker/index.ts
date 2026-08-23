@@ -2390,8 +2390,7 @@ if (
 // ==================================================
 
 if (
-  url.pathname === "/api/reminders" &&
-  request.method === "GET"
+  url.pathname === "/api/reminders" && request.method === "GET"
 ) {
   const auth =
     await requireSession();
@@ -2412,21 +2411,23 @@ if (
       : auth.profileId;
 
   const result =
-    await env.DB
-      .prepare(`
-        SELECT
-          id,
-          profile_id,
-          title_id,
-          date,
-          time,
-          method
-        FROM reminders
-        WHERE profile_id = ?
-        ORDER BY date ASC, time ASC
-      `)
-      .bind(profileId)
-      .all();
+  await env.DB
+    .prepare(`
+      SELECT
+        id,
+        profile_id,
+        library_item_id,
+        reminder_date,
+        reminder_time,
+        created_at
+      FROM reminders
+      WHERE profile_id = ?
+      ORDER BY
+        reminder_date ASC,
+        reminder_time ASC
+    `)
+    .bind(profileId)
+    .all();
 
   return json(
     result.results
@@ -2451,36 +2452,29 @@ if (
   const body =
     await request.json<{
       profileId: string;
-      titleId: string;
-      date: string;
-      time: string;
-      method:
-        | "push"
-        | "calendar"
-        | "both";
+      libraryItemId: string;
+      reminderDate: string;
+      reminderTime: string;
     }>();
 
   if (
     !body.profileId ||
-    !body.titleId ||
-    !body.date ||
-    !body.time ||
-    !body.method
+    !body.libraryItemId ||
+    !body.reminderDate ||
+    !body.reminderTime
   ) {
     return json(
       {
         error:
-          "profileId, titleId, date, time and method are required."
+          "profileId, libraryItemId, reminderDate and reminderTime are required."
       },
       400
     );
   }
 
   if (
-    auth.profileId !==
-      "admin" &&
-    auth.profileId !==
-      body.profileId
+    auth.profileId !== "admin" &&
+    auth.profileId !== body.profileId
   ) {
     return json(
       {
@@ -2499,20 +2493,18 @@ if (
       INSERT INTO reminders (
         id,
         profile_id,
-        title_id,
-        date,
-        time,
-        method
+        library_item_id,
+        reminder_date,
+        reminder_time
       )
-      VALUES (?, ?, ?, ?, ?, ?)
+      VALUES (?, ?, ?, ?, ?)
     `)
     .bind(
       id,
       body.profileId,
-      body.titleId,
-      body.date,
-      body.time,
-      body.method
+      body.libraryItemId,
+      body.reminderDate,
+      body.reminderTime
     )
     .run();
 
@@ -2561,10 +2553,8 @@ if (
   }
 
   if (
-    auth.profileId !==
-      "admin" &&
-    auth.profileId !==
-      profileId
+    auth.profileId !== "admin" &&
+    auth.profileId !== profileId
   ) {
     return json(
       {
@@ -2767,8 +2757,7 @@ if (
     // ==================================================
 
     if (
-      url.pathname === "/api/reminders" &&
-      request.method === "GET"
+      url.pathname === "/api/reminders" && request.method === "GET"
     ) {
       const auth =
         await requireSession();
@@ -2803,111 +2792,6 @@ if (
       );
     }
 
-    // ==================================================
-    // REMINDERS - POST
-    // ==================================================
-
-    if (
-      url.pathname === "/api/reminders" &&
-      request.method === "POST"
-    ) {
-      const auth =
-        await requireSession();
-
-      if (auth instanceof Response) {
-        return auth;
-      }
-
-      const body =
-        await request.json<{
-          libraryItemId: string;
-          reminderDate: string;
-          reminderTime: string;
-        }>();
-
-      if (
-        !body.libraryItemId ||
-        !body.reminderDate ||
-        !body.reminderTime
-      ) {
-        return json(
-          {
-            error:
-              "libraryItemId, reminderDate and reminderTime are required."
-          },
-          400
-        );
-      }
-
-      await env.DB
-        .prepare(`
-          INSERT INTO reminders (
-            id,
-            profile_id,
-            library_item_id,
-            reminder_date,
-            reminder_time
-          )
-          VALUES (?, ?, ?, ?, ?)
-        `)
-        .bind(
-          crypto.randomUUID(),
-          auth.profileId,
-          body.libraryItemId,
-          body.reminderDate,
-          body.reminderTime
-        )
-        .run();
-
-      return json({
-        success: true
-      }, 201);
-    }
-
-    // ==================================================
-    // REMINDERS - DELETE
-    // ==================================================
-
-    if (
-      url.pathname === "/api/reminders" &&
-      request.method === "DELETE"
-    ) {
-      const auth =
-        await requireSession();
-
-      if (auth instanceof Response) {
-        return auth;
-      }
-
-      const id =
-        url.searchParams.get("id");
-
-      if (!id) {
-        return json(
-          {
-            error:
-              "Reminder id is required."
-          },
-          400
-        );
-      }
-
-      await env.DB
-        .prepare(`
-          DELETE FROM reminders
-          WHERE id = ?
-          AND profile_id = ?
-        `)
-        .bind(
-          id,
-          auth.profileId
-        )
-        .run();
-
-      return json({
-        success: true
-      });
-    }
 
     // ==================================================
     // SCHEDULED RECOMMENDATIONS - GET
