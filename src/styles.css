@@ -1156,6 +1156,14 @@ footer span {
   gap: 10px;
 }
 
+   .viewing-label-desktop {
+  display: none;
+}
+
+.viewing-label-mobile {
+  display: inline;
+}
+   
   .header-right::-webkit-scrollbar {
     display: none;
   }
