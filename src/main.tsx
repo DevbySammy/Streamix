@@ -851,14 +851,28 @@ useEffect(() => {
        const data =
          await response.json();
 
-       if (
-         data.authenticated &&
-         data.profile?.id
-       ) {
-         setProfileId(
-           data.profile.id
-         );
-       } else {
+     if (
+  data.authenticated &&
+  data.profile?.id
+) {
+  const savedTestingProfile =
+    localStorage.getItem(
+      "sx-testing-active"
+    );
+
+  if (
+    data.profile.id === "admin" &&
+    savedTestingProfile === "true"
+  ) {
+    setProfileId(
+      "testing"
+    );
+  } else {
+    setProfileId(
+      data.profile.id
+    );
+  }
+} else {
          localStorage.removeItem(
            "sx-session-token"
          );
