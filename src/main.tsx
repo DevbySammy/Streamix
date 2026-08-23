@@ -639,6 +639,11 @@ const [
     setTmdbCatalogPage(
       nextPage
     );
+
+setTmdbCatalogHasMore(
+  nextPage < data.total_pages
+);
+     
   } catch (error) {
     console.error(
       "Failed to load next TMDB catalog page:",
