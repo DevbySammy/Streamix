@@ -568,14 +568,12 @@ header {
 card actions
 ========================================================= */
 
-.actions,
-.small-actions {
+.actions {
   display: flex;
   gap: 7px;
 }
 
-.actions button,
-.small-actions button {
+.actions button {
   min-height: 40px;
   flex: 1;
   display: inline-flex;
@@ -583,23 +581,77 @@ card actions
   justify-content: center;
   gap: 5px;
   padding: 7px 8px;
+  border: none;
   border-radius: 8px;
-  background: #202023;
-  color: #aaa;
+  background: rgba(0, 0, 0, .72) !important;
+  color: #fff !important;
   cursor: pointer;
   font-size: 12px;
   line-height: 1.2;
   text-align: center;
 }
 
-.actions button.on,
-.small-actions button.on {
+.actions button.on {
   border: 1px solid #ff4f9a;
+  background: rgba(0, 0, 0, .72) !important;
+  color: #fff !important;
+}
+   
+/* =========================================================
+   BUTTONS
+========================================================= */
+
+.pink,
+.ghost,
+.danger {
+  min-height: 44px;
+  border-radius: 9px;
+  cursor: pointer;
+}
+
+.pink {
+  background: #ff4f9a;
   color: #fff;
 }
 
-.small-actions {
-  margin-top: 7px;
+.pink.full,
+.ghost.full,
+.danger.full {
+  width: 100%;
+}
+
+.ghost {
+  padding: 9px 15px;
+  background: transparent;
+  color: #fff;
+  border: 1px solid #444;
+}
+
+.deleted-profile-actions .ghost:active {
+  border-color: #ff4f9a;
+  color: #fff;
+}
+
+.danger {
+  background: #4a181f;
+  color: #ff9da8;
+}
+
+.icon {
+  width: 40px;
+  height: 40px;
+  flex: 0 0 40px;
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  background: transparent;
+  color: #aaa;
+  cursor: pointer;
+}
+
+.icon:disabled {
+  opacity: .35;
+  cursor: default;
 }
 
 /* =========================================================
