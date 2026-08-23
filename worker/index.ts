@@ -1748,7 +1748,7 @@ if (
       "type"
     ) || "all";
 
-  const pagesPerRequest = 3;
+  const pagesPerRequest = 10;
 
   const startPage =
     ((page - 1) *
