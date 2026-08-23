@@ -3330,26 +3330,12 @@ if (
   setProfileId(
     "admin"
   );
-}
- else if (
+} else if (
   item.id ===
   "testing"
 ) {
-  localStorage.setItem(
-    "sx-testing-active",
-    "true"
-  );
-
-  setProfileId(
-    "testing"
-  );
-
-  setViewingAs(
-    null
-  );
-
-  localStorage.removeItem(
-    "sx-viewing-as"
+  setLoginProfile(
+    item
   );
 
   setShowProfile(
