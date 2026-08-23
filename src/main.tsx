@@ -4447,15 +4447,8 @@ function ProfileLogin({
             "'s Profile"}
         </h3>
 
-   {isTesting ? (
+{isTesting ? (
   <>
-    <p className="muted">
-      This profile is for Admin
-      testing only. It lets you
-      experience the app exactly
-      as a regular user.
-    </p>
-
     {error && (
       <p className="login-error">
         {error}
