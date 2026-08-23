@@ -3286,10 +3286,14 @@ LIBRARY CONTROLS
                     return;
                   }
 
-               if (
+ if (
   profileId === "testing" &&
   item.id === "admin"
 ) {
+  localStorage.removeItem(
+    "sx-testing-active"
+  );
+
   const adminSession =
     localStorage.getItem(
       "sx-admin-session-token"
