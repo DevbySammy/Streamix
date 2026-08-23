@@ -5469,24 +5469,6 @@ function Card({
   </button>
 
 </div>
-
- <button
-  type="button"
-  className="poster-list-button"
-  onClick={event => {
-    event.preventDefault();
-    event.stopPropagation();
-    onList();
-  }}
-  aria-label={
-    isOnWatchlist
-      ? "Remove " +
-        t.name +
-        " from Watchlist"
-      : "Add " +
-        t.name +
-        " to Watchlist"
-  }
   title={
     isOnWatchlist
       ? "Remove from Watchlist"
