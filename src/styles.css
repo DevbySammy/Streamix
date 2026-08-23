@@ -157,9 +157,12 @@ header {
   display: inline;
 }
 
-.viewing-label-desktop,
 .viewing-label-mobile {
-  margin-right: 4px;
+  display: none;
+}
+
+.viewing-label-desktop {
+  display: inline;
 }
 
 @keyframes status-pulse {
