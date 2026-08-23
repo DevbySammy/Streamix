@@ -1911,16 +1911,7 @@ async function toggle(
     localStorage.getItem(
       "sx-session-token"
     );
-   console.log(
-  "WATCHLIST DEBUG:",
-  {
-    array,
-    id,
-    effectiveProfileId,
-    sessionId
-  }
-);
-
+  
   try {
     const response = await fetch(
       exists
@@ -3327,23 +3318,31 @@ LIBRARY CONTROLS
                         "sx-viewing-as"
                       );
 
-                      setProfileId(
-                        "admin"
-                      );
-              } else if (
+ setProfileId(
+ "admin"
+ );
+} else if (
   item.id ===
   "testing"
 ) {
+  const adminSession =
+    localStorage.getItem(
+      "sx-session-token"
+    );
+
+  if (adminSession) {
+    localStorage.setItem(
+      "sx-admin-session-token",
+      adminSession
+    );
+  }
+
   setProfileId(
     "testing"
   );
 
   setViewingAs(
     null
-  );
-
-  localStorage.removeItem(
-    "sx-viewing-as"
   );
 
   setShowProfile(
