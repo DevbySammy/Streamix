@@ -1611,6 +1611,103 @@ if (
     }
 
     // ==================================================
+// LIBRARY - ENSURE TMDB TITLE
+// ==================================================
+
+if (
+  url.pathname ===
+    "/api/library/ensure" &&
+  request.method === "POST"
+) {
+  const auth =
+    await requireSession();
+
+  if (auth instanceof Response) {
+    return auth;
+  }
+
+  const body =
+    await request.json<{
+      tmdb_id: number;
+      media_type: "movie" | "tv";
+      title: string;
+      poster_path?: string | null;
+      backdrop_path?: string | null;
+      overview?: string | null;
+      release_date?: string | null;
+      vote_average?: number | null;
+    }>();
+
+  if (
+    body.tmdb_id === undefined ||
+    !body.media_type ||
+    !body.title
+  ) {
+    return json(
+      {
+        error:
+          "tmdb_id, media_type and title are required."
+      },
+      400
+    );
+  }
+
+  const id =
+    "tmdb-" +
+    body.media_type +
+    "-" +
+    String(body.tmdb_id);
+
+  await env.DB
+    .prepare(`
+      INSERT INTO library_items (
+        id,
+        tmdb_id,
+        media_type,
+        title,
+        poster_path,
+        backdrop_path,
+        overview,
+        release_date,
+        vote_average
+      )
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ON CONFLICT(id)
+      DO UPDATE SET
+        title = excluded.title,
+        poster_path = excluded.poster_path,
+        backdrop_path = excluded.backdrop_path,
+        overview = excluded.overview,
+        release_date = excluded.release_date,
+        vote_average = excluded.vote_average
+    `)
+    .bind(
+      id,
+      body.tmdb_id,
+      body.media_type,
+      body.title,
+      body.poster_path ?? null,
+      body.backdrop_path ?? null,
+      body.overview ?? null,
+      body.release_date ?? null,
+      body.vote_average ?? null
+    )
+    .run();
+
+  const result =
+    await env.DB
+      .prepare(`
+        SELECT *
+        FROM library_items
+        WHERE id = ?
+      `)
+      .bind(id)
+      .first();
+
+  return json(result);
+}
+    
+    // ==================================================
     // LIBRARY - DELETE
     // ==================================================
 
