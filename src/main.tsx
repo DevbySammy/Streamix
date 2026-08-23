@@ -1907,15 +1907,17 @@ const visible = useMemo(() => {
     source = library.filter(title =>
       state.rewatch.includes(title.id)
     );
-  } else if (sort === "just-added") {
-    source =
-      isAdmin &&
-      justAddedView === "hidden"
-        ? hiddenJustAdded
-        : tmdbCatalog;
-  } else {
-    source = library;
-  }
+} else if (
+  sort === "just-added"
+) {
+  source =
+    isAdmin &&
+    justAddedView === "hidden"
+      ? hiddenJustAdded
+      : tmdbCatalog;
+} else {
+  source = tmdbCatalog;
+}
 
   const filtered =
     source
