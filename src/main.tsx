@@ -4356,7 +4356,6 @@ onSave={(
   if (!profileId) {
     return;
   }
-
         setReminders(
           current => [
             ...current,
@@ -4368,9 +4367,9 @@ onSave={(
   date,
   time,
   method
-}
-          ]
-        );
+  }
+    ]
+      );
 
         setShowReminder(
           null
