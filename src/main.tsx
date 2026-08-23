@@ -5377,17 +5377,6 @@ function Card({
             : "TV"}
         </span>
 
-         {!isAdmin && (
-  <div
-    className="poster-actions"
-    style={{
-      position: "absolute",
-      top: "8px",
-      right: "8px",
-      zIndex: 20,
-      display: "flex",
-      gap: "6px"
-    }}
   >
     <button
       type="button"
