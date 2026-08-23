@@ -3339,6 +3339,11 @@ LIBRARY CONTROLS
   item.id ===
   "testing"
 ) {
+  localStorage.setItem(
+    "sx-testing-active",
+    "true"
+  );
+
   setProfileId(
     "testing"
   );
