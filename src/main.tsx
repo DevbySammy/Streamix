@@ -5360,6 +5360,7 @@ function ProfileLogin({
     </Modal>
   );
 }
+
 /* =========================================================
 CARD
 ========================================================= */
@@ -5469,6 +5470,7 @@ function Card({
   </button>
 
 </div>
+          
   title={
     isOnWatchlist
       ? "Remove from Watchlist"
