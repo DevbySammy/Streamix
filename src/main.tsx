@@ -2661,6 +2661,10 @@ return ( <div className="app">
     "sx-viewing-as"
   );
 
+  localStorage.removeItem(
+    "sx-testing-active"
+  );
+
   setProfileId(
     "admin"
   );
