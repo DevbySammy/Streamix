@@ -2637,11 +2637,18 @@ return ( <div className="app">
 
 {isViewingAs && (
   <span className="admin-viewing-label">
-       👁️ AS{" "}
+    <span className="viewing-label-desktop">
+      👁️ VIEWING AS{" "}
+    </span>
+
+    <span className="viewing-label-mobile">
+      👁️ AS{" "}
+    </span>
+
     {profiles.find(
       item =>
         item.id === viewingAs
-    )?.name || "USER"}
+    )?.name || "user"}
   </span>
 )}
 
