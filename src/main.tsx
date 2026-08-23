@@ -4324,58 +4324,98 @@ if (
     />
   )}
 
-  {/* REMINDER */}
-
-  {showReminder && (
-    <ReminderModal
-      title={
-       showReminder
-      }
-      onClose={() =>
-        setShowReminder(
-          null
-        )
-      }
-onSave={(
-  date,
-  time,
-  method
-) => {
-  if (
-    method === "calendar" ||
-    method === "both"
-  ) {
-    addReminderToCalendar(
-      showReminder,
+ {/* REMINDER */}
+{showReminder && (
+  <ReminderModal
+    title={showReminder}
+    onClose={() =>
+      setShowReminder(null)
+    }
+    onSave={async (
       date,
-      time
-    );
-  }
+      time,
+      method
+    ) => {
+      if (!profileId) {
+        return;
+      }
 
-  if (!profileId) {
-    return;
-  }
+      try {
+        if (
+          method === "calendar" ||
+          method === "both"
+        ) {
+          addReminderToCalendar(
+            showReminder,
+            date,
+            time
+          );
+        }
+
+        const sessionId =
+          localStorage.getItem(
+            "sx-session-token"
+          );
+
+        const response =
+          await fetch(
+            "https://streamix.gaintrainstrong.workers.dev/api/reminders",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type":
+                  "application/json",
+                ...(sessionId
+                  ? {
+                      Authorization:
+                        `Bearer ${sessionId}`
+                    }
+                  : {})
+              },
+              body: JSON.stringify({
+                profileId,
+                libraryItemId:
+                  showReminder.id,
+                reminderDate: date,
+                reminderTime: time
+              })
+            }
+          );
+
+        const data =
+          await response.json();
+
+        if (!response.ok) {
+          throw new Error(
+            data?.error ||
+              "Failed to save reminder."
+          );
+        }
+
         setReminders(
           current => [
             ...current,
             {
-  id: uid(),
-  profileId,
-  titleId:
-    showReminder.id,
-  date,
-  time,
-  method
-  }
-    ]
-      );
-
-        setShowReminder(
-          null
+              id: data.id,
+              profileId,
+              libraryItemId:
+                showReminder.id,
+              reminderDate: date,
+              reminderTime: time
+            }
+          ]
         );
-      }}
-    />
-  )}
+
+        setShowReminder(null);
+      } catch (error) {
+        console.error(
+          "Failed to save reminder:",
+          error
+        );
+      }
+    }}
+  />
+)}
 
   {/* SCHEDULE */}
 
