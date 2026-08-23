@@ -5522,62 +5522,35 @@ function Card({
       {!isAdmin && (
         <>
 
-          <div className="actions">
+         <div className="actions">
 
-            <button
-              type="button"
-              className={
-                isOnWatchlist
-                  ? "on"
-                  : ""
-              }
-              onClick={onList}
-            >
-              {isOnWatchlist
-                ? "✓ Added"
-                : "+ Watchlist"}
-            </button>
+  <button
+    type="button"
+    className={
+      isWatched
+        ? "on"
+        : ""
+    }
+    onClick={onWatch}
+  >
+    {isWatched
+      ? "✓ Watched"
+      : "Mark watched"}
+  </button>
 
-            <button
-              type="button"
-              className={
-                isWatched
-                  ? "on"
-                  : ""
-              }
-              onClick={onWatch}
-            >
-              {isWatched
-                ? "✓ Watched"
-                : "Mark watched"}
-            </button>
+  <button
+    type="button"
+    className={
+      isRewatch
+        ? "rewatch-action on"
+        : "rewatch-action"
+    }
+    onClick={onRewatch}
+  >
+    ↻ Re-watch
+  </button>
 
-          </div>
-
-          <div className="small-actions">
-
-            <button
-              type="button"
-              className={
-                isRewatch
-                  ? "rewatch-action on"
-                  : "rewatch-action"
-              }
-              onClick={onRewatch}
-            >
-              ↻ Re-watch
-            </button>
-
-            <button
-              type="button"
-              className="remind-button"
-              onClick={onReminder}
-            >
-              <Bell size={14} />
-              Remind me
-            </button>
-
-          </div>
+</div>
 
         </>
       )}
