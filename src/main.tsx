@@ -389,6 +389,11 @@ const [
   setTmdbCatalogLoading
 ] = useState(false);
 
+   const [
+  tmdbCatalogHasMore,
+  setTmdbCatalogHasMore
+] = useState(true);
+
    useEffect(() => {
   async function loadTMDBCatalog() {
     if (
