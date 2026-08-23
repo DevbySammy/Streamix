@@ -3287,15 +3287,10 @@ LIBRARY CONTROLS
                     return;
                   }
 
- if (
+if (
   profileId === "testing" &&
   item.id === "admin"
 ) {
-localStorage.setItem(
-  "sx-testing-active",
-  "false"
-);
-
   const adminSession =
     localStorage.getItem(
       "sx-admin-session-token"
@@ -3307,6 +3302,10 @@ localStorage.setItem(
       adminSession
     );
   }
+
+  localStorage.removeItem(
+    "sx-testing-active"
+  );
 
   setProfileId(
     "admin"
