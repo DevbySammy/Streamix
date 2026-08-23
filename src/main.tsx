@@ -145,7 +145,15 @@ path
 TMDB
 ========================================================= */
 
-const API_BASE_URL =
+async function searchTMDB(
+query: string
+): Promise<Title[]> {
+const cleanQuery = query.trim();
+
+if (!cleanQuery) {
+return [];
+}
+  const API_BASE_URL =
   "https://streamix.gaintrainstrong.workers.dev";
 
 async function apiFetch(
@@ -179,8 +187,7 @@ async function apiFetch(
     }
   );
 
-  const data =
-    await response.json();
+  const data = await response.json();
 
   if (!response.ok) {
     throw new Error(
@@ -191,134 +198,103 @@ async function apiFetch(
 
   return data;
 }
+  
+const url =
+  API_BASE_URL +
+  "/api/tmdb/search?query=" +
+  encodeURIComponent(cleanQuery) +
+  "&type=multi";
 
-async function searchTMDB(
-  query: string
-): Promise<Title[]> {
-  const cleanQuery =
-    query.trim();
+const sessionId =
+  localStorage.getItem("sx-session-token");
 
-  if (!cleanQuery) {
-    return [];
+const response = await fetch(
+  url,
+  {
+    headers: sessionId
+      ? {
+          Authorization:
+            `Bearer ${sessionId}`
+        }
+      : {}
   }
+);
 
-  const url =
-    API_BASE_URL +
-    "/api/tmdb/search?query=" +
-    encodeURIComponent(
-      cleanQuery
-    ) +
-    "&type=multi";
+if (!response.ok) {
+  throw new Error("TMDB search failed");
+}
 
-  const sessionId =
-    localStorage.getItem(
-      "sx-session-token"
-    );
+const data = await response.json();
 
-  const response =
-    await fetch(
-      url,
-      {
-        headers: sessionId
-          ? {
-              Authorization:
-                `Bearer ${sessionId}`
-            }
-          : {}
-      }
-    );
+const results = Array.isArray(data.results)
+? data.results
+: [];
 
-  if (!response.ok) {
-    throw new Error(
-      "TMDB search failed"
-    );
-  }
+return results
+.filter(
+(item: any) =>
+item &&
+(item.media_type === "movie" ||
+item.media_type === "tv")
+)
+.map((item: any): Title => {
+const kind: Kind =
+item.media_type === "tv"
+? "tv"
+: "movie";
 
-  const data =
-    await response.json();
 
-  const results =
-    Array.isArray(
-      data.results
-    )
-      ? data.results
-      : [];
+  const releaseDate =
+    kind === "movie"
+      ? item.release_date
+      : item.first_air_date;
 
-  return results
-    .filter(
-      (item: any) =>
-        item &&
-        (
-          item.media_type ===
-            "movie" ||
-          item.media_type ===
-            "tv"
+  const year =
+    releaseDate &&
+    typeof releaseDate === "string"
+      ? Number(
+          releaseDate.slice(0, 4)
         )
-    )
-    .map(
-      (item: any): Title => {
-        const kind: Kind =
-          item.media_type ===
-          "tv"
-            ? "tv"
-            : "movie";
+      : 0;
 
-        const releaseDate =
-          kind === "movie"
-            ? item.release_date
-            : item.first_air_date;
+  const name =
+    kind === "movie"
+      ? item.title || "Untitled"
+      : item.name || "Untitled";
 
-        const year =
-          releaseDate &&
-          typeof releaseDate ===
-            "string"
-            ? Number(
-                releaseDate.slice(
-                  0,
-                  4
-                )
-              )
-            : 0;
+  return {
+    id:
+      "tmdb-" +
+      kind +
+      "-" +
+      String(item.id),
+    name,
+    kind,
+    year,
+    poster: getPosterUrl(
+      item.poster_path
+    ),
+    backdrop: getBackdropUrl(
+      item.backdrop_path
+    ),
+    overview:
+      typeof item.overview === "string"
+        ? item.overview
+        : "",
+    addedAt:
+      new Date().toISOString()
+  };
+});
 
-        const name =
-          kind === "movie"
-            ? item.title ||
-              "Untitled"
-            : item.name ||
-              "Untitled";
 
-        return {
-          id:
-            "tmdb-" +
-            kind +
-            "-" +
-            String(item.id),
-          name,
-          kind,
-          year,
-          poster:
-            getPosterUrl(
-              item.poster_path
-            ),
-          backdrop:
-            getBackdropUrl(
-              item.backdrop_path
-            ),
-          overview:
-            typeof item.overview ===
-            "string"
-              ? item.overview
-              : "",
-          addedAt:
-            new Date().toISOString()
-        };
-      }
-    );
 }
 
 async function ensureTMDBLibraryItem(
   title: Title
 ): Promise<Title> {
+  const API_BASE_URL =
+    "https://streamix.gaintrainstrong.workers.dev";
+
   const sessionId =
     localStorage.getItem(
       "sx-session-token"
@@ -374,15 +350,15 @@ async function ensureTMDBLibraryItem(
       }
     );
 
-  const data =
-    await response.json();
+const data =
+  await response.json();
 
-  setTmdbCatalogHasMore(
-    Boolean(
-      data.total_pages &&
-      1 < data.total_pages
-    )
-  );
+setTmdbCatalogHasMore(
+  Boolean(
+    data.total_pages &&
+    1 < data.total_pages
+  )
+);
 
   if (!response.ok) {
     throw new Error(
@@ -1120,9 +1096,54 @@ useEffect(() => {
   >({});
 
   const [
-  reminders,
-  setReminders
-] = useState<Reminder[]>([]);
+    reminders,
+    setReminders
+  ] = useState<Reminder[]>([]);
+
+   useEffect(() => {
+  async function loadReminders() {
+    if (!profileId) {
+      return;
+    }
+
+    try {
+      const data =
+        await apiFetch(
+          `/api/reminders?profileId=${encodeURIComponent(
+            profileId
+          )}`
+        );
+
+      const loadedReminders =
+        Array.isArray(data)
+          ? data
+          : [];
+
+      setReminders(
+        loadedReminders.map(
+          (reminder: any) => ({
+            id: reminder.id,
+            profileId:
+              reminder.profile_id,
+            libraryItemId:
+              reminder.library_item_id,
+            reminderDate:
+              reminder.reminder_date,
+            reminderTime:
+              reminder.reminder_time
+          })
+        )
+      );
+    } catch (error) {
+      console.error(
+        "Failed to load reminders:",
+        error
+      );
+    }
+  }
+
+  loadReminders();
+}, [profileId]);
    
   const [
     scheduled,
@@ -1180,353 +1201,292 @@ useEffect(() => {
     loadHeroSettings();
   }, []);
    
-/* =======================================================
-AUTHENTICATION / SESSION
-======================================================= */
+ /* =======================================================
+ AUTHENTICATION / SESSION
+ ======================================================= */
 
-const [profileId, setProfileId] =
-  useState<string | null>(null);
+ const [profileId, setProfileId] =
+   useState<string | null>(null);
 
-    useEffect(() => {
-  async function loadReminders() {
-    if (!profileId) {
-      return;
-    }
-     
-    try {
-    const sessionId =
-  localStorage.getItem(
+ const [viewingAs, setViewingAs] =
+   useState<string | null>(() =>
+     localStorage.getItem(
+       "sx-viewing-as"
+     )
+   );
+
+ const [sessionRestoring, setSessionRestoring] =
+   useState(true);
+
+ useEffect(() => {
+   async function restoreSession() {
+     const sessionId =
+       localStorage.getItem(
+         "sx-session-token"
+       );
+
+     if (!sessionId) {
+       setSessionRestoring(false);
+       return;
+     }
+
+     try {
+       const response = await fetch(
+         "https://streamix.gaintrainstrong.workers.dev/api/auth/session",
+         {
+           method: "GET",
+           headers: {
+             Authorization:
+               `Bearer ${sessionId}`
+           }
+         }
+       );
+
+    if (!response.ok) {
+  // The saved session is no longer valid.
+  localStorage.removeItem(
     "sx-session-token"
   );
-
-const response = await fetch(
-  "https://streamix.gaintrainstrong.workers.dev/api/reminders?profileId=" +
-    encodeURIComponent(profileId),
-  {
-    headers: sessionId
-      ? {
-          Authorization:
-            `Bearer ${sessionId}`
-        }
-      : {}
-  }
-);
-
-if (!response.ok) {
-  throw new Error(
-    "Failed to load reminders."
-  );
+  setProfileId(null);
+  setViewingAs(null);
+  setSessionRestoring(false);
+  return;
 }
 
 const data =
   await response.json();
 
-      const loadedReminders =
-        Array.isArray(data)
-          ? data
-          : [];
-
-      setReminders(
-        loadedReminders.map(
-          (reminder: any) => ({
-            id: reminder.id,
-            profileId:
-              reminder.profile_id,
-            libraryItemId:
-              reminder.library_item_id,
-            reminderDate:
-              reminder.reminder_date,
-            reminderTime:
-              reminder.reminder_time
-          })
-        )
-      );
-    } catch (error) {
-      console.error(
-        "Failed to load reminders:",
-        error
-      );
-    }
-  }
-
-  loadReminders();
-}, [profileId]);
-
-const [viewingAs, setViewingAs] =
-  useState<string | null>(() =>
+if (
+  data.authenticated &&
+  data.profile?.id
+) {
+  const savedTestingProfile =
     localStorage.getItem(
-      "sx-viewing-as"
-    )
-  );
+      "sx-testing-active"
+    );
 
-const [sessionRestoring, setSessionRestoring] =
-  useState(true);
-
-useEffect(() => {
-  async function restoreSession() {
-    const sessionId =
-      localStorage.getItem(
-        "sx-session-token"
-      );
-
-    if (!sessionId) {
-      setSessionRestoring(false);
-      return;
-    }
-
-    try {
-      const response = await fetch(
-        "https://streamix.gaintrainstrong.workers.dev/api/auth/session",
-        {
-          method: "GET",
-          headers: {
-            Authorization:
-              `Bearer ${sessionId}`
-          }
-        }
-      );
-
-      if (!response.ok) {
-        // The saved session is no longer valid.
-        localStorage.removeItem(
-          "sx-session-token"
-        );
-        setProfileId(null);
-        setViewingAs(null);
-        setSessionRestoring(false);
-        return;
-      }
-
-      const data =
-        await response.json();
-
-      if (
-        data.authenticated &&
-        data.profile?.id
-      ) {
-        const savedTestingProfile =
-          localStorage.getItem(
-            "sx-testing-active"
-          );
-
-        if (
-          data.profile.id === "admin" &&
-          savedTestingProfile === "true"
-        ) {
-          setProfileId(
-            "testing"
-          );
-        } else {
-          setProfileId(
-            data.profile.id
-          );
-        }
-      } else {
-        localStorage.removeItem(
-          "sx-session-token"
-        );
-        setProfileId(null);
-        setViewingAs(null);
-      }
-    } catch (error) {
-      console.error(
-        "Failed to restore session:",
-        error
-      );
-
-      // Keep the saved session if this was
-      // only a temporary network problem.
-    } finally {
-      setSessionRestoring(false);
-    }
+  if (
+    data.profile.id === "admin" &&
+    savedTestingProfile === "true"
+  ) {
+    setProfileId(
+      "testing"
+    );
+  } else {
+    setProfileId(
+      data.profile.id
+    );
   }
-
-  restoreSession();
-}, []);
-
-const [tab, setTab] =
-  useState<"library" | "rewatch">(
-    "library"
+}
+else {
+  localStorage.removeItem(
+    "sx-session-token"
+  );
+  setProfileId(null);
+  setViewingAs(null);
+}
+} catch (error) {
+  console.error(
+    "Failed to restore session:",
+    error
   );
 
-const [filter, setFilter] =
-  useState<
-    "all" | "watchlist" | "watched" | "rewatch"
-  >("all");
+       // Keep the saved session if this was
+       // only a temporary network problem.
+     } finally {
+       setSessionRestoring(false);
+     }
+   }
 
-const [filterClicked, setFilterClicked] =
-  useState(false);
+   restoreSession();
+ }, []);
 
-const [kind, setKind] =
-  useState<"all" | Kind>("all");
+ const [tab, setTab] =
+   useState<"library" | "rewatch">(
+     "library"
+   );
 
-const [kindClicked, setKindClicked] =
-  useState(true);
+ const [filter, setFilter] =
+   useState<
+     "all" | "watchlist" | "watched" | "rewatch"
+   >("all");
+
+ const [filterClicked, setFilterClicked] =
+   useState(false);
+
+ const [kind, setKind] =
+   useState<"all" | Kind>("all");
+
+ const [kindClicked, setKindClicked] =
+   useState(true);
+
 
 const [sort, setSort] =
   useState<SortOption>("year-desc");
 
-useEffect(() => {
-  if (sort !== "just-added") {
-    return;
-  }
+ useEffect(() => {
+   if (sort !== "just-added") {
+     return;
+   }
 
-  async function loadJustAdded() {
-    try {
-      const sessionId =
-        localStorage.getItem(
-          "sx-session-token"
-        );
+   async function loadJustAdded() {
+     try {
+       const sessionId =
+         localStorage.getItem(
+           "sx-session-token"
+         );
 
-      const response = await fetch(
-        "https://streamix.gaintrainstrong.workers.dev/api/tmdb/just-added",
-        {
-          headers: sessionId
-            ? {
-                Authorization:
-                  `Bearer ${sessionId}`
-              }
-            : {}
-        }
-      );
 
-      const data =
-        await response.json();
+       const response = await fetch(
+         "https://streamix.gaintrainstrong.workers.dev/api/tmdb/just-added",
+         {
+           headers: sessionId
+             ? {
+                 Authorization:
+                   `Bearer ${sessionId}`
+               }
+             : {}
+         }
+       );
 
-      if (!response.ok) {
-        throw new Error(
-          data?.error ||
-            "Unable to load Just Added."
-        );
-      }
+       const data =
+         await response.json();
 
-      const results =
-        Array.isArray(data.results)
-          ? data.results
-          : [];
+       if (!response.ok) {
+         throw new Error(
+           data?.error ||
+             "Unable to load Just Added."
+         );
+       }
 
-      const titles: Title[] =
-        results
-          .filter(
-            (item: any) =>
-              typeof item.poster_path === "string" &&
-              item.poster_path.trim() !== ""
-          )
-          .map(
-            (item: any): Title => {
-              const kind: Kind =
-                item.media_type === "tv"
-                  ? "tv"
-                  : "movie";
+       const results =
+         Array.isArray(data.results)
+           ? data.results
+           : [];
 
-              const releaseDate =
-                kind === "movie"
-                  ? item.release_date
-                  : item.first_air_date;
+       const titles: Title[] =
+         results
+           .filter(
+             (item: any) =>
+               typeof item.poster_path === "string" &&
+               item.poster_path.trim() !== ""
+           )
+           .map(
+             (item: any): Title => {
+               const kind: Kind =
+                 item.media_type === "tv"
+                   ? "tv"
+                   : "movie";
 
-              const year =
-                releaseDate &&
-                typeof releaseDate ===
-                  "string"
-                  ? Number(
-                      releaseDate.slice(0, 4)
-                    )
-                  : 0;
+               const releaseDate =
+                 kind === "movie"
+                   ? item.release_date
+                   : item.first_air_date;
 
-              const name =
-                kind === "movie"
-                  ? item.title ||
-                    "Untitled"
-                  : item.name ||
-                    "Untitled";
+               const year =
+                 releaseDate &&
+                 typeof releaseDate ===
+                   "string"
+                   ? Number(
+                       releaseDate.slice(0, 4)
+                     )
+                   : 0;
 
-              return {
-                id:
-                  "tmdb-" +
-                  kind +
-                  "-" +
-                  String(item.id),
-                name,
-                kind,
-                year,
-                poster:
-                  getPosterUrl(
-                    item.poster_path
-                  ),
-                backdrop:
-                  getBackdropUrl(
-                    item.backdrop_path
-                  ),
-                overview:
-                  typeof item.overview ===
-                  "string"
-                    ? item.overview
-                    : "",
-                addedAt:
-                  releaseDate || ""
-              };
-            }
-          );
+               const name =
+                 kind === "movie"
+                   ? item.title ||
+                     "Untitled"
+                   : item.name ||
+                     "Untitled";
 
-      const dedupedTitles =
-        Array.from(
-          new Map(
-            titles.map(
-              title => [
-                title.id,
-                title
-              ]
-            )
-          ).values()
-        );
+               return {
+                 id:
+                   "tmdb-" +
+                   kind +
+                   "-" +
+                   String(item.id),
+                 name,
+                 kind,
+                 year,
+                 poster:
+                   getPosterUrl(
+                     item.poster_path
+                   ),
+                 backdrop:
+                   getBackdropUrl(
+                     item.backdrop_path
+                   ),
+                 overview:
+                   typeof item.overview ===
+                   "string"
+                     ? item.overview
+                     : "",
+                 addedAt:
+                   releaseDate || ""
+               };
+             }
+           );
 
-      setJustAdded(
-        dedupedTitles
-      );
-    } catch (error) {
-      console.error(
-        "Failed to load Just Added:",
-        error
-      );
+       const dedupedTitles =
+         Array.from(
+           new Map(
+             titles.map(
+               title => [
+                 title.id,
+                 title
+               ]
+             )
+           ).values()
+         );
 
-      setJustAdded([]);
-    }
-  }
+       setJustAdded(
+         dedupedTitles
+       );
+     } catch (error) {
+       console.error(
+         "Failed to load Just Added:",
+         error
+       );
 
-  loadJustAdded();
-}, [sort]);
+       setJustAdded([]);
+     }
+   }
 
-const [q, setQ] = useState("");
+   loadJustAdded();
+ }, [sort]);
 
-const [showProfile, setShowProfile] =
-  useState(false);
+ const [q, setQ] = useState("");
 
-const [loginProfile, setLoginProfile] =
-  useState<Profile | null>(null);
+ const [showProfile, setShowProfile] =
+   useState(false);
 
-const [showAdd, setShowAdd] =
-  useState(false);
+ const [loginProfile, setLoginProfile] =
+   useState<Profile | null>(null);
 
-const [showReco, setShowReco] =
-  useState(false);
+ const [showAdd, setShowAdd] =
+   useState(false);
 
-const [showReminder, setShowReminder] =
-  useState<Title | null>(null);
+ const [showReco, setShowReco] =
+   useState(false);
 
-const [showSchedule, setShowSchedule] =
-  useState<Title | null>(null);
+ const [showReminder, setShowReminder] =
+   useState<Title | null>(null);
 
-const [showHero, setShowHero] =
-  useState(false);
+ const [showSchedule, setShowSchedule] =
+   useState<Title | null>(null);
 
-const [showDeleted, setShowDeleted] =
-  useState(false);
+ const [showHero, setShowHero] =
+   useState(false);
 
-const [editing, setEditing] =
-  useState<Profile | null>(null);
+ const [showDeleted, setShowDeleted] =
+   useState(false);
 
-const [menu, setMenu] =
-  useState(false);
+ const [editing, setEditing] =
+   useState<Profile | null>(null);
+
+ const [menu, setMenu] =
+   useState(false);
+   
 /* =======================================================
 PROFILE DRAGGING
 ======================================================= */
