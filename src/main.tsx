@@ -3079,7 +3079,7 @@ return ( <div className="app">
     }}
     aria-label="Back to Admin"
   >
-    ← BACK TO ADMIN
+    ← ADMIN
   </button>
 )}
 
