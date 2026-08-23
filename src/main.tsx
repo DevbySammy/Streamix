@@ -3502,15 +3502,6 @@ LIBRARY CONTROLS
         </button>
       )}
 
-    {isAdmin && (
-  <button
-    className="add-profile"
-  >
-    <Plus />
-    Add Profile
-  </button>
-)}
-
     </div>
 
   </Modal>
