@@ -3325,9 +3325,7 @@ LIBRARY CONTROLS
                       item.id ===
                       "testing"
                     ) {
-                      setLoginProfile(
-                        item
-                      );
+                  handleTestingLogin();
 
                       setShowProfile(
                         false
