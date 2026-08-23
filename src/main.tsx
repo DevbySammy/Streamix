@@ -2979,100 +2979,112 @@ LIBRARY CONTROLS
         All
       </button>
 
-      <button
-        className={
-          kind === "movie"
-            ? "selected"
-            : ""
-        }
-        onClick={() => {
-          setKind("movie");
-          setKindClicked(true);
-          setFilter("all");
-          setFilterClicked(false);
-        }}
-      >
-        <Film size={15} />
-        Movies
-      </button>
+    <button
+  className={
+    kind === "movie"
+      ? "selected"
+      : ""
+  }
+  onClick={() => {
+    if (kind === "movie") {
+      setKind("all");
+      setKindClicked(false);
+    } else {
+      setKind("movie");
+      setKindClicked(true);
+    }
 
-      <button
-        className={
-          kind === "tv"
-            ? "selected"
-            : ""
-        }
-        onClick={() => {
-          setKind("tv");
-          setKindClicked(true);
-          setFilter("all");
-          setFilterClicked(false);
-        }}
-      >
-        <Tv size={15} />
-        TV Shows
-      </button>
+    setFilter("all");
+    setFilterClicked(false);
+  }}
+>
+  <Film size={15} />
+  Movies
+</button>
 
-      {isAdmin &&
-        <button
-          type="button"
-          className={
-            "view-hidden-btn" +
-            (justAddedView === "hidden"
-              ? " selected"
-              : "")
-          }
-          onClick={() => {
-            setFilter("all");
-            setFilterClicked(false);
-            setKind("all");
-            setKindClicked(false);
+<button
+  className={
+    kind === "tv"
+      ? "selected"
+      : ""
+  }
+  onClick={() => {
+    if (kind === "tv") {
+      setKind("all");
+      setKindClicked(false);
+    } else {
+      setKind("tv");
+      setKindClicked(true);
+    }
 
-            setJustAddedView(current =>
-              current === "visible"
-                ? "hidden"
-                : "visible"
-            );
-          }}
-        >
-          {justAddedView === "hidden"
-            ? "Back to Just Added"
-            : "View Hidden"}
-        </button>
-      }
+    setFilter("all");
+    setFilterClicked(false);
+  }}
+>
+  <Tv size={15} />
+  TV Shows
+</button>
 
-      <select
-        className="sort-select"
-        value={sort}
-        onChange={event =>
-          setSort(
-            event.target.value as SortOption
-          )
-        }
-        aria-label="Filter library"
-      >
-        <option value="just-added">
-          Just Added
-        </option>
+{isAdmin &&
+  <button
+    type="button"
+    className={
+      "view-hidden-btn" +
+      (justAddedView === "hidden"
+        ? " selected"
+        : "")
+    }
+    onClick={() => {
+      setFilter("all");
+      setFilterClicked(false);
+      setKind("all");
+      setKindClicked(false);
 
-        <option value="name-asc">
-          Name A–Z
-        </option>
+      setJustAddedView(current =>
+        current === "visible"
+          ? "hidden"
+          : "visible"
+      );
+    }}
+  >
+    {justAddedView === "hidden"
+      ? "Back to Just Added"
+      : "View Hidden"}
+  </button>
+}
 
-        <option value="name-desc">
-          Name Z–A
-        </option>
+<select
+  className="sort-select"
+  value={sort}
+  onChange={event =>
+    setSort(
+      event.target.value as SortOption
+    )
+  }
+  aria-label="Filter library"
+>
+  <option value="just-added">
+    Just Added
+  </option>
 
-        <option value="year-desc">
-          Newest release
-        </option>
+  <option value="name-asc">
+    Name A–Z
+  </option>
 
-        <option value="year-asc">
-          Oldest release
-        </option>
-      </select>
+  <option value="name-desc">
+    Name Z–A
+  </option>
 
-    </div>
+  <option value="year-desc">
+    Newest release
+  </option>
+
+  <option value="year-asc">
+    Oldest release
+  </option>
+</select>
+
+</div>
 
     {isAdmin &&
       justAddedView === "hidden" && (
