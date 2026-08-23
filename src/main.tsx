@@ -2636,13 +2636,15 @@ return ( <div className="app">
       </button>
 
 {isViewingAs && (
-  <span className="admin-viewing-label">
+  <span className="admin-viewing-status">
+    <span className="status-dot" />
+
     <span className="viewing-label-desktop">
-      👁️ VIEWING AS {" "}
+      VIEWING AS{" "}
     </span>
 
     <span className="viewing-label-mobile">
-      👁️ AS{" "}
+      AS{" "}
     </span>
 
     {profiles.find(
