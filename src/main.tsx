@@ -3435,9 +3435,9 @@ LIBRARY CONTROLS
                 />
               </button>
 
-              {isAdmin &&
-                item.id !==
-                  "admin" && (
+         {isAdmin &&
+  item.id !== "admin" &&
+  item.id !== "testing" && (
                   <div
                     className="profile-drag-handle"
                     onPointerDown={event =>
