@@ -5470,20 +5470,6 @@ function Card({
   </button>
 
 </div>
-          
-  title={
-    isOnWatchlist
-      ? "Remove from Watchlist"
-      : "Add to Watchlist"
-  }
->
-  {isOnWatchlist ? (
-    <Check size={15} />
-  ) : (
-    <Plus size={15} />
-  )}
-</button>
-</div>
       )}
          
       {isAdmin && (
@@ -5598,6 +5584,7 @@ function Card({
 </article>
 );
 }
+
 /* =========================================================
 MODAL
 ========================================================= */
