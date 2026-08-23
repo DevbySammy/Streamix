@@ -3078,9 +3078,9 @@ return ( <div className="app">
       setMenu(false);
     }}
     aria-label="Back to Admin"
-  >
-    ← BACK TO ADMIN
-  </button>
+>
+  {isMobile ? "< ADMIN" : "← BACK TO ADMIN"}
+</button>
 )}
 
       {isAdmin &&
