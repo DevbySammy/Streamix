@@ -3321,20 +3321,29 @@ LIBRARY CONTROLS
                       setProfileId(
                         "admin"
                       );
-                  } else if (
-           item.id ===
-           "testing"
-         ) {
-           setLoginProfile(
-             item
-           );
+              } else if (
+  item.id ===
+  "testing"
+) {
+  setProfileId(
+    "testing"
+  );
 
-           setShowProfile(
-             false
-           );
+  setViewingAs(
+    null
+  );
 
-           return;
-         } else {
+  localStorage.removeItem(
+    "sx-viewing-as"
+  );
+
+  setShowProfile(
+    false
+  );
+
+  return;
+}
+                    else {
                       setViewingAs(
                         item.id
                       );
