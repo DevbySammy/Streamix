@@ -2386,6 +2386,213 @@ if (
     }
 
     // ==================================================
+// REMINDERS - GET
+// ==================================================
+
+if (
+  url.pathname === "/api/reminders" &&
+  request.method === "GET"
+) {
+  const auth =
+    await requireSession();
+
+  if (auth instanceof Response) {
+    return auth;
+  }
+
+  const requestedProfileId =
+    url.searchParams.get(
+      "profileId"
+    );
+
+  const profileId =
+    auth.profileId === "admin" &&
+    requestedProfileId
+      ? requestedProfileId
+      : auth.profileId;
+
+  const result =
+    await env.DB
+      .prepare(`
+        SELECT
+          id,
+          profile_id,
+          title_id,
+          date,
+          time,
+          method
+        FROM reminders
+        WHERE profile_id = ?
+        ORDER BY date ASC, time ASC
+      `)
+      .bind(profileId)
+      .all();
+
+  return json(
+    result.results
+  );
+}
+
+// ==================================================
+// REMINDERS - POST
+// ==================================================
+
+if (
+  url.pathname === "/api/reminders" &&
+  request.method === "POST"
+) {
+  const auth =
+    await requireSession();
+
+  if (auth instanceof Response) {
+    return auth;
+  }
+
+  const body =
+    await request.json<{
+      profileId: string;
+      titleId: string;
+      date: string;
+      time: string;
+      method:
+        | "push"
+        | "calendar"
+        | "both";
+    }>();
+
+  if (
+    !body.profileId ||
+    !body.titleId ||
+    !body.date ||
+    !body.time ||
+    !body.method
+  ) {
+    return json(
+      {
+        error:
+          "profileId, titleId, date, time and method are required."
+      },
+      400
+    );
+  }
+
+  if (
+    auth.profileId !==
+      "admin" &&
+    auth.profileId !==
+      body.profileId
+  ) {
+    return json(
+      {
+        error:
+          "Forbidden."
+      },
+      403
+    );
+  }
+
+  const id =
+    crypto.randomUUID();
+
+  await env.DB
+    .prepare(`
+      INSERT INTO reminders (
+        id,
+        profile_id,
+        title_id,
+        date,
+        time,
+        method
+      )
+      VALUES (?, ?, ?, ?, ?, ?)
+    `)
+    .bind(
+      id,
+      body.profileId,
+      body.titleId,
+      body.date,
+      body.time,
+      body.method
+    )
+    .run();
+
+  return json({
+    success: true,
+    id
+  });
+}
+
+// ==================================================
+// REMINDERS - DELETE
+// ==================================================
+
+if (
+  url.pathname === "/api/reminders" &&
+  request.method === "DELETE"
+) {
+  const auth =
+    await requireSession();
+
+  if (auth instanceof Response) {
+    return auth;
+  }
+
+  const profileId =
+    url.searchParams.get(
+      "profileId"
+    );
+
+  const id =
+    url.searchParams.get(
+      "id"
+    );
+
+  if (
+    !profileId ||
+    !id
+  ) {
+    return json(
+      {
+        error:
+          "profileId and id are required."
+      },
+      400
+    );
+  }
+
+  if (
+    auth.profileId !==
+      "admin" &&
+    auth.profileId !==
+      profileId
+  ) {
+    return json(
+      {
+        error:
+          "Forbidden."
+      },
+      403
+    );
+  }
+
+  await env.DB
+    .prepare(`
+      DELETE FROM reminders
+      WHERE id = ?
+      AND profile_id = ?
+    `)
+    .bind(
+      id,
+      profileId
+    )
+    .run();
+
+  return json({
+    success: true
+  });
+}
+    
+    // ==================================================
     // REWATCH - GET
     // ==================================================
 
