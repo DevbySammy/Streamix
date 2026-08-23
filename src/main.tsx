@@ -5357,89 +5357,104 @@ function Card({
     st.rewatch.includes(t.id);
 
   return (
-    <article className="card">
+  <article className="card">
 
-      <div className="poster-wrap">
+    <div className="poster-wrap">
 
-        <img
-          src={t.poster}
-          alt={t.name}
-          onError={event => {
-            event.currentTarget.src =
-              "https://placehold.co/500x750/171717/ffffff?text=" +
-              encodeURIComponent(t.name);
+      <img
+        src={t.poster}
+        alt={t.name}
+        onError={event => {
+          event.currentTarget.src =
+            "https://placehold.co/500x750/171717/ffffff?text=" +
+            encodeURIComponent(t.name);
+        }}
+      />
+
+      <span className="kind">
+        {t.kind === "movie"
+          ? "MOVIE"
+          : "TV"}
+      </span>
+
+      {!isAdmin && (
+        <div
+          className="poster-actions"
+          style={{
+            position: "absolute",
+            top: "8px",
+            right: "8px",
+            zIndex: 20,
+            display: "flex",
+            gap: "6px"
           }}
-        />
+        >
 
-        <span className="kind">
-          {t.kind === "movie"
-            ? "MOVIE"
-            : "TV"}
-        </span>
+          <button
+            type="button"
+            onClick={event => {
+              event.preventDefault();
+              event.stopPropagation();
+              onReminder();
+            }}
+            aria-label={
+              "Set reminder for " +
+              t.name
+            }
+            title="Remind me"
+            style={{
+              width: "36px",
+              height: "36px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              borderRadius: "50%",
+              cursor: "pointer"
+            }}
+          >
+            <Bell size={16} />
+          </button>
 
-    <button
-      type="button"
-      onClick={event => {
-        event.preventDefault();
-        event.stopPropagation();
-        onReminder();
-      }}
-      aria-label={
-        "Set reminder for " +
-        t.name
-      }
-      title="Remind me"
-      style={{
-        width: "36px",
-        height: "36px",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        borderRadius: "50%",
-        cursor: "pointer"
-      }}
-    >
-      <Bell size={16} />
-    </button>
+          <button
+            type="button"
+            onClick={event => {
+              event.preventDefault();
+              event.stopPropagation();
+              onList();
+            }}
+            aria-label={
+              isOnWatchlist
+                ? "Remove " +
+                  t.name +
+                  " from watchlist"
+                : "Add " +
+                  t.name +
+                  " to watchlist"
+            }
+            title={
+              isOnWatchlist
+                ? "Remove from watchlist"
+                : "Add to watchlist"
+            }
+            style={{
+              width: "36px",
+              height: "36px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              borderRadius: "50%",
+              cursor: "pointer"
+            }}
+          >
+            {isOnWatchlist ? (
+              <Check size={16} />
+            ) : (
+              <Plus size={16} />
+            )}
+          </button>
 
-    <button
-      type="button"
-      onClick={event => {
-        event.preventDefault();
-        event.stopPropagation();
-        onList();
-      }}
-      aria-label={
-        isOnWatchlist
-          ? "Remove " +
-            t.name +
-            " from watchlist"
-          : "Add " +
-            t.name +
-            " to watchlist"
-      }
-      title={
-        isOnWatchlist
-          ? "Remove from watchlist"
-          : "Add to watchlist"
-      }
-      style={{
-        width: "36px",
-        height: "36px",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        borderRadius: "50%",
-        cursor: "pointer"
-      }}
-    >
-      {isOnWatchlist ? (
-        <Check size={16} />
-      ) : (
-        <Plus size={16} />
+        </div>
       )}
-    </button>
-  </div>
          
         {isAdmin && (
           <button
