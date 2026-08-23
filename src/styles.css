@@ -480,9 +480,6 @@ header {
 }
 
 .poster-action-buttons {
-  position: absolute;
-  top: 8px;
-  right: 8px;
   display: flex;
   flex-direction: column;
   gap: 4px;
