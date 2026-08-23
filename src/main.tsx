@@ -3339,7 +3339,7 @@ LIBRARY CONTROLS
             setJustAddedView("visible");
           }}
         >
-          Watchlist
+          My list
         </button>
 
         <button
