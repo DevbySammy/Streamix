@@ -1706,6 +1706,181 @@ if (
 
   return json(result);
 }
+
+    // ==================================================
+// TMDB - CATALOG
+// ==================================================
+
+if (
+  url.pathname ===
+    "/api/tmdb/catalog" &&
+  request.method === "GET"
+) {
+  const auth =
+    await requireSession();
+
+  if (auth instanceof Response) {
+    return auth;
+  }
+
+  if (!env.TMDB_READ_ACCESS_TOKEN) {
+    return json(
+      {
+        error:
+          "TMDB_READ_ACCESS_TOKEN is not configured."
+      },
+      500
+    );
+  }
+
+  const page =
+    Math.max(
+      1,
+      Number(
+        url.searchParams.get(
+          "page"
+        ) || "1"
+      )
+    );
+
+  const type =
+    url.searchParams.get(
+      "type"
+    ) || "all";
+
+  async function discover(
+    mediaType:
+      | "movie"
+      | "tv"
+  ) {
+    const response =
+      await fetch(
+        "https://api.themoviedb.org/3/discover/" +
+          mediaType +
+          "?include_adult=false" +
+          "&include_video=false" +
+          "&language=en-US" +
+          "&with_original_language=en" +
+          "&sort_by=popularity.desc" +
+          "&page=" +
+          page,
+        {
+          headers: {
+            Authorization:
+              "Bearer " +
+              env.TMDB_READ_ACCESS_TOKEN,
+            accept:
+              "application/json"
+          }
+        }
+      );
+
+    const data =
+      await response.json();
+
+    if (!response.ok) {
+      throw new Error(
+        typeof data?.status_message ===
+        "string"
+          ? data.status_message
+          : "TMDB request failed."
+      );
+    }
+
+    return Array.isArray(
+      data.results
+    )
+      ? data.results
+      : [];
+  }
+
+  try {
+    let results: any[] = [];
+
+    if (type === "movie") {
+      results =
+        await discover("movie");
+    } else if (type === "tv") {
+      results =
+        await discover("tv");
+    } else {
+      const [
+        movies,
+        tvShows
+      ] = await Promise.all([
+        discover("movie"),
+        discover("tv")
+      ]);
+
+      results = [
+        ...movies.map(
+          item => ({
+            ...item,
+            media_type:
+              "movie"
+          })
+        ),
+        ...tvShows.map(
+          item => ({
+            ...item,
+            media_type:
+              "tv"
+          })
+        )
+      ];
+
+      results.sort(
+        (a, b) =>
+          Number(
+            b.popularity || 0
+          ) -
+          Number(
+            a.popularity || 0
+          )
+      );
+    }
+
+    results =
+      results.filter(
+        item => {
+          const title =
+            item.media_type ===
+            "tv"
+              ? item.name || ""
+              : item.title || "";
+
+          return (
+            item.original_language ===
+              "en" &&
+            /^[\x00-\x7F]*$/.test(
+              title
+            )
+          );
+        }
+      );
+
+    return json({
+      page,
+      results
+    });
+  } catch (error) {
+    console.error(
+      "TMDB CATALOG ERROR:",
+      error
+    );
+
+    return json(
+      {
+        error:
+          error instanceof Error
+            ? error.message
+            : "Unable to load TMDB catalog.",
+        results: []
+      },
+      500
+    );
+  }
+}
     
     // ==================================================
     // LIBRARY - DELETE
