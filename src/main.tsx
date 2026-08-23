@@ -2799,15 +2799,9 @@ return ( <div className="app">
 
     <div className="hero-content">
 
-      <div className="eyebrow">
-        {isViewingAs
-          ? "VIEWING AS " +
-            (
-              profile?.name ||
-              ""
-            ).toUpperCase()
-          : "FEATURED"}
-      </div>
+     <div className="eyebrow">
+  FEATURED
+</div>
 
       {hero ? (
         <>
