@@ -145,15 +145,7 @@ path
 TMDB
 ========================================================= */
 
-async function searchTMDB(
-query: string
-): Promise<Title[]> {
-const cleanQuery = query.trim();
-
-if (!cleanQuery) {
-return [];
-}
-  const API_BASE_URL =
+const API_BASE_URL =
   "https://streamix.gaintrainstrong.workers.dev";
 
 async function apiFetch(
@@ -187,7 +179,8 @@ async function apiFetch(
     }
   );
 
-  const data = await response.json();
+  const data =
+    await response.json();
 
   if (!response.ok) {
     throw new Error(
@@ -198,103 +191,134 @@ async function apiFetch(
 
   return data;
 }
-  
-const url =
-  API_BASE_URL +
-  "/api/tmdb/search?query=" +
-  encodeURIComponent(cleanQuery) +
-  "&type=multi";
 
-const sessionId =
-  localStorage.getItem("sx-session-token");
+async function searchTMDB(
+  query: string
+): Promise<Title[]> {
+  const cleanQuery =
+    query.trim();
 
-const response = await fetch(
-  url,
-  {
-    headers: sessionId
-      ? {
-          Authorization:
-            `Bearer ${sessionId}`
-        }
-      : {}
+  if (!cleanQuery) {
+    return [];
   }
-);
 
-if (!response.ok) {
-  throw new Error("TMDB search failed");
-}
+  const url =
+    API_BASE_URL +
+    "/api/tmdb/search?query=" +
+    encodeURIComponent(
+      cleanQuery
+    ) +
+    "&type=multi";
 
-const data = await response.json();
+  const sessionId =
+    localStorage.getItem(
+      "sx-session-token"
+    );
 
-const results = Array.isArray(data.results)
-? data.results
-: [];
+  const response =
+    await fetch(
+      url,
+      {
+        headers: sessionId
+          ? {
+              Authorization:
+                `Bearer ${sessionId}`
+            }
+          : {}
+      }
+    );
 
-return results
-.filter(
-(item: any) =>
-item &&
-(item.media_type === "movie" ||
-item.media_type === "tv")
-)
-.map((item: any): Title => {
-const kind: Kind =
-item.media_type === "tv"
-? "tv"
-: "movie";
+  if (!response.ok) {
+    throw new Error(
+      "TMDB search failed"
+    );
+  }
 
+  const data =
+    await response.json();
 
-  const releaseDate =
-    kind === "movie"
-      ? item.release_date
-      : item.first_air_date;
+  const results =
+    Array.isArray(
+      data.results
+    )
+      ? data.results
+      : [];
 
-  const year =
-    releaseDate &&
-    typeof releaseDate === "string"
-      ? Number(
-          releaseDate.slice(0, 4)
+  return results
+    .filter(
+      (item: any) =>
+        item &&
+        (
+          item.media_type ===
+            "movie" ||
+          item.media_type ===
+            "tv"
         )
-      : 0;
+    )
+    .map(
+      (item: any): Title => {
+        const kind: Kind =
+          item.media_type ===
+          "tv"
+            ? "tv"
+            : "movie";
 
-  const name =
-    kind === "movie"
-      ? item.title || "Untitled"
-      : item.name || "Untitled";
+        const releaseDate =
+          kind === "movie"
+            ? item.release_date
+            : item.first_air_date;
 
-  return {
-    id:
-      "tmdb-" +
-      kind +
-      "-" +
-      String(item.id),
-    name,
-    kind,
-    year,
-    poster: getPosterUrl(
-      item.poster_path
-    ),
-    backdrop: getBackdropUrl(
-      item.backdrop_path
-    ),
-    overview:
-      typeof item.overview === "string"
-        ? item.overview
-        : "",
-    addedAt:
-      new Date().toISOString()
-  };
-});
+        const year =
+          releaseDate &&
+          typeof releaseDate ===
+            "string"
+            ? Number(
+                releaseDate.slice(
+                  0,
+                  4
+                )
+              )
+            : 0;
 
+        const name =
+          kind === "movie"
+            ? item.title ||
+              "Untitled"
+            : item.name ||
+              "Untitled";
 
+        return {
+          id:
+            "tmdb-" +
+            kind +
+            "-" +
+            String(item.id),
+          name,
+          kind,
+          year,
+          poster:
+            getPosterUrl(
+              item.poster_path
+            ),
+          backdrop:
+            getBackdropUrl(
+              item.backdrop_path
+            ),
+          overview:
+            typeof item.overview ===
+            "string"
+              ? item.overview
+              : "",
+          addedAt:
+            new Date().toISOString()
+        };
+      }
+    );
 }
 
 async function ensureTMDBLibraryItem(
   title: Title
 ): Promise<Title> {
-  const API_BASE_URL =
-    "https://streamix.gaintrainstrong.workers.dev";
-
   const sessionId =
     localStorage.getItem(
       "sx-session-token"
@@ -350,15 +374,15 @@ async function ensureTMDBLibraryItem(
       }
     );
 
-const data =
-  await response.json();
+  const data =
+    await response.json();
 
-setTmdbCatalogHasMore(
-  Boolean(
-    data.total_pages &&
-    1 < data.total_pages
-  )
-);
+  setTmdbCatalogHasMore(
+    Boolean(
+      data.total_pages &&
+      1 < data.total_pages
+    )
+  );
 
   if (!response.ok) {
     throw new Error(
