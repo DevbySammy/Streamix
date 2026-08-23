@@ -388,6 +388,124 @@ const [
   tmdbCatalogLoading,
   setTmdbCatalogLoading
 ] = useState(false);
+
+   useEffect(() => {
+  async function loadTMDBCatalog() {
+    if (
+      tmdbCatalogLoading ||
+      tmdbCatalog.length > 0
+    ) {
+      return;
+    }
+
+    setTmdbCatalogLoading(true);
+
+    try {
+      const sessionId =
+        localStorage.getItem(
+          "sx-session-token"
+        );
+
+      const response =
+        await fetch(
+          "https://streamix.gaintrainstrong.workers.dev/api/tmdb/catalog?page=1&type=all",
+          {
+            headers: sessionId
+              ? {
+                  Authorization:
+                    `Bearer ${sessionId}`
+                }
+              : {}
+          }
+        );
+
+      if (!response.ok) {
+        throw new Error(
+          "Failed to load TMDB catalog"
+        );
+      }
+
+      const data =
+        await response.json();
+
+      const titles: Title[] =
+        Array.isArray(data.results)
+          ? data.results.map(
+              (item: any): Title => {
+                const kind: Kind =
+                  item.media_type === "tv"
+                    ? "tv"
+                    : "movie";
+
+                const releaseDate =
+                  kind === "movie"
+                    ? item.release_date
+                    : item.first_air_date;
+
+                return {
+                  id:
+                    "tmdb-" +
+                    kind +
+                    "-" +
+                    String(item.id),
+
+                  name:
+                    kind === "movie"
+                      ? item.title ||
+                        "Untitled"
+                      : item.name ||
+                        "Untitled",
+
+                  kind,
+
+                  year:
+                    releaseDate
+                      ? Number(
+                          String(
+                            releaseDate
+                          ).slice(0, 4)
+                        )
+                      : 0,
+
+                  poster:
+                    getPosterUrl(
+                      item.poster_path
+                    ),
+
+                  backdrop:
+                    getBackdropUrl(
+                      item.backdrop_path
+                    ),
+
+                  overview:
+                    item.overview || "",
+
+                  addedAt:
+                    new Date().toISOString()
+                };
+              }
+            )
+          : [];
+
+      setTmdbCatalog(
+        titles
+      );
+
+      setTmdbCatalogPage(1);
+    } catch (error) {
+      console.error(
+        "Failed to load TMDB catalog:",
+        error
+      );
+    } finally {
+      setTmdbCatalogLoading(
+        false
+      );
+    }
+  }
+
+  loadTMDBCatalog();
+}, []);
    
   const [
     justAdded,
