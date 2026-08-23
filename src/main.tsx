@@ -3766,9 +3766,7 @@ LIBRARY CONTROLS
             key={item.id}
             data-profile-id={item.id}
             style={{
-              opacity: isDragging
-                ? 0.45
-                : 1
+              opacity: isDragging ? 0.45 : 1
             }}
           >
 
@@ -3787,9 +3785,6 @@ LIBRARY CONTROLS
                   return;
                 }
 
-                /*
-                 * TESTING → ADMIN
-                 */
                 if (
                   profileId === "testing" &&
                   item.id === "admin"
@@ -3817,9 +3812,6 @@ LIBRARY CONTROLS
                   return;
                 }
 
-                /*
-                 * ADMIN PROFILE SWITCHING
-                 */
                 if (isAdminUser) {
 
                   if (item.id === "admin") {
@@ -3858,9 +3850,7 @@ LIBRARY CONTROLS
 
                   } else {
 
-                    setViewingAs(
-                      item.id
-                    );
+                    setViewingAs(item.id);
 
                     localStorage.setItem(
                       "sx-viewing-as",
@@ -3875,13 +3865,9 @@ LIBRARY CONTROLS
                   return;
                 }
 
-                /*
-                 * NORMAL USER → LOGIN
-                 */
                 setLoginProfile(item);
                 setShowProfile(false);
               }}
-
               className={
                 item.id ===
                 effectiveProfileId
@@ -3982,10 +3968,6 @@ LIBRARY CONTROLS
         );
       })}
 
-    </div>
-  </Modal>
-)}
-
       {isAdmin && (
         <button
           className="add-profile"
@@ -3993,13 +3975,10 @@ LIBRARY CONTROLS
             setEditing({
               id: "new",
               name: "",
-              avatar:
-                "🙂"
+              avatar: "🙂"
             });
 
-            setShowProfile(
-              false
-            );
+            setShowProfile(false);
           }}
         >
           <Plus />
@@ -4008,33 +3987,6 @@ LIBRARY CONTROLS
       )}
 
     </div>
-
-  </Modal>
-)}
-
-      {isAdmin && (
-        <button
-          className="add-profile"
-          onClick={() => {
-            setEditing({
-              id: "new",
-              name: "",
-              avatar:
-                "🙂"
-            });
-
-            setShowProfile(
-              false
-            );
-          }}
-        >
-          <Plus />
-          Add Profile
-        </button>
-      )}
-
-    </div>
-
   </Modal>
 )}
 
