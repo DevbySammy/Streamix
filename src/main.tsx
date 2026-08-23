@@ -5456,118 +5456,117 @@ function Card({
         </div>
       )}
          
-        {isAdmin && (
-          <button
-            type="button"
-            className="remove"
-            onClick={event => {
-              event.preventDefault();
-              event.stopPropagation();
-              onRemove();
-            }}
-            title={
-              hiddenJustAdded
-                ? "Show Again"
-                : "Hide from Just Added"
-            }
-            aria-label={
-              hiddenJustAdded
-                ? "Show Again"
-                : "Hide " +
-                  t.name +
-                  " from Just Added"
-            }
-            style={{
-              position: "absolute",
-              zIndex: 20,
-              pointerEvents: "auto",
-              cursor: "pointer"
-            }}
-          >
-            {hiddenJustAdded ? (
-              <Eye size={16} />
-            ) : (
-              <EyeOff size={16} />
-            )}
-          </button>
-        )}
+      {isAdmin && (
+  <button
+    type="button"
+    className="remove"
+    onClick={event => {
+      event.preventDefault();
+      event.stopPropagation();
+      onRemove();
+    }}
+    title={
+      hiddenJustAdded
+        ? "Show Again"
+        : "Hide from Just Added"
+    }
+    aria-label={
+      hiddenJustAdded
+        ? "Show Again"
+        : "Hide " +
+          t.name +
+          " from Just Added"
+    }
+    style={{
+      position: "absolute",
+      zIndex: 20,
+      pointerEvents: "auto",
+      cursor: "pointer"
+    }}
+  >
+    {hiddenJustAdded ? (
+      <Eye size={16} />
+    ) : (
+      <EyeOff size={16} />
+    )}
+  </button>
+)}
+
+</div>
+
+<div className="card-body">
+
+  <h3>{t.name}</h3>
+
+  <p>{t.year}</p>
+
+  {!isAdmin && (
+    <>
+
+      <div className="actions">
+
+        <button
+          type="button"
+          className={
+            isOnWatchlist
+              ? "on"
+              : ""
+          }
+          onClick={onList}
+        >
+          {isOnWatchlist
+            ? "✓ Added"
+            : "+ Watchlist"}
+        </button>
+
+        <button
+          type="button"
+          className={
+            isWatched
+              ? "on"
+              : ""
+          }
+          onClick={onWatch}
+        >
+          {isWatched
+            ? "✓ Watched"
+            : "Mark watched"}
+        </button>
 
       </div>
 
-      <div className="card-body">
+      <div className="small-actions">
 
-        <h3>{t.name}</h3>
+        <button
+          type="button"
+          className={
+            isRewatch
+              ? "rewatch-action on"
+              : "rewatch-action"
+          }
+          onClick={onRewatch}
+        >
+          ↻ Re-watch
+        </button>
 
-        <p>{t.year}</p>
-
-        {!isAdmin && (
-          <>
-
-            <div className="actions">
-
-              <button
-                type="button"
-                className={
-                  isOnWatchlist
-                    ? "on"
-                    : ""
-                }
-                onClick={onList}
-              >
-                {isOnWatchlist
-                      ? "✓ Added"
-
-                  : "+ Watchlist"}
-              </button>
-
-              <button
-                type="button"
-                className={
-                  isWatched
-                    ? "on"
-                    : ""
-                }
-                onClick={onWatch}
-              >
-                {isWatched
-                  ? "✓ Watched"
-                  : "Mark watched"}
-              </button>
-
-            </div>
-
-            <div className="small-actions">
-
-              <button
-                type="button"
-                className={
-                  isRewatch
-                    ? "rewatch-action on"
-                    : "rewatch-action"
-                }
-                onClick={onRewatch}
-              >
-                ↻ Re-watch
-              </button>
-
-             <button
-  type="button"
-  className="remind-button"
-  onClick={onReminder}
->
-  <Bell size={14} />
-  Remind me
-</button>
-
-            </div>
-
-          </>
-        )}
+        <button
+          type="button"
+          className="remind-button"
+          onClick={onReminder}
+        >
+          <Bell size={14} />
+          Remind me
+        </button>
 
       </div>
 
-    </article>
-  );
+    </>
+  )}
+
+</div>
+
+</article>
+);
 }
 /* =========================================================
 MODAL
