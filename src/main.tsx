@@ -1880,6 +1880,12 @@ async function toggle(
   array: keyof State,
   id: string
 ) {
+   console.log(
+  "TOGGLE CLICKED:",
+  array,
+  id,
+  effectiveProfileId
+);
   if (!effectiveProfileId) {
     return;
   }
