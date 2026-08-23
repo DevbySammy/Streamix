@@ -5419,38 +5419,6 @@ function Card({
 
       {!isAdmin && (
        <div className="poster-actions">
- <div className="poster-action-buttons">
-
-  <button
-    type="button"
-    className="poster-list-button"
-    onClick={event => {
-      event.preventDefault();
-      event.stopPropagation();
-      onList();
-    }}
-    aria-label={
-      isOnWatchlist
-        ? "Remove " +
-          t.name +
-          " from Watchlist"
-        : "Add " +
-          t.name +
-          " to Watchlist"
-    }
-    title={
-      isOnWatchlist
-        ? "Remove from Watchlist"
-        : "Add to Watchlist"
-    }
-  >
-    {isOnWatchlist ? (
-      <Check size={15} />
-    ) : (
-      <Plus size={15} />
-    )}
-  </button>
-
   <button
     type="button"
     className="poster-reminder-button"
@@ -5467,8 +5435,6 @@ function Card({
   >
     <Bell size={15} />
   </button>
-
-</div>
 
  <button
   type="button"
