@@ -5440,7 +5440,6 @@ function Card({
       )}
     </button>
   </div>
-)}
          
         {isAdmin && (
           <button
