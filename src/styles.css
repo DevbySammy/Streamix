@@ -109,7 +109,7 @@ header {
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 8px;
+  gap: 14px;
   position: relative;
   min-width: 0;
 }
@@ -124,6 +124,18 @@ header {
   gap: 7px;
   border-radius: 999px;
   cursor: pointer;
+}
+
+.admin-viewing-label {
+  min-height: 40px;
+  display: inline-flex;
+  align-items: center;
+  color: #FBCB05;
+  font-size: inherit;
+  font-weight: inherit;
+  text-transform: uppercase;
+  white-space: nowrap;
+  margin: 0 8px;
 }
 
 .profile-pill {
@@ -1061,7 +1073,7 @@ footer span {
   }
 
   .header-right {
-    gap: 5px;
+    gap: 10px;
   }
 
   .profile-pill {
@@ -1123,11 +1135,12 @@ footer span {
   }
 
   .header-right {
-    flex: 1;
-    overflow: visible;
-    justify-content: flex-end;
-    min-width: 0;
-  }
+  flex: 1;
+  overflow: visible;
+  justify-content: flex-end;
+  min-width: 0;
+  gap: 10px;
+}
 
   .header-right::-webkit-scrollbar {
     display: none;
