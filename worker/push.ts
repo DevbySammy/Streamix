@@ -755,9 +755,17 @@ export async function sendPushNotification(
       return true;
     }
 
-    console.error(
-      `Push delivery failed: ${response.status} ${response.statusText}`
-    );
+ const responseBody =
+  await response.text();
+
+console.error(
+  "PUSH DELIVERY FAILED",
+  {
+    status: response.status,
+    statusText: response.statusText,
+    body: responseBody
+  }
+);
 
     /*
      * 404 and 410 generally mean the
