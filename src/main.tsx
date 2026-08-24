@@ -84,6 +84,13 @@ positionY: number;
 };
 
 /* =========================================================
+PUSH NOTIFICATIONS
+========================================================= */
+
+const VAPID_PUBLIC_KEY =
+  "BDEEMiOfULTJ28A46fKl6j-ssmIinKrVbyPIYIw5Q9Ybx0YniTtSKPC-iJNTvP3Spkylm4eTnTaXShfepvmNfVY";
+
+/* =========================================================
 DEFAULT DATA
 ========================================================= */
 
