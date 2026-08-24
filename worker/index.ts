@@ -4050,22 +4050,19 @@ await env.DB
     return json({
       success: true
     });
-  } catch (error) {
-    console.error(
-      "PUSH SUBSCRIBE ERROR:",
-      error
-    );
+ } catch (error) {
+  console.error(
+    "PUSH SUBSCRIBE ERROR:",
+    error
+  );
 
-    return json(
-      {
-        error:
-          error instanceof Error
-            ? error.message
-            : "Unable to save push subscription."
-      },
-      500
-    );
-  }
+  return json(
+    {
+      error: String(error)
+    },
+    500
+  );
+}
 }
 
 // ==================================================
