@@ -1,6 +1,6 @@
 import React, {
 useEffect,
-useMemo, 
+useMemo,
 useState
 } from "react";
 import { createRoot } from "react-dom/client";
@@ -145,7 +145,15 @@ path
 TMDB
 ========================================================= */
 
-const API_BASE_URL =
+async function searchTMDB(
+query: string
+): Promise<Title[]> {
+const cleanQuery = query.trim();
+
+if (!cleanQuery) {
+return [];
+}
+  const API_BASE_URL =
   "https://streamix.gaintrainstrong.workers.dev";
 
 async function apiFetch(
@@ -179,8 +187,7 @@ async function apiFetch(
     }
   );
 
-  const data =
-    await response.json();
+  const data = await response.json();
 
   if (!response.ok) {
     throw new Error(
@@ -191,134 +198,103 @@ async function apiFetch(
 
   return data;
 }
+  
+const url =
+  API_BASE_URL +
+  "/api/tmdb/search?query=" +
+  encodeURIComponent(cleanQuery) +
+  "&type=multi";
 
-async function searchTMDB(
-  query: string
-): Promise<Title[]> {
-  const cleanQuery =
-    query.trim();
+const sessionId =
+  localStorage.getItem("sx-session-token");
 
-  if (!cleanQuery) {
-    return [];
+const response = await fetch(
+  url,
+  {
+    headers: sessionId
+      ? {
+          Authorization:
+            `Bearer ${sessionId}`
+        }
+      : {}
   }
+);
 
-  const url =
-    API_BASE_URL +
-    "/api/tmdb/search?query=" +
-    encodeURIComponent(
-      cleanQuery
-    ) +
-    "&type=multi";
+if (!response.ok) {
+  throw new Error("TMDB search failed");
+}
 
-  const sessionId =
-    localStorage.getItem(
-      "sx-session-token"
-    );
+const data = await response.json();
 
-  const response =
-    await fetch(
-      url,
-      {
-        headers: sessionId
-          ? {
-              Authorization:
-                `Bearer ${sessionId}`
-            }
-          : {}
-      }
-    );
+const results = Array.isArray(data.results)
+? data.results
+: [];
 
-  if (!response.ok) {
-    throw new Error(
-      "TMDB search failed"
-    );
-  }
+return results
+.filter(
+(item: any) =>
+item &&
+(item.media_type === "movie" ||
+item.media_type === "tv")
+)
+.map((item: any): Title => {
+const kind: Kind =
+item.media_type === "tv"
+? "tv"
+: "movie";
 
-  const data =
-    await response.json();
 
-  const results =
-    Array.isArray(
-      data.results
-    )
-      ? data.results
-      : [];
+  const releaseDate =
+    kind === "movie"
+      ? item.release_date
+      : item.first_air_date;
 
-  return results
-    .filter(
-      (item: any) =>
-        item &&
-        (
-          item.media_type ===
-            "movie" ||
-          item.media_type ===
-            "tv"
+  const year =
+    releaseDate &&
+    typeof releaseDate === "string"
+      ? Number(
+          releaseDate.slice(0, 4)
         )
-    )
-    .map(
-      (item: any): Title => {
-        const kind: Kind =
-          item.media_type ===
-          "tv"
-            ? "tv"
-            : "movie";
+      : 0;
 
-        const releaseDate =
-          kind === "movie"
-            ? item.release_date
-            : item.first_air_date;
+  const name =
+    kind === "movie"
+      ? item.title || "Untitled"
+      : item.name || "Untitled";
 
-        const year =
-          releaseDate &&
-          typeof releaseDate ===
-            "string"
-            ? Number(
-                releaseDate.slice(
-                  0,
-                  4
-                )
-              )
-            : 0;
+  return {
+    id:
+      "tmdb-" +
+      kind +
+      "-" +
+      String(item.id),
+    name,
+    kind,
+    year,
+    poster: getPosterUrl(
+      item.poster_path
+    ),
+    backdrop: getBackdropUrl(
+      item.backdrop_path
+    ),
+    overview:
+      typeof item.overview === "string"
+        ? item.overview
+        : "",
+    addedAt:
+      new Date().toISOString()
+  };
+});
 
-        const name =
-          kind === "movie"
-            ? item.title ||
-              "Untitled"
-            : item.name ||
-              "Untitled";
 
-        return {
-          id:
-            "tmdb-" +
-            kind +
-            "-" +
-            String(item.id),
-          name,
-          kind,
-          year,
-          poster:
-            getPosterUrl(
-              item.poster_path
-            ),
-          backdrop:
-            getBackdropUrl(
-              item.backdrop_path
-            ),
-          overview:
-            typeof item.overview ===
-            "string"
-              ? item.overview
-              : "",
-          addedAt:
-            new Date().toISOString()
-        };
-      }
-    );
 }
 
 async function ensureTMDBLibraryItem(
   title: Title
 ): Promise<Title> {
+  const API_BASE_URL =
+    "https://streamix.gaintrainstrong.workers.dev";
+
   const sessionId =
     localStorage.getItem(
       "sx-session-token"
@@ -374,15 +350,15 @@ async function ensureTMDBLibraryItem(
       }
     );
 
-  const data =
-    await response.json();
+const data =
+  await response.json();
 
-  setTmdbCatalogHasMore(
-    Boolean(
-      data.total_pages &&
-      1 < data.total_pages
-    )
-  );
+setTmdbCatalogHasMore(
+  Boolean(
+    data.total_pages &&
+    1 < data.total_pages
+  )
+);
 
   if (!response.ok) {
     throw new Error(
@@ -1120,9 +1096,54 @@ useEffect(() => {
   >({});
 
   const [
-  reminders,
-  setReminders
-] = useState<Reminder[]>([]);
+    reminders,
+    setReminders
+  ] = useState<Reminder[]>([]);
+
+   useEffect(() => {
+  async function loadReminders() {
+    if (!profileId) {
+      return;
+    }
+
+    try {
+      const data =
+        await apiFetch(
+          `/api/reminders?profileId=${encodeURIComponent(
+            profileId
+          )}`
+        );
+
+      const loadedReminders =
+        Array.isArray(data)
+          ? data
+          : [];
+
+      setReminders(
+        loadedReminders.map(
+          (reminder: any) => ({
+            id: reminder.id,
+            profileId:
+              reminder.profile_id,
+            libraryItemId:
+              reminder.library_item_id,
+            reminderDate:
+              reminder.reminder_date,
+            reminderTime:
+              reminder.reminder_time
+          })
+        )
+      );
+    } catch (error) {
+      console.error(
+        "Failed to load reminders:",
+        error
+      );
+    }
+  }
+
+  loadReminders();
+}, [profileId]);
    
   const [
     scheduled,
@@ -1180,353 +1201,292 @@ useEffect(() => {
     loadHeroSettings();
   }, []);
    
-/* =======================================================
-AUTHENTICATION / SESSION
-======================================================= */
+ /* =======================================================
+ AUTHENTICATION / SESSION
+ ======================================================= */
 
-const [profileId, setProfileId] =
-  useState<string | null>(null);
+ const [profileId, setProfileId] =
+   useState<string | null>(null);
 
-    useEffect(() => {
-  async function loadReminders() {
-    if (!profileId) {
-      return;
-    }
-     
-    try {
-    const sessionId =
-  localStorage.getItem(
+ const [viewingAs, setViewingAs] =
+   useState<string | null>(() =>
+     localStorage.getItem(
+       "sx-viewing-as"
+     )
+   );
+
+ const [sessionRestoring, setSessionRestoring] =
+   useState(true);
+
+ useEffect(() => {
+   async function restoreSession() {
+     const sessionId =
+       localStorage.getItem(
+         "sx-session-token"
+       );
+
+     if (!sessionId) {
+       setSessionRestoring(false);
+       return;
+     }
+
+     try {
+       const response = await fetch(
+         "https://streamix.gaintrainstrong.workers.dev/api/auth/session",
+         {
+           method: "GET",
+           headers: {
+             Authorization:
+               `Bearer ${sessionId}`
+           }
+         }
+       );
+
+    if (!response.ok) {
+  // The saved session is no longer valid.
+  localStorage.removeItem(
     "sx-session-token"
   );
-
-const response = await fetch(
-  "https://streamix.gaintrainstrong.workers.dev/api/reminders?profileId=" +
-    encodeURIComponent(profileId),
-  {
-    headers: sessionId
-      ? {
-          Authorization:
-            `Bearer ${sessionId}`
-        }
-      : {}
-  }
-);
-
-if (!response.ok) {
-  throw new Error(
-    "Failed to load reminders."
-  );
+  setProfileId(null);
+  setViewingAs(null);
+  setSessionRestoring(false);
+  return;
 }
 
 const data =
   await response.json();
 
-      const loadedReminders =
-        Array.isArray(data)
-          ? data
-          : [];
-
-      setReminders(
-        loadedReminders.map(
-          (reminder: any) => ({
-            id: reminder.id,
-            profileId:
-              reminder.profile_id,
-            libraryItemId:
-              reminder.library_item_id,
-            reminderDate:
-              reminder.reminder_date,
-            reminderTime:
-              reminder.reminder_time
-          })
-        )
-      );
-    } catch (error) {
-      console.error(
-        "Failed to load reminders:",
-        error
-      );
-    }
-  }
-
-  loadReminders();
-}, [profileId]);
-
-const [viewingAs, setViewingAs] =
-  useState<string | null>(() =>
+if (
+  data.authenticated &&
+  data.profile?.id
+) {
+  const savedTestingProfile =
     localStorage.getItem(
-      "sx-viewing-as"
-    )
-  );
+      "sx-testing-active"
+    );
 
-const [sessionRestoring, setSessionRestoring] =
-  useState(true);
-
-useEffect(() => {
-  async function restoreSession() {
-    const sessionId =
-      localStorage.getItem(
-        "sx-session-token"
-      );
-
-    if (!sessionId) {
-      setSessionRestoring(false);
-      return;
-    }
-
-    try {
-      const response = await fetch(
-        "https://streamix.gaintrainstrong.workers.dev/api/auth/session",
-        {
-          method: "GET",
-          headers: {
-            Authorization:
-              `Bearer ${sessionId}`
-          }
-        }
-      );
-
-      if (!response.ok) {
-        // The saved session is no longer valid.
-        localStorage.removeItem(
-          "sx-session-token"
-        );
-        setProfileId(null);
-        setViewingAs(null);
-        setSessionRestoring(false);
-        return;
-      }
-
-      const data =
-        await response.json();
-
-      if (
-        data.authenticated &&
-        data.profile?.id
-      ) {
-        const savedTestingProfile =
-          localStorage.getItem(
-            "sx-testing-active"
-          );
-
-        if (
-          data.profile.id === "admin" &&
-          savedTestingProfile === "true"
-        ) {
-          setProfileId(
-            "testing"
-          );
-        } else {
-          setProfileId(
-            data.profile.id
-          );
-        }
-      } else {
-        localStorage.removeItem(
-          "sx-session-token"
-        );
-        setProfileId(null);
-        setViewingAs(null);
-      }
-    } catch (error) {
-      console.error(
-        "Failed to restore session:",
-        error
-      );
-
-      // Keep the saved session if this was
-      // only a temporary network problem.
-    } finally {
-      setSessionRestoring(false);
-    }
+  if (
+    data.profile.id === "admin" &&
+    savedTestingProfile === "true"
+  ) {
+    setProfileId(
+      "testing"
+    );
+  } else {
+    setProfileId(
+      data.profile.id
+    );
   }
-
-  restoreSession();
-}, []);
-
-const [tab, setTab] =
-  useState<"library" | "rewatch">(
-    "library"
+}
+else {
+  localStorage.removeItem(
+    "sx-session-token"
+  );
+  setProfileId(null);
+  setViewingAs(null);
+}
+} catch (error) {
+  console.error(
+    "Failed to restore session:",
+    error
   );
 
-const [filter, setFilter] =
-  useState<
-    "all" | "watchlist" | "watched" | "rewatch"
-  >("all");
+       // Keep the saved session if this was
+       // only a temporary network problem.
+     } finally {
+       setSessionRestoring(false);
+     }
+   }
 
-const [filterClicked, setFilterClicked] =
-  useState(false);
+   restoreSession();
+ }, []);
 
-const [kind, setKind] =
-  useState<"all" | Kind>("all");
+ const [tab, setTab] =
+   useState<"library" | "rewatch">(
+     "library"
+   );
 
-const [kindClicked, setKindClicked] =
-  useState(true);
+ const [filter, setFilter] =
+   useState<
+     "all" | "watchlist" | "watched" | "rewatch"
+   >("all");
+
+ const [filterClicked, setFilterClicked] =
+   useState(false);
+
+ const [kind, setKind] =
+   useState<"all" | Kind>("all");
+
+ const [kindClicked, setKindClicked] =
+   useState(true);
+
 
 const [sort, setSort] =
   useState<SortOption>("year-desc");
 
-useEffect(() => {
-  if (sort !== "just-added") {
-    return;
-  }
+ useEffect(() => {
+   if (sort !== "just-added") {
+     return;
+   }
 
-  async function loadJustAdded() {
-    try {
-      const sessionId =
-        localStorage.getItem(
-          "sx-session-token"
-        );
+   async function loadJustAdded() {
+     try {
+       const sessionId =
+         localStorage.getItem(
+           "sx-session-token"
+         );
 
-      const response = await fetch(
-        "https://streamix.gaintrainstrong.workers.dev/api/tmdb/just-added",
-        {
-          headers: sessionId
-            ? {
-                Authorization:
-                  `Bearer ${sessionId}`
-              }
-            : {}
-        }
-      );
 
-      const data =
-        await response.json();
+       const response = await fetch(
+         "https://streamix.gaintrainstrong.workers.dev/api/tmdb/just-added",
+         {
+           headers: sessionId
+             ? {
+                 Authorization:
+                   `Bearer ${sessionId}`
+               }
+             : {}
+         }
+       );
 
-      if (!response.ok) {
-        throw new Error(
-          data?.error ||
-            "Unable to load Just Added."
-        );
-      }
+       const data =
+         await response.json();
 
-      const results =
-        Array.isArray(data.results)
-          ? data.results
-          : [];
+       if (!response.ok) {
+         throw new Error(
+           data?.error ||
+             "Unable to load Just Added."
+         );
+       }
 
-      const titles: Title[] =
-        results
-          .filter(
-            (item: any) =>
-              typeof item.poster_path === "string" &&
-              item.poster_path.trim() !== ""
-          )
-          .map(
-            (item: any): Title => {
-              const kind: Kind =
-                item.media_type === "tv"
-                  ? "tv"
-                  : "movie";
+       const results =
+         Array.isArray(data.results)
+           ? data.results
+           : [];
 
-              const releaseDate =
-                kind === "movie"
-                  ? item.release_date
-                  : item.first_air_date;
+       const titles: Title[] =
+         results
+           .filter(
+             (item: any) =>
+               typeof item.poster_path === "string" &&
+               item.poster_path.trim() !== ""
+           )
+           .map(
+             (item: any): Title => {
+               const kind: Kind =
+                 item.media_type === "tv"
+                   ? "tv"
+                   : "movie";
 
-              const year =
-                releaseDate &&
-                typeof releaseDate ===
-                  "string"
-                  ? Number(
-                      releaseDate.slice(0, 4)
-                    )
-                  : 0;
+               const releaseDate =
+                 kind === "movie"
+                   ? item.release_date
+                   : item.first_air_date;
 
-              const name =
-                kind === "movie"
-                  ? item.title ||
-                    "Untitled"
-                  : item.name ||
-                    "Untitled";
+               const year =
+                 releaseDate &&
+                 typeof releaseDate ===
+                   "string"
+                   ? Number(
+                       releaseDate.slice(0, 4)
+                     )
+                   : 0;
 
-              return {
-                id:
-                  "tmdb-" +
-                  kind +
-                  "-" +
-                  String(item.id),
-                name,
-                kind,
-                year,
-                poster:
-                  getPosterUrl(
-                    item.poster_path
-                  ),
-                backdrop:
-                  getBackdropUrl(
-                    item.backdrop_path
-                  ),
-                overview:
-                  typeof item.overview ===
-                  "string"
-                    ? item.overview
-                    : "",
-                addedAt:
-                  releaseDate || ""
-              };
-            }
-          );
+               const name =
+                 kind === "movie"
+                   ? item.title ||
+                     "Untitled"
+                   : item.name ||
+                     "Untitled";
 
-      const dedupedTitles =
-        Array.from(
-          new Map(
-            titles.map(
-              title => [
-                title.id,
-                title
-              ]
-            )
-          ).values()
-        );
+               return {
+                 id:
+                   "tmdb-" +
+                   kind +
+                   "-" +
+                   String(item.id),
+                 name,
+                 kind,
+                 year,
+                 poster:
+                   getPosterUrl(
+                     item.poster_path
+                   ),
+                 backdrop:
+                   getBackdropUrl(
+                     item.backdrop_path
+                   ),
+                 overview:
+                   typeof item.overview ===
+                   "string"
+                     ? item.overview
+                     : "",
+                 addedAt:
+                   releaseDate || ""
+               };
+             }
+           );
 
-      setJustAdded(
-        dedupedTitles
-      );
-    } catch (error) {
-      console.error(
-        "Failed to load Just Added:",
-        error
-      );
+       const dedupedTitles =
+         Array.from(
+           new Map(
+             titles.map(
+               title => [
+                 title.id,
+                 title
+               ]
+             )
+           ).values()
+         );
 
-      setJustAdded([]);
-    }
-  }
+       setJustAdded(
+         dedupedTitles
+       );
+     } catch (error) {
+       console.error(
+         "Failed to load Just Added:",
+         error
+       );
 
-  loadJustAdded();
-}, [sort]);
+       setJustAdded([]);
+     }
+   }
 
-const [q, setQ] = useState("");
+   loadJustAdded();
+ }, [sort]);
 
-const [showProfile, setShowProfile] =
-  useState(false);
+ const [q, setQ] = useState("");
 
-const [loginProfile, setLoginProfile] =
-  useState<Profile | null>(null);
+ const [showProfile, setShowProfile] =
+   useState(false);
 
-const [showAdd, setShowAdd] =
-  useState(false);
+ const [loginProfile, setLoginProfile] =
+   useState<Profile | null>(null);
 
-const [showReco, setShowReco] =
-  useState(false);
+ const [showAdd, setShowAdd] =
+   useState(false);
 
-const [showReminder, setShowReminder] =
-  useState<Title | null>(null);
+ const [showReco, setShowReco] =
+   useState(false);
 
-const [showSchedule, setShowSchedule] =
-  useState<Title | null>(null);
+ const [showReminder, setShowReminder] =
+   useState<Title | null>(null);
 
-const [showHero, setShowHero] =
-  useState(false);
+ const [showSchedule, setShowSchedule] =
+   useState<Title | null>(null);
 
-const [showDeleted, setShowDeleted] =
-  useState(false);
+ const [showHero, setShowHero] =
+   useState(false);
 
-const [editing, setEditing] =
-  useState<Profile | null>(null);
+ const [showDeleted, setShowDeleted] =
+   useState(false);
 
-const [menu, setMenu] =
-  useState(false);
+ const [editing, setEditing] =
+   useState<Profile | null>(null);
+
+ const [menu, setMenu] =
+   useState(false);
+   
 /* =======================================================
 PROFILE DRAGGING
 ======================================================= */
@@ -3734,239 +3694,302 @@ LIBRARY CONTROLS
     title="Profiles"
     compact
     onClose={() =>
-      setShowProfile(false)
+      setShowProfile(
+        false
+      )
     }
   >
+
     <div className="profiles">
 
-      {orderedProfiles.map(item => {
+      {orderedProfiles.map(
+        item => {
 
-        const isDragging =
-          draggedProfileId === item.id;
+          const isDragging =
+            draggedProfileId ===
+            item.id;
 
-        const isDropTarget =
-          dragOverProfileId === item.id;
+          const isDropTarget =
+            dragOverProfileId ===
+            item.id;
 
-        const dropClass =
-          isDropTarget
-            ? dragPosition === "before"
-              ? " drop-before"
-              : " drop-after"
-            : "";
+          const dropClass =
+            isDropTarget
+              ? dragPosition ===
+                "before"
+                ? " drop-before"
+                : " drop-after"
+              : "";
 
-        return (
-          <div
-            className={
-              "profile-row" +
-              (isDragging
-                ? " dragging"
-                : "") +
-              dropClass
-            }
-            key={item.id}
-            data-profile-id={item.id}
-            style={{
-              opacity: isDragging ? 0.45 : 1
-            }}
-          >
+          return (
+            <div
+              className={
+                "profile-row" +
+                (isDragging
+                  ? " dragging"
+                  : "") +
+                dropClass
+              }
+              key={item.id}
+              data-profile-id={
+                item.id
+              }
+              style={{
+                opacity:
+                  isDragging
+                    ? 0.45
+                    : 1
+              }}
+            >
 
-            <button
-              onClick={() => {
-
-                if (draggedProfileId) {
-                  return;
-                }
-
-                if (
-                  item.id ===
-                  effectiveProfileId
-                ) {
-                  setShowProfile(false);
-                  return;
-                }
-
-                if (
-                  profileId === "testing" &&
-                  item.id === "admin"
-                ) {
-                  const adminSession =
-                    localStorage.getItem(
-                      "sx-admin-session-token"
-                    );
-
-                  if (adminSession) {
-                    localStorage.setItem(
-                      "sx-session-token",
-                      adminSession
-                    );
+              <button
+                onClick={() => {
+                  if (
+                    draggedProfileId
+                  ) {
+                    return;
                   }
 
-                  localStorage.removeItem(
-                    "sx-testing-active"
-                  );
-
-                  setProfileId("admin");
-                  setViewingAs(null);
-                  setShowProfile(false);
-
-                  return;
-                }
-
-                if (isAdminUser) {
-
-                  if (item.id === "admin") {
-
-                    localStorage.removeItem(
-                      "sx-testing-active"
-                    );
-
-                    setViewingAs(null);
-
-                    localStorage.removeItem(
-                      "sx-viewing-as"
-                    );
-
-                    setProfileId("admin");
-
-                  } else if (
-                    item.id === "testing"
+                  if (
+                    item.id ===
+                    effectiveProfileId
                   ) {
-
-                    localStorage.setItem(
-                      "sx-testing-active",
-                      "true"
+                    setShowProfile(
+                      false
                     );
+                    return;
+                  }
 
-                    setProfileId("testing");
-                    setViewingAs(null);
+if (
+  profileId === "testing" &&
+  item.id === "admin"
+) {
+  const adminSession =
+    localStorage.getItem(
+      "sx-admin-session-token"
+    );
 
-                    localStorage.removeItem(
-                      "sx-viewing-as"
+  if (adminSession) {
+    localStorage.setItem(
+      "sx-session-token",
+      adminSession
+    );
+  }
+
+  localStorage.removeItem(
+    "sx-testing-active"
+  );
+
+  setProfileId(
+    "admin"
+  );
+
+  setViewingAs(
+    null
+  );
+
+  setShowProfile(
+    false
+  );
+
+  return;
+}
+
+   if (
+    isAdminUser
+ ) {
+if (
+  item.id ===
+  "admin"
+) {
+  localStorage.removeItem(
+    "sx-testing-active"
+  );
+
+  setViewingAs(
+    null
+  );
+
+  localStorage.removeItem(
+    "sx-viewing-as"
+  );
+
+  setProfileId(
+    "admin"
+  );
+} else if (
+  item.id ===
+  "testing"
+) {
+  localStorage.setItem(
+    "sx-testing-active",
+    "true"
+  );
+
+  setProfileId(
+    "testing"
+  );
+
+  setViewingAs(
+    null
+  );
+
+  localStorage.removeItem(
+    "sx-viewing-as"
+  );
+
+  setShowProfile(
+    false
+  );
+
+  return;
+}
+                    else {
+                      setViewingAs(
+                        item.id
+                      );
+
+                      localStorage.setItem(
+                        "sx-viewing-as",
+                        item.id
+                      );
+
+                      setProfileId(
+                        "admin"
+                      );
+                    }
+
+                    setShowProfile(
+                      false
                     );
-
-                    setShowProfile(false);
 
                     return;
-
-                  } else {
-
-                    setViewingAs(item.id);
-
-                    localStorage.setItem(
-                      "sx-viewing-as",
-                      item.id
-                    );
-
-                    setProfileId("admin");
                   }
 
-                  setShowProfile(false);
+                  setLoginProfile(
+                    item
+                  );
 
-                  return;
+                  setShowProfile(
+                    false
+                  );
+                }}
+                className={
+                  item.id ===
+                  effectiveProfileId
+                    ? "current"
+                    : ""
                 }
+              >
 
-                setLoginProfile(item);
-                setShowProfile(false);
-              }}
-              className={
-                item.id ===
-                effectiveProfileId
-                  ? "current"
-                  : ""
-              }
-            >
+                <span className="avatar">
+                  {
+                    item.avatar
+                  }
+                </span>
 
-              <span className="avatar">
-                {item.avatar}
-              </span>
+                <span>
+                  {item.name}
+                </span>
 
-              <span>
-                {item.name}
-              </span>
+                {item.id ===
+                  effectiveProfileId && (
+                  <Check
+                    size={18}
+                  />
+                )}
 
-              {item.id ===
-                effectiveProfileId && (
-                <Check size={18} />
-              )}
+              </button>
 
-            </button>
-
-            <button
-              className="icon"
-              disabled={
-                !isAdminUser &&
-                item.id !== profileId
-              }
-              onClick={() => {
-
-                if (
+              <button
+                className="icon"
+                disabled={
                   !isAdminUser &&
-                  item.id !== profileId
-                ) {
-                  return;
+                  item.id !==
+                    profileId
                 }
+                onClick={() => {
+                  if (
+                    !isAdminUser &&
+                    item.id !==
+                      profileId
+                  ) {
+                    return;
+                  }
 
-                setEditing(item);
-                setShowProfile(false);
-              }}
-              aria-label={
-                item.id ===
-                  effectiveProfileId ||
-                isAdminUser
-                  ? "Profile settings"
-                  : "Switch to this profile to edit settings"
-              }
-              title={
-                item.id ===
-                  effectiveProfileId ||
-                isAdminUser
-                  ? "Profile settings"
-                  : "Switch to this profile to edit settings"
-              }
-            >
-              <Settings size={17} />
-            </button>
+                  setEditing(
+                    item
+                  );
 
-            {isAdmin &&
-              item.id !== "admin" &&
-              item.id !== "testing" && (
+                  setShowProfile(
+                    false
+                  );
+                }}
+                aria-label={
+                  item.id ===
+                    effectiveProfileId ||
+                  isAdminUser
+                    ? "Profile settings"
+                    : "Switch to this profile to edit settings"
+                }
+                title={
+                  item.id ===
+                    effectiveProfileId ||
+                  isAdminUser
+                    ? "Profile settings"
+                    : "Switch to this profile to edit settings"
+                }
+              >
+                <Settings
+                  size={17}
+                />
+              </button>
+
+         {isAdmin &&
+  item.id !== "admin" &&
+  item.id !== "testing" && (
+                  <div
+                    className="profile-drag-handle"
+                    onPointerDown={event =>
+                      startProfileDrag(
+                        event,
+                        item.id
+                      )
+                    }
+                    role="button"
+                    tabIndex={0}
+                    aria-label={
+                      "Drag to reorder " +
+                      item.name
+                    }
+                    title="Drag to reorder"
+                  >
+                    <GripVertical
+                      size={20}
+                    />
+                  </div>
+                )}
+
+              {isDropTarget && (
                 <div
-                  className="profile-drag-handle"
-                  onPointerDown={event =>
-                    startProfileDrag(
-                      event,
-                      item.id
-                    )
+                  className={
+                    dragPosition ===
+                    "before"
+                      ? "drop-label drop-label-before"
+                      : "drop-label drop-label-after"
                   }
-                  role="button"
-                  tabIndex={0}
-                  aria-label={
-                    "Drag to reorder " +
-                    item.name
-                  }
-                  title="Drag to reorder"
                 >
-                  <GripVertical size={20} />
+                  {dragPosition ===
+                  "before"
+                    ? "Drop above"
+                    : "Drop below"}
                 </div>
               )}
 
-            {isDropTarget && (
-              <div
-                className={
-                  dragPosition === "before"
-                    ? "drop-label drop-label-before"
-                    : "drop-label drop-label-after"
-                }
-              >
-                {dragPosition === "before"
-                  ? "Drop above"
-                  : "Drop below"}
-              </div>
-            )}
-
-          </div>
-        );
-      })}
+            </div>
+          );
+        }
+      )}
 
       {isAdmin && (
         <button
@@ -3975,10 +3998,13 @@ LIBRARY CONTROLS
             setEditing({
               id: "new",
               name: "",
-              avatar: "🙂"
+              avatar:
+                "🙂"
             });
 
-            setShowProfile(false);
+            setShowProfile(
+              false
+            );
           }}
         >
           <Plus />
@@ -3987,6 +4013,7 @@ LIBRARY CONTROLS
       )}
 
     </div>
+
   </Modal>
 )}
 
@@ -5293,7 +5320,6 @@ function ProfileLogin({
     </Modal>
   );
 }
-
 /* =========================================================
 CARD
 ========================================================= */
@@ -5331,196 +5357,139 @@ function Card({
     st.rewatch.includes(t.id);
 
   return (
-  <article className="card">
+    <article className="card">
 
-    <div className="poster-wrap">
+      <div className="poster-wrap">
 
-      <img
-        src={t.poster}
-        alt={t.name}
-        onError={event => {
-          event.currentTarget.src =
-            "https://placehold.co/500x750/171717/ffffff?text=" +
-            encodeURIComponent(t.name);
-        }}
-      />
-
-      <span className="kind">
-        {t.kind === "movie"
-          ? "MOVIE"
-          : "TV"}
-      </span>
-
-      {!isAdmin && (
-        <div className="poster-actions">
-
-          <div className="poster-action-buttons">
-
-            <button
-              type="button"
-              className="poster-list-button"
-              onClick={event => {
-                event.preventDefault();
-                event.stopPropagation();
-                onList();
-              }}
-              aria-label={
-                isOnWatchlist
-                  ? "Remove " +
-                    t.name +
-                    " from Watchlist"
-                  : "Add " +
-                    t.name +
-                    " to Watchlist"
-              }
-              title={
-                isOnWatchlist
-                  ? "Remove from Watchlist"
-                  : "Add to Watchlist"
-              }
-            >
-              {isOnWatchlist ? (
-                <Check size={15} />
-              ) : (
-                <Plus size={15} />
-              )}
-            </button>
-
-            <button
-              type="button"
-              className="poster-reminder-button"
-              onClick={event => {
-                event.preventDefault();
-                event.stopPropagation();
-                onReminder();
-              }}
-              aria-label={
-                "Set reminder for " +
-                t.name
-              }
-              title="Remind me"
-            >
-              <Bell size={15} />
-            </button>
-
-          </div>
-
-        </div>
-      )}
-
-      {isAdmin && (
-        <button
-          type="button"
-          className="remove"
-          onClick={event => {
-            event.preventDefault();
-            event.stopPropagation();
-            onRemove();
+        <img
+          src={t.poster}
+          alt={t.name}
+          onError={event => {
+            event.currentTarget.src =
+              "https://placehold.co/500x750/171717/ffffff?text=" +
+              encodeURIComponent(t.name);
           }}
-          title={
-            hiddenJustAdded
-              ? "Show Again"
-              : "Hide from Just Added"
-          }
-          aria-label={
-            hiddenJustAdded
-              ? "Show Again"
-              : "Hide " +
-                t.name +
-                " from Just Added"
-          }
-          style={{
-            position: "absolute",
-            zIndex: 20,
-            pointerEvents: "auto",
-            cursor: "pointer"
-          }}
-        >
-          {hiddenJustAdded ? (
-            <Eye size={16} />
-          ) : (
-            <EyeOff size={16} />
-          )}
-        </button>
-      )}
+        />
 
-    </div>
+        <span className="kind">
+          {t.kind === "movie"
+            ? "MOVIE"
+            : "TV"}
+        </span>
 
-    <div className="card-body">
+        {isAdmin && (
+          <button
+            type="button"
+            className="remove"
+            onClick={event => {
+              event.preventDefault();
+              event.stopPropagation();
+              onRemove();
+            }}
+            title={
+              hiddenJustAdded
+                ? "Show Again"
+                : "Hide from Just Added"
+            }
+            aria-label={
+              hiddenJustAdded
+                ? "Show Again"
+                : "Hide " +
+                  t.name +
+                  " from Just Added"
+            }
+            style={{
+              position: "absolute",
+              zIndex: 20,
+              pointerEvents: "auto",
+              cursor: "pointer"
+            }}
+          >
+            {hiddenJustAdded ? (
+              <Eye size={16} />
+            ) : (
+              <EyeOff size={16} />
+            )}
+          </button>
+        )}
 
-      <h3>{t.name}</h3>
+      </div>
 
-      <p>{t.year}</p>
+      <div className="card-body">
 
-      {!isAdmin && (
-        <>
+        <h3>{t.name}</h3>
 
-          <div className="actions">
+        <p>{t.year}</p>
 
-            <button
-              type="button"
-              className={
-                isOnWatchlist
-                  ? "on"
-                  : ""
-              }
-              onClick={onList}
-            >
-              {isOnWatchlist
-                ? "✓ Added"
-                : "+ Watchlist"}
-            </button>
+        {!isAdmin && (
+          <>
 
-            <button
-              type="button"
-              className={
-                isWatched
-                  ? "on"
-                  : ""
-              }
-              onClick={onWatch}
-            >
-              {isWatched
-                ? "✓ Watched"
-                : "Mark watched"}
-            </button>
+            <div className="actions">
 
-          </div>
+              <button
+                type="button"
+                className={
+                  isOnWatchlist
+                    ? "on"
+                    : ""
+                }
+                onClick={onList}
+              >
+                {isOnWatchlist
+                      ? "✓ Added"
 
-          <div className="small-actions">
+                  : "+ Watchlist"}
+              </button>
 
-            <button
-              type="button"
-              className={
-                isRewatch
-                  ? "rewatch-action on"
-                  : "rewatch-action"
-              }
-              onClick={onRewatch}
-            >
-              ↻ Re-watch
-            </button>
+              <button
+                type="button"
+                className={
+                  isWatched
+                    ? "on"
+                    : ""
+                }
+                onClick={onWatch}
+              >
+                {isWatched
+                  ? "✓ Watched"
+                  : "Mark watched"}
+              </button>
 
-            <button
-              type="button"
-              className="remind-button"
-              onClick={onReminder}
-            >
-              <Bell size={14} />
-              Remind me
-            </button>
+            </div>
 
-          </div>
+            <div className="small-actions">
 
-        </>
-      )}
+              <button
+                type="button"
+                className={
+                  isRewatch
+                    ? "rewatch-action on"
+                    : "rewatch-action"
+                }
+                onClick={onRewatch}
+              >
+                ↻ Re-watch
+              </button>
 
-    </div>
+             <button
+  type="button"
+  className="remind-button"
+  onClick={onReminder}
+>
+  <Bell size={14} />
+  Remind me
+</button>
 
-  </article>
+            </div>
+
+          </>
+        )}
+
+      </div>
+
+    </article>
   );
 }
-
 /* =========================================================
 MODAL
 ========================================================= */
