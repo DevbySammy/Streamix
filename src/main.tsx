@@ -5275,6 +5275,7 @@ const [watchedClicked, setWatchedClicked] =
   st.watchlist.includes(t.id);
 
 const isWatched =
+  watchedClicked ||
   st.watched.includes(t.id);
 
 const isRewatch =
