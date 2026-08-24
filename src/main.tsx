@@ -5403,22 +5403,22 @@ const isRewatch =
 
             <div className="actions">
 
-              <button
-                type="button"
-                className={
-                  isWatched
-                    ? "on"
-                    : ""
-                }
-             onClick={() => {
-  setWatchedClicked(true);
-  onWatch();
-}}
-              >
-                {isWatched
-                  ? "✓ Watched"
-                  : "Mark watched"}
-              </button>
+           <button
+  type="button"
+  className={
+    isWatched
+      ? "on"
+      : ""
+  }
+  onClick={() => {
+    setWatchedClicked(true);
+    onWatch();
+  }}
+>
+  {isWatched
+    ? "✓ Watched"
+    : "Watched"}
+</button>
 
               <button
                 type="button"
