@@ -5263,7 +5263,15 @@ function Card({
   onReminder: () => void;
   onSchedule: () => void;
 }) {
-const isOnWatchlist =
+
+   {/*just added this code
+   const [watchedClicked, setWatchedClicked] =
+  useState(false);
+  */}
+const [watchedClicked, setWatchedClicked] =
+  useState(false);
+   
+   const isOnWatchlist =
   st.watchlist.includes(t.id);
 
 const isWatched =
@@ -5401,7 +5409,10 @@ const isRewatch =
                     ? "on"
                     : ""
                 }
-                onClick={onWatch}
+             onClick={() => {
+  setWatchedClicked(true);
+  onWatch();
+}}
               >
                 {isWatched
                   ? "✓ Watched"
