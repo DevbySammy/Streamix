@@ -114,7 +114,7 @@ export default {
 }
 
     {/*just added this entire block below for push notifications */} 
-        if (
+       if (
       url.pathname === "/api/push/subscribe" &&
       request.method === "POST"
     ) {
@@ -182,7 +182,6 @@ export default {
         );
       }
     }
-    
     // ==================================================
     // CORS
     // ==================================================
@@ -4029,24 +4028,6 @@ if (
     ) {
       results.attempted++;
 
-      const success =
-        await sendPushNotification(
-          subscription,
-          {
-            title: "Streamix",
-            body: "Push notifications are working!",
-            url: "/"
-          },
-          {
-            publicKey:
-              env.VAPID_PUBLIC_KEY,
-            privateKey:
-              env.VAPID_PRIVATE_KEY,
-            subject:
-              env.VAPID_SUBJECT
-          }
-        );
-
       if (success) {
         results.sent++;
       }
@@ -4135,88 +4116,6 @@ if (
           error instanceof Error
             ? error.message
             : "Unable to remove push subscription."
-      },
-      500
-    );
-  }
-}
-
-// ==================================================
-// PUSH NOTIFICATIONS - TEST
-// ==================================================
-
-if (
-  url.pathname === "/api/push/test" &&
-  request.method === "POST"
-) {
-  const admin = await requireAdmin();
-
-  if (admin instanceof Response) {
-    return admin;
-  }
-
-  try {
-    const subs = await env.DB
-      .prepare(`
-        SELECT endpoint, p256dh, auth
-        FROM push_subscriptions
-        WHERE profile_id = ?
-      `)
-      .bind("admin")
-      .all<{
-        endpoint: string;
-        p256dh: string;
-        auth: string;
-      }>();
-
-    if (subs.results.length === 0) {
-      return json(
-        { error: "No push subscriptions found for admin." },
-        404
-      );
-    }
-
-    const vapidKeys = {
-      publicKey: env.VAPID_PUBLIC_KEY,
-      privateKey: env.VAPID_PRIVATE_KEY,
-      subject: env.VAPID_SUBJECT,
-    };
-
-    let sent = 0;
-    let failed = 0;
-
-    for (const sub of subs.results) {
-      const ok = await sendPushNotification(
-        { endpoint: sub.endpoint, p256dh: sub.p256dh, auth: sub.auth },
-        {
-          title: "Streamix",
-          body: "Push notifications are working!",
-          url: "/",
-        },
-        vapidKeys
-      );
-
-      if (ok) {
-        sent++;
-      } else {
-        failed++;
-        // Remove expired subscription
-        await env.DB
-          .prepare(`DELETE FROM push_subscriptions WHERE endpoint = ?`)
-          .bind(sub.endpoint)
-          .run();
-      }
-    }
-
-    return json({ success: true, sent, failed });
-  } catch (error) {
-    console.error("PUSH TEST ERROR:", error);
-    return json(
-      {
-        error:
-          error instanceof Error
-            ? error.message
-            : "Failed to send test push.",
       },
       500
     );
