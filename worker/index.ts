@@ -47,10 +47,12 @@ async function sendPushToProfile(
 try {
 subs = await env.DB
   .prepare(`
-    SELECT endpoint, p256dh, auth
-    FROM push_subscriptions
+  SELECT endpoint, p256dh, auth
+FROM push_subscriptions
+WHERE profile_id = ?
   `)
-  .all<{
+.bind(profileId)
+.all<{
     endpoint: string;
     p256dh: string;
     auth: string;
