@@ -4292,21 +4292,43 @@ return json(
 );
   },
 
-  async scheduled(
+   async scheduled(
     event: ScheduledEvent,
     env: Env,
     ctx: ExecutionContext
   ): Promise<void> {
     const now = new Date();
-    const today = now.toISOString().slice(0, 10);
-    const currentTime = now.toISOString().slice(11, 16);
+
+    // Use Toronto time for scheduled reminders
+    const torontoTime = new Intl.DateTimeFormat(
+      "en-CA",
+      {
+        timeZone: "America/Toronto",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false
+      }
+    ).formatToParts(now);
+
+    const getPart = (type: string) =>
+      torontoTime.find(
+        part => part.type === type
+      )?.value || "";
+
+    const today =
+      `${getPart("year")}-${getPart("month")}-${getPart("day")}`;
+
+    const currentTime =
+      `${getPart("hour")}:${getPart("minute")}`;
 
     // ==================================================
     // PROCESS DUE REMINDERS
     // ==================================================
 
     try {
-      // Ensure sent_at column exists
       await env.DB
         .prepare(
           `ALTER TABLE reminders ADD COLUMN sent_at TEXT`
@@ -4316,40 +4338,62 @@ return json(
       // Column already exists
     }
 
-    const dueReminders = await env.DB
-      .prepare(`
-        SELECT
-          r.id,
-          r.profile_id,
-          r.library_item_id,
-          r.reminder_date,
-          r.reminder_time,
-          l.title
-        FROM reminders r
-        JOIN library_items l ON l.id = r.library_item_id
-        WHERE r.sent_at IS NULL
-          AND r.reminder_date <= ?
-          AND r.reminder_time <= ?
-      `)
-      .bind(today, currentTime)
-      .all<{
-        id: string;
-        profile_id: string;
-        library_item_id: string;
-        reminder_date: string;
-        reminder_time: string;
-        title: string;
-      }>();
+    const dueReminders =
+      await env.DB
+        .prepare(`
+          SELECT
+            r.id,
+            r.profile_id,
+            r.library_item_id,
+            r.reminder_date,
+            r.reminder_time,
+            l.title
+          FROM reminders r
+          JOIN library_items l
+            ON l.id = r.library_item_id
+          WHERE r.sent_at IS NULL
+            AND (
+              r.reminder_date < ?
+              OR (
+                r.reminder_date = ?
+                AND r.reminder_time <= ?
+              )
+            )
+        `)
+        .bind(
+          today,
+          today,
+          currentTime
+        )
+        .all<{
+          id: string;
+          profile_id: string;
+          library_item_id: string;
+          reminder_date: string;
+          reminder_time: string;
+          title: string;
+        }>();
 
-    for (const reminder of dueReminders.results) {
-      await sendPushToProfile(env, reminder.profile_id, {
-        title: "Streamix Reminder",
-        body: `Time to watch ${reminder.title}!`,
-        url: "/",
-      });
+    for (
+      const reminder of dueReminders.results
+    ) {
+      await sendPushToProfile(
+        env,
+        reminder.profile_id,
+        {
+          title: "Streamix Reminder",
+          body:
+            `Time to watch ${reminder.title}!`,
+          url: "/"
+        }
+      );
 
       await env.DB
-        .prepare(`UPDATE reminders SET sent_at = CURRENT_TIMESTAMP WHERE id = ?`)
+        .prepare(
+          `UPDATE reminders
+           SET sent_at = CURRENT_TIMESTAMP
+           WHERE id = ?`
+        )
         .bind(reminder.id)
         .run();
     }
@@ -4368,42 +4412,68 @@ return json(
       // Column already exists
     }
 
-    const dueScheduled = await env.DB
-      .prepare(`
-        SELECT
-          s.id,
-          s.profile_id,
-          s.library_item_id,
-          s.message,
-          l.title
-        FROM scheduled_recommendations s
-        JOIN library_items l ON l.id = s.library_item_id
-        WHERE s.sent_at IS NULL
-          AND s.scheduled_date <= ?
-          AND s.scheduled_time <= ?
-      `)
-      .bind(today, currentTime)
-      .all<{
-        id: string;
-        profile_id: string;
-        library_item_id: string;
-        message: string;
-        title: string;
-      }>();
+    const dueScheduled =
+      await env.DB
+        .prepare(`
+          SELECT
+            s.id,
+            s.profile_id,
+            s.library_item_id,
+            s.message,
+            s.scheduled_date,
+            s.scheduled_time,
+            l.title
+          FROM scheduled_recommendations s
+          JOIN library_items l
+            ON l.id = s.library_item_id
+          WHERE s.sent_at IS NULL
+            AND (
+              s.scheduled_date < ?
+              OR (
+                s.scheduled_date = ?
+                AND s.scheduled_time <= ?
+              )
+            )
+        `)
+        .bind(
+          today,
+          today,
+          currentTime
+        )
+        .all<{
+          id: string;
+          profile_id: string;
+          library_item_id: string;
+          message: string;
+          scheduled_date: string;
+          scheduled_time: string;
+          title: string;
+        }>();
 
-    for (const scheduled of dueScheduled.results) {
-      await sendPushToProfile(env, scheduled.profile_id, {
-        title: "Streamix Recommendation",
-        body: `${scheduled.message}: ${scheduled.title}`,
-        url: "/",
-      });
+    for (
+      const scheduled of dueScheduled.results
+    ) {
+      await sendPushToProfile(
+        env,
+        scheduled.profile_id,
+        {
+          title:
+            "Streamix Recommendation",
+          body:
+            `${scheduled.message}: ${scheduled.title}`,
+          url: "/"
+        }
+      );
 
       await env.DB
         .prepare(
-          `UPDATE scheduled_recommendations SET sent_at = CURRENT_TIMESTAMP WHERE id = ?`
+          `UPDATE scheduled_recommendations
+           SET sent_at = CURRENT_TIMESTAMP
+           WHERE id = ?`
         )
         .bind(scheduled.id)
         .run();
     }
   }
 };
+
