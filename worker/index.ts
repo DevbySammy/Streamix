@@ -673,11 +673,26 @@ if (
       });
     }
 
-    // ADMIN PASSWORD COMES ONLY FROM CLOUDFLARE
+       // ==================================================
+    // ADMIN PASSWORD
+    // ==================================================
 
-    if (
-      profile.id === "admin"
-    ) {
+    if (profile.id === "admin") {
+      console.log(
+        "ADMIN TOKEN EXISTS:",
+        !!env.ADMIN_API_TOKEN
+      );
+
+      console.log(
+        "ADMIN TOKEN LENGTH:",
+        env.ADMIN_API_TOKEN?.length
+      );
+
+      console.log(
+        "PASSWORD LENGTH:",
+        password.length
+      );
+
       if (!env.ADMIN_API_TOKEN) {
         return json(
           {
@@ -688,10 +703,7 @@ if (
         );
       }
 
-      if (
-        password !==
-        env.ADMIN_API_TOKEN
-      ) {
+      if (password !== env.ADMIN_API_TOKEN) {
         return json(
           {
             error:
@@ -701,30 +713,21 @@ if (
         );
       }
     } else {
-      if (
-        !profile.password_hash
-      ) {
+      if (!profile.password_hash) {
         return json({
-          requiresPasswordSetup:
-            true,
+          requiresPasswordSetup: true,
           profile: {
             id: profile.id,
             name: profile.name,
-            avatar:
-              profile.avatar
+            avatar: profile.avatar
           }
         });
       }
 
       const passwordHash =
-        await hashPassword(
-          password
-        );
+        await hashPassword(password);
 
-      if (
-        passwordHash !==
-        profile.password_hash
-      ) {
+      if (passwordHash !== profile.password_hash) {
         return json(
           {
             error:
@@ -736,9 +739,7 @@ if (
     }
 
     const sessionId =
-      await createSession(
-        profile.id
-      );
+      await createSession(profile.id);
 
     return json({
       success: true,
@@ -749,24 +750,6 @@ if (
         avatar: profile.avatar
       }
     });
-  } catch (error) {
-    console.error(
-      "AUTH LOGIN ERROR:",
-      error
-    );
-
-    return json(
-      {
-        error:
-          error instanceof Error
-            ? error.message
-            : "Login server error."
-      },
-      500
-    );
-  }
-}
-
     // ==================================================
 // AUTH - CURRENT SESSION
 // ==================================================
