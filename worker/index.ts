@@ -4162,6 +4162,12 @@ async function sendPushToProfile(
   profileId: string,
   payload: { title: string; body: string; url?: string }
 ): Promise<{ sent: number; failed: number }> {
+console.log(
+    "PUSH FUNCTION START",
+    {
+      profileId
+    }
+  );
   const subs = await env.DB
     .prepare(`
       SELECT endpoint, p256dh, auth
