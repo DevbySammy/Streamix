@@ -259,25 +259,23 @@ export default {
             }
           }
         );
-      } catch (error) {
-        console.error(
-          "Push subscription error:",
-          error
-        );
+     } catch (error) {
+  console.error(
+    "Push subscription error:",
+    error
+  );
 
-        return new Response(
-          JSON.stringify({
-            error: "Failed to save push subscription."
-          }),
-          {
-            status: 500,
-            headers: {
-              "Content-Type": "application/json"
-            }
-          }
-        );
-      }
-    }
+  return json(
+    {
+      error:
+        error instanceof Error
+          ? error.message
+          : String(error)
+    },
+    500
+  );
+}
+}
   
     // ==================================================
     // CORS
