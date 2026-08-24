@@ -579,14 +579,11 @@ card actions
   font-size: 12px;
   line-height: 1.2;
   text-align: center;
-   white-space: nowrap;
-  min-width: 0;
 }
 
 .actions button {
   border: 1px solid transparent;
   color: #fff;
-     white-space: nowrap;
 }
 
 .actions button.on,
@@ -605,19 +602,6 @@ card actions
   margin-top: 7px;
 }
 
-.small-actions button.on {
-  border: 1px solid #ff4f9a;
-  color: #fff;
-}
-
-.actions button:first-child {
-  flex: 0 0 calc(45% - 4px);
-}
-
-.actions .rewatch-action {
-  flex: 0 0 calc(55% - 3px);
-  white-space: nowrap;
-}
 
 /* =========================================================
    BUTTONS
