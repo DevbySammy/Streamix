@@ -1,3 +1,5 @@
+import { sendPushNotification } from "./push";
+
 export interface Env {
   TMDB_READ_ACCESS_TOKEN: string;
   ADMIN_API_TOKEN: string;
@@ -4043,6 +4045,144 @@ if (
 }
 
 // ==================================================
+// PUSH NOTIFICATIONS - TEST
+// ==================================================
+
+if (
+  url.pathname === "/api/push/test" &&
+  request.method === "POST"
+) {
+  const admin = await requireAdmin();
+
+  if (admin instanceof Response) {
+    return admin;
+  }
+
+  try {
+    const subs = await env.DB
+      .prepare(`
+        SELECT endpoint, p256dh, auth
+        FROM push_subscriptions
+        WHERE profile_id = ?
+      `)
+      .bind("admin")
+      .all<{
+        endpoint: string;
+        p256dh: string;
+        auth: string;
+      }>();
+
+    if (subs.results.length === 0) {
+      return json(
+        { error: "No push subscriptions found for admin." },
+        404
+      );
+    }
+
+    const vapidKeys = {
+      publicKey: env.VAPID_PUBLIC_KEY,
+      privateKey: env.VAPID_PRIVATE_KEY,
+      subject: env.VAPID_SUBJECT,
+    };
+
+    let sent = 0;
+    let failed = 0;
+
+    for (const sub of subs.results) {
+      const ok = await sendPushNotification(
+        { endpoint: sub.endpoint, p256dh: sub.p256dh, auth: sub.auth },
+        {
+          title: "Streamix",
+          body: "Push notifications are working!",
+          url: "/",
+        },
+        vapidKeys
+      );
+
+      if (ok) {
+        sent++;
+      } else {
+        failed++;
+        // Remove expired subscription
+        await env.DB
+          .prepare(`DELETE FROM push_subscriptions WHERE endpoint = ?`)
+          .bind(sub.endpoint)
+          .run();
+      }
+    }
+
+    return json({ success: true, sent, failed });
+  } catch (error) {
+    console.error("PUSH TEST ERROR:", error);
+    return json(
+      {
+        error:
+          error instanceof Error
+            ? error.message
+            : "Failed to send test push.",
+      },
+      500
+    );
+  }
+}
+
+// ==================================================
+// PUSH NOTIFICATIONS - SEND TO PROFILE
+// ==================================================
+
+async function sendPushToProfile(
+  env: Env,
+  profileId: string,
+  payload: { title: string; body: string; url?: string }
+): Promise<{ sent: number; failed: number }> {
+  const subs = await env.DB
+    .prepare(`
+      SELECT endpoint, p256dh, auth
+      FROM push_subscriptions
+      WHERE profile_id = ?
+    `)
+    .bind(profileId)
+    .all<{
+      endpoint: string;
+      p256dh: string;
+      auth: string;
+    }>();
+
+  if (subs.results.length === 0) {
+    return { sent: 0, failed: 0 };
+  }
+
+  const vapidKeys = {
+    publicKey: env.VAPID_PUBLIC_KEY,
+    privateKey: env.VAPID_PRIVATE_KEY,
+    subject: env.VAPID_SUBJECT,
+  };
+
+  let sent = 0;
+  let failed = 0;
+
+  for (const sub of subs.results) {
+    const ok = await sendPushNotification(
+      { endpoint: sub.endpoint, p256dh: sub.p256dh, auth: sub.auth },
+      payload,
+      vapidKeys
+    );
+
+    if (ok) {
+      sent++;
+    } else {
+      failed++;
+      await env.DB
+        .prepare(`DELETE FROM push_subscriptions WHERE endpoint = ?`)
+        .bind(sub.endpoint)
+        .run();
+    }
+  }
+
+  return { sent, failed };
+}
+
+// ==================================================
 // NOT FOUND
 // ==================================================
 
@@ -4053,4 +4193,120 @@ return json(
   },
   404
 );
-    
+  },
+
+  async scheduled(
+    event: ScheduledEvent,
+    env: Env,
+    ctx: ExecutionContext
+  ): Promise<void> {
+    const now = new Date();
+    const today = now.toISOString().slice(0, 10);
+    const currentTime = now.toISOString().slice(11, 16);
+
+    // ==================================================
+    // PROCESS DUE REMINDERS
+    // ==================================================
+
+    try {
+      // Ensure sent_at column exists
+      await env.DB
+        .prepare(
+          `ALTER TABLE reminders ADD COLUMN sent_at TEXT`
+        )
+        .run();
+    } catch {
+      // Column already exists
+    }
+
+    const dueReminders = await env.DB
+      .prepare(`
+        SELECT
+          r.id,
+          r.profile_id,
+          r.library_item_id,
+          r.reminder_date,
+          r.reminder_time,
+          l.title
+        FROM reminders r
+        JOIN library_items l ON l.id = r.library_item_id
+        WHERE r.sent_at IS NULL
+          AND r.reminder_date <= ?
+          AND r.reminder_time <= ?
+      `)
+      .bind(today, currentTime)
+      .all<{
+        id: string;
+        profile_id: string;
+        library_item_id: string;
+        reminder_date: string;
+        reminder_time: string;
+        title: string;
+      }>();
+
+    for (const reminder of dueReminders.results) {
+      await sendPushToProfile(env, reminder.profile_id, {
+        title: "Streamix Reminder",
+        body: `Time to watch ${reminder.title}!`,
+        url: "/",
+      });
+
+      await env.DB
+        .prepare(`UPDATE reminders SET sent_at = CURRENT_TIMESTAMP WHERE id = ?`)
+        .bind(reminder.id)
+        .run();
+    }
+
+    // ==================================================
+    // PROCESS DUE SCHEDULED RECOMMENDATIONS
+    // ==================================================
+
+    try {
+      await env.DB
+        .prepare(
+          `ALTER TABLE scheduled_recommendations ADD COLUMN sent_at TEXT`
+        )
+        .run();
+    } catch {
+      // Column already exists
+    }
+
+    const dueScheduled = await env.DB
+      .prepare(`
+        SELECT
+          s.id,
+          s.profile_id,
+          s.library_item_id,
+          s.message,
+          l.title
+        FROM scheduled_recommendations s
+        JOIN library_items l ON l.id = s.library_item_id
+        WHERE s.sent_at IS NULL
+          AND s.scheduled_date <= ?
+          AND s.scheduled_time <= ?
+      `)
+      .bind(today, currentTime)
+      .all<{
+        id: string;
+        profile_id: string;
+        library_item_id: string;
+        message: string;
+        title: string;
+      }>();
+
+    for (const scheduled of dueScheduled.results) {
+      await sendPushToProfile(env, scheduled.profile_id, {
+        title: "Streamix Recommendation",
+        body: `${scheduled.message}: ${scheduled.title}`,
+        url: "/",
+      });
+
+      await env.DB
+        .prepare(
+          `UPDATE scheduled_recommendations SET sent_at = CURRENT_TIMESTAMP WHERE id = ?`
+        )
+        .bind(scheduled.id)
+        .run();
+    }
+  }
+};
