@@ -584,6 +584,7 @@ card actions
 .actions button {
   border: 1px solid transparent;
   color: #fff;
+     white-space: nowrap;
 }
 
 .actions button.on,
