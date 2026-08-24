@@ -55,9 +55,25 @@ async function sendPushToProfile(
       auth: string;
     }>();
 
-  if (subs.results.length === 0) {
-    return { sent: 0, failed: 0 };
+ if (subs.results.length === 0) {
+  console.log(
+    "PUSH SUBSCRIPTIONS FOUND",
+    {
+      profileId,
+      count: 0
+    }
+  );
+
+  return { sent: 0, failed: 0 };
+}
+
+console.log(
+  "PUSH SUBSCRIPTIONS FOUND",
+  {
+    profileId,
+    count: subs.results.length
   }
+);
 
   const vapidKeys = {
     publicKey: env.VAPID_PUBLIC_KEY,
