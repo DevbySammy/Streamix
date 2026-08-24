@@ -2342,15 +2342,15 @@ async function toggle(
     updateState(current => ({
       ...current,
 
-     [array]: exists
+   [array]: exists
   ? current[array].filter(
       item =>
-        item !== libraryItemId &&
-        item !== id
+        item !==
+        libraryItemId
     )
   : [
       ...current[array],
-      id
+      libraryItemId
     ]
     }));
   } catch (error) {
