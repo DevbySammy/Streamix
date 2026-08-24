@@ -6661,3 +6661,21 @@ rootElement
 <React.StrictMode> <App />
 </React.StrictMode>
 );
+
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("/sw.js")
+      .then(registration => {
+        console.log(
+          "Streamix service worker registered:",
+          registration.scope
+        );
+      })
+      .catch(error => {
+        console.error(
+          "Streamix service worker registration failed:",
+          error
+        );
+      });
+  });
+}
