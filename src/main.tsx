@@ -1312,6 +1312,122 @@ else {
     checkPushStatus();
   }, []);
 
+     async function subscribeToPushNotifications() {
+    try {
+      if (!("serviceWorker" in navigator)) {
+        return;
+      }
+
+      if (!("Notification" in window)) {
+        return;
+      }
+
+      const permission =
+        await Notification.requestPermission();
+
+      setPushPermission(permission);
+
+      if (permission !== "granted") {
+        return;
+      }
+
+      const registration =
+        await navigator.serviceWorker.ready;
+
+      const existingSubscription =
+        await registration.pushManager.getSubscription();
+
+      if (existingSubscription) {
+        setPushSubscribed(true);
+        return;
+      }
+
+      const publicKey =
+        import.meta.env.VITE_VAPID_PUBLIC_KEY;
+
+      if (!publicKey) {
+        console.error(
+          "Missing VITE_VAPID_PUBLIC_KEY."
+        );
+        return;
+      }
+
+      const subscription =
+        await registration.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey:
+            urlBase64ToUint8Array(
+              publicKey
+            )
+        });
+
+      const sessionId =
+        localStorage.getItem(
+          "sx-session-token"
+        );
+
+      const response = await fetch(
+        "https://streamix.gaintrainstrong.workers.dev/api/push/subscribe",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type":
+              "application/json",
+            ...(sessionId
+              ? {
+                  Authorization:
+                    `Bearer ${sessionId}`
+                }
+              : {})
+          },
+          body: JSON.stringify(
+            subscription
+          )
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(
+          "Failed to save push subscription."
+        );
+      }
+
+      setPushSubscribed(true);
+
+      console.log(
+        "Streamix push notifications enabled."
+      );
+    } catch (error) {
+      console.error(
+        "Failed to subscribe to push notifications:",
+        error
+      );
+    }
+  }
+
+     function urlBase64ToUint8Array(
+    base64String: string
+  ) {
+    const padding =
+      "=".repeat(
+        (4 - (base64String.length % 4)) % 4
+      );
+
+    const base64 =
+      (base64String + padding)
+        .replace(/-/g, "+")
+        .replace(/_/g, "/");
+
+    const rawData =
+      window.atob(base64);
+
+    return Uint8Array.from(
+      [...rawData].map(
+        char => char.charCodeAt(0)
+      )
+    );
+  }
+   
  const [tab, setTab] =
    useState<"library" | "rewatch">(
      "library"
