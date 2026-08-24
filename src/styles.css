@@ -537,7 +537,7 @@ header {
 }
 
 .card-body {
-  padding: 13px;
+  padding: 13px 10px;
 }
 
 .card-body h3 {
@@ -576,7 +576,7 @@ card actions
   background: #202023;
   color: #aaa;
   cursor: pointer;
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.2;
   text-align: center;
 }
