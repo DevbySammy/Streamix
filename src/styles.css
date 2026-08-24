@@ -614,6 +614,14 @@ card actions
   white-space: nowrap;
 }
 
+.actions button:first-child {
+  flex: 0.9;
+}
+
+.actions .rewatch-action {
+  flex: 1.1;
+  white-space: nowrap;
+}
 /* =========================================================
    BUTTONS
 ========================================================= */
