@@ -673,83 +673,100 @@ if (
       });
     }
 
-       // ==================================================
-    // ADMIN PASSWORD
-    // ==================================================
+     // ADMIN PASSWORD COMES ONLY FROM CLOUDFLARE
 
-    if (profile.id === "admin") {
-      console.log(
-        "ADMIN TOKEN EXISTS:",
-        !!env.ADMIN_API_TOKEN
-      );
+if (
+  profile.id === "admin"
+) {
+  if (!env.ADMIN_API_TOKEN) {
+    return json(
+      {
+        error:
+          "ADMIN_API_TOKEN is not configured."
+      },
+      500
+    );
+  }
 
-      console.log(
-        "ADMIN TOKEN LENGTH:",
-        env.ADMIN_API_TOKEN?.length
-      );
-
-      console.log(
-        "PASSWORD LENGTH:",
-        password.length
-      );
-
-      if (!env.ADMIN_API_TOKEN) {
-        return json(
-          {
-            error:
-              "ADMIN_API_TOKEN is not configured."
-          },
-          500
-        );
-      }
-
-      if (password !== env.ADMIN_API_TOKEN) {
-        return json(
-          {
-            error:
-              "Incorrect password."
-          },
-          401
-        );
-      }
-    } else {
-      if (!profile.password_hash) {
-        return json({
-          requiresPasswordSetup: true,
-          profile: {
-            id: profile.id,
-            name: profile.name,
-            avatar: profile.avatar
-          }
-        });
-      }
-
-      const passwordHash =
-        await hashPassword(password);
-
-      if (passwordHash !== profile.password_hash) {
-        return json(
-          {
-            error:
-              "Incorrect password."
-          },
-          401
-        );
-      }
-    }
-
-    const sessionId =
-      await createSession(profile.id);
-
+  if (
+    password !==
+    env.ADMIN_API_TOKEN
+  ) {
+    return json(
+      {
+        error:
+          "Incorrect password."
+      },
+      401
+    );
+  }
+} else {
+  if (
+    !profile.password_hash
+  ) {
     return json({
-      success: true,
-      sessionId,
+      requiresPasswordSetup:
+        true,
       profile: {
         id: profile.id,
         name: profile.name,
-        avatar: profile.avatar
+        avatar:
+          profile.avatar
       }
     });
+  }
+
+  const passwordHash =
+    await hashPassword(
+      password
+    );
+
+  if (
+    passwordHash !==
+    profile.password_hash
+  ) {
+    return json(
+      {
+        error:
+          "Incorrect password."
+      },
+      401
+    );
+  }
+}
+
+const sessionId =
+  await createSession(
+    profile.id
+  );
+
+return json({
+  success: true,
+  sessionId,
+  profile: {
+    id: profile.id,
+    name: profile.name,
+    avatar: profile.avatar
+  }
+});
+} catch (error) {
+  console.error(
+    "AUTH LOGIN ERROR:",
+    error
+  );
+
+  return json(
+    {
+      error:
+        error instanceof Error
+          ? error.message
+          : "Login server error."
+    },
+    500
+  );
+}
+}
+    
     // ==================================================
 // AUTH - CURRENT SESSION
 // ==================================================
