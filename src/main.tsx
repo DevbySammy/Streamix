@@ -1312,131 +1312,103 @@ else {
     checkPushStatus();
   }, []);
 
-     async function subscribeToPushNotifications() {
-    try {
-      if (!("serviceWorker" in navigator)) {
-        return;
-      }
+async function subscribeToPushNotifications() {
+  try {
+    if (!("serviceWorker" in navigator)) {
+      return;
+    }
 
-      if (!("Notification" in window)) {
-        return;
-      }
+    if (!("Notification" in window)) {
+      return;
+    }
 
-      const permission =
-        await Notification.requestPermission();
+    const permission =
+      await Notification.requestPermission();
 
-      setPushPermission(permission);
+    setPushPermission(permission);
 
-      if (permission !== "granted") {
-        return;
-      }
+    if (permission !== "granted") {
+      return;
+    }
 
-      const registration =
-        await navigator.serviceWorker.ready;
-
-      const existingSubscription =
-        await registration.pushManager.getSubscription();
-
-      if (existingSubscription) {
-        setPushSubscribed(true);
-        return;
-      }
+    const registration =
+      await navigator.serviceWorker.ready;
 
     const publicKey =
-  "BDEEMiOfULTJ28A46fKl6j-ssmIinKrVbyPIYIw5Q9Ybx0YniTtSKPC-iJNTvP3Spkylm4eTnTaXShfepvmNfVY";
+      "BDEEMiOfULTJ28A46fKl6j-ssmIinKrVbyPIYIw5Q9Ybx0YniTtSKPC-iJNTvP3Spkylm4eTnTaXShfepvmNfVY";
 
-      if (!publicKey) {
-        console.error(
-          "Missing VITE_VAPID_PUBLIC_KEY."
-        );
-        return;
-      }
+    if (!publicKey) {
+      console.error(
+        "Missing VITE_VAPID_PUBLIC_KEY."
+      );
+      return;
+    }
 
-      const subscription =
-        await registration.pushManager.subscribe({
-          userVisibleOnly: true,
-          applicationServerKey:
-            urlBase64ToUint8Array(
-              publicKey
-            )
-        });
+    const existingSubscription =
+      await registration.pushManager.getSubscription();
 
-      const sessionId =
-        localStorage.getItem(
-          "sx-session-token"
-        );
+    const subscription =
+      existingSubscription ||
+      await registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey:
+          urlBase64ToUint8Array(
+            publicKey
+          )
+      });
+
+    const sessionId =
+      localStorage.getItem(
+        "sx-session-token"
+      );
 
     const response = await fetch(
-  "https://streamix.gaintrainstrong.workers.dev/api/push/subscribe",
-  {
-    method: "POST",
-    headers: {
-      "Content-Type":
-        "application/json",
-      ...(sessionId
-        ? {
-            Authorization:
-              `Bearer ${sessionId}`
-          }
-        : {})
-    },
-    body: JSON.stringify({
-      subscription,
-      profileId
-    })
-  }
-);
+      "https://streamix.gaintrainstrong.workers.dev/api/push/subscribe",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type":
+            "application/json",
+          ...(sessionId
+            ? {
+                Authorization:
+                  `Bearer ${sessionId}`
+              }
+            : {})
+        },
+        body: JSON.stringify(
+          subscription
+        )
+      }
+    );
 
-console.log(
-  "PUSH SUBSCRIBE RESPONSE",
-  {
-    status: response.status,
-    ok: response.ok,
-    body: await response.text()
-  }
-);
+    console.log(
+      "PUSH SUBSCRIBE RESPONSE",
+      {
+        status: response.status,
+        ok: response.ok,
+        body: await response.text()
+      }
+    );
 
-if (!response.ok) {
-  throw new Error(
-    "Failed to save push subscription."
-  );
-}
-
-      setPushSubscribed(true);
-
-      console.log(
-        "Streamix push notifications enabled."
-      );
-    } catch (error) {
-      console.error(
-        "Failed to subscribe to push notifications:",
-        error
+    if (!response.ok) {
+      throw new Error(
+        "Failed to save push subscription."
       );
     }
-  }
 
-     function urlBase64ToUint8Array(
-    base64String: string
-  ) {
-    const padding =
-      "=".repeat(
-        (4 - (base64String.length % 4)) % 4
-      );
+    setPushSubscribed(true);
 
-    const base64 =
-      (base64String + padding)
-        .replace(/-/g, "+")
-        .replace(/_/g, "/");
-
-    const rawData =
-      window.atob(base64);
-
-    return Uint8Array.from(
-      [...rawData].map(
-        char => char.charCodeAt(0)
-      )
+    console.log(
+      "Streamix push notifications enabled."
+    );
+  } catch (error) {
+    console.error(
+      "Failed to subscribe to push notifications:",
+      error
     );
   }
+}
    
  const [tab, setTab] =
    useState<"library" | "rewatch">(
