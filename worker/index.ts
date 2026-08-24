@@ -4297,7 +4297,8 @@ return json(
     env: Env,
     ctx: ExecutionContext
   ): Promise<void> {
-    const now = new Date();
+   console.log("CRON FIRED", new Date().toISOString());
+     const now = new Date();
 
     // Use Toronto time for scheduled reminders
     const torontoTime = new Intl.DateTimeFormat(
