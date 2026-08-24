@@ -459,8 +459,8 @@ header {
 
 .kind {
   position: absolute;
-  top: 9px;
-  left: 9px;
+  top: 8px;
+  left: 8px;
   padding: 5px 7px;
   border-radius: 6px;
   background: rgba(0, 0, 0, .72);
@@ -476,7 +476,8 @@ header {
   right: 8px;
   z-index: 20;
   display: flex;
-  gap: 5px;
+  flex-direction: column;
+  gap: 4px;
 }
 
 .poster-reminder-button,
