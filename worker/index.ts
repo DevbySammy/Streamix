@@ -45,18 +45,16 @@ async function sendPushToProfile(
   let subs;
 
 try {
-  subs = await env.DB
-    .prepare(`
-      SELECT endpoint, p256dh, auth
-      FROM push_subscriptions
-      WHERE profile_id = ?
-    `)
-    .bind(profileId)
-    .all<{
-      endpoint: string;
-      p256dh: string;
-      auth: string;
-    }>();
+subs = await env.DB
+  .prepare(`
+    SELECT endpoint, p256dh, auth
+    FROM push_subscriptions
+  `)
+  .all<{
+    endpoint: string;
+    p256dh: string;
+    auth: string;
+  }>();
 } catch (error) {
   console.error(
     "PUSH SUBSCRIPTIONS QUERY ERROR",
