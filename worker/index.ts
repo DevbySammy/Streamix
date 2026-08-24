@@ -3977,6 +3977,103 @@ if (
   }
 }
 
+    // ==================================================
+// PUSH NOTIFICATIONS - TEST
+// ==================================================
+
+if (
+  url.pathname === "/api/push/test" &&
+  request.method === "POST"
+) {
+  const auth =
+    await requireSession();
+
+  if (auth instanceof Response) {
+    return auth;
+  }
+
+  if (auth.profileId !== "admin") {
+    return json(
+      {
+        error: "Admin access required."
+      },
+      403
+    );
+  }
+
+  try {
+    const subscriptions =
+      await env.DB
+        .prepare(`
+          SELECT
+            endpoint,
+            p256dh,
+            auth
+          FROM push_subscriptions
+        `)
+        .all<{
+          endpoint: string;
+          p256dh: string;
+          auth: string;
+        }>();
+
+    const results = {
+      attempted: 0,
+      sent: 0,
+      removed: 0
+    };
+
+    for (
+      const subscription
+      of subscriptions.results
+    ) {
+      results.attempted++;
+
+      const success =
+        await sendPushNotification(
+          subscription,
+          {
+            title: "Streamix",
+            body: "Push notifications are working!",
+            url: "/"
+          },
+          {
+            publicKey:
+              env.VAPID_PUBLIC_KEY,
+            privateKey:
+              env.VAPID_PRIVATE_KEY,
+            subject:
+              env.VAPID_SUBJECT
+          }
+        );
+
+      if (success) {
+        results.sent++;
+      }
+    }
+
+    return json({
+      success: true,
+      results
+    });
+  } catch (error) {
+    console.error(
+      "PUSH TEST ERROR:",
+      error
+    );
+
+    return json(
+      {
+        error:
+          error instanceof Error
+            ? error.message
+            : "Push test failed."
+      },
+      500
+    );
+  }
+}
+    
 // ==================================================
 // PUSH NOTIFICATIONS - UNSUBSCRIBE
 // ==================================================
