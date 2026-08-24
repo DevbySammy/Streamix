@@ -1387,11 +1387,20 @@ else {
   }
 );
 
-      if (!response.ok) {
-        throw new Error(
-          "Failed to save push subscription."
-        );
-      }
+console.log(
+  "PUSH SUBSCRIBE RESPONSE",
+  {
+    status: response.status,
+    ok: response.ok,
+    body: await response.text()
+  }
+);
+
+if (!response.ok) {
+  throw new Error(
+    "Failed to save push subscription."
+  );
+}
 
       setPushSubscribed(true);
 
