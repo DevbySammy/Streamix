@@ -210,73 +210,7 @@ export default {
   );
 }
 
-           if (
-        url.pathname === "/api/push/subscribe" &&
-        request.method === "POST"
-      ) {
-        try {
-          const subscription = await request.json();
-
-        if (
-          !subscription ||
-          !subscription.endpoint ||
-          !subscription.keys?.p256dh ||
-          !subscription.keys?.auth
-        ) {
-          return new Response(
-            JSON.stringify({
-              error: "Invalid push subscription."
-            }),
-            {
-              status: 400,
-              headers: {
-                "Content-Type": "application/json"
-              }
-            }
-          );
-        }
-
-        await env.DB.prepare(
-          `INSERT OR REPLACE INTO push_subscriptions
-            (endpoint, p256dh, auth)
-           VALUES (?, ?, ?)`
-        )
-          .bind(
-            subscription.endpoint,
-            subscription.keys.p256dh,
-            subscription.keys.auth
-          )
-          .run();
-
-        return new Response(
-          JSON.stringify({
-            success: true
-          }),
-          {
-            status: 200,
-            headers: {
-              "Content-Type": "application/json"
-            }
-          }
-        );
-     } catch (error) {
-  console.error(
-    "Push subscription error:",
-    error
-  );
-
-  return json(
-    {
-      error:
-        error instanceof Error
-          ? error.message
-          : String(error)
-    },
-    500
-  );
-}
-}
-  
+          
     // ==================================================
     // CORS
     // ==================================================
