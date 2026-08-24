@@ -3256,27 +3256,27 @@ return ( <div className="app">
               Add media
             </button>
 
-                         <button
-              onClick={async () => {
-                await subscribeToPushNotifications();
-                setMenu(false);
-              }}
-            >
-              🔔
-              {pushSubscribed
-                ? "Notifications enabled"
-                : "Enable notifications"}
-            </button>
-             
-            <button
-              onClick={() => {
-                setShowHero(true);
-                setMenu(false);
-              }}
-            >
-              <Settings />
-              Edit hero
-            </button>
+                        <button
+  onClick={async () => {
+    await subscribeToPushNotifications();
+    setMenu(false);
+  }}
+>
+  🔔
+  {pushSubscribed
+    ? "Notifications enabled"
+    : "Enable notifications"}
+</button>
+
+<button
+  onClick={() => {
+    setShowHero(true);
+    setMenu(false);
+  }}
+>
+  <Settings />
+  Edit hero
+</button>
 
             <button
               onClick={() => {
