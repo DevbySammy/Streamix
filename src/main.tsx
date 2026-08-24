@@ -3256,9 +3256,14 @@ return ( <div className="app">
               Add media
             </button>
 
-                        <button
+                    <button
   onClick={async () => {
+    console.log("NOTIFICATION BUTTON CLICKED");
+
     await subscribeToPushNotifications();
+
+    console.log("NOTIFICATION FUNCTION FINISHED");
+
     setMenu(false);
   }}
 >
