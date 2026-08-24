@@ -4027,30 +4027,28 @@ if (
       );
     }
 
-    await env.DB
-      .prepare(`
-        INSERT INTO push_subscriptions (
-          id,
-          profile_id,
-          endpoint,
-          p256dh,
-          auth
-        )
-        VALUES (?, ?, ?, ?, ?)
-        ON CONFLICT(endpoint)
-        DO UPDATE SET
-          profile_id = excluded.profile_id,
-          p256dh = excluded.p256dh,
-          auth = excluded.auth
-      `)
-      .bind(
-        crypto.randomUUID(),
-        auth.profileId,
-        endpoint,
-        p256dh,
-        authKey
-      )
-      .run();
+await env.DB
+  .prepare(`
+    INSERT INTO push_subscriptions (
+      endpoint,
+      profile_id,
+      p256dh,
+      auth
+    )
+    VALUES (?, ?, ?, ?)
+    ON CONFLICT(endpoint)
+    DO UPDATE SET
+      profile_id = excluded.profile_id,
+      p256dh = excluded.p256dh,
+      auth = excluded.auth
+  `)
+  .bind(
+    endpoint,
+    auth.profileId,
+    p256dh,
+    authKey
+  )
+  .run();
 
     return json({
       success: true
