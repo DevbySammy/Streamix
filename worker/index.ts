@@ -26,6 +26,69 @@ type ProfileRow = {
 const SESSION_DURATION_MS =
   1000 * 60 * 60 * 24 * 30; // 30 days
 
+// ==================================================
+// PUSH NOTIFICATIONS - SEND TO PROFILE
+// ==================================================
+
+async function sendPushToProfile(
+  env: Env,
+  profileId: string,
+  payload: { title: string; body: string; url?: string }
+): Promise<{ sent: number; failed: number }> {
+console.log(
+    "PUSH FUNCTION START",
+    {
+      profileId
+    }
+  );
+  const subs = await env.DB
+    .prepare(`
+      SELECT endpoint, p256dh, auth
+      FROM push_subscriptions
+      WHERE profile_id = ?
+    `)
+    .bind(profileId)
+    .all<{
+      endpoint: string;
+      p256dh: string;
+      auth: string;
+    }>();
+
+  if (subs.results.length === 0) {
+    return { sent: 0, failed: 0 };
+  }
+
+  const vapidKeys = {
+    publicKey: env.VAPID_PUBLIC_KEY,
+    privateKey: env.VAPID_PRIVATE_KEY,
+    subject: env.VAPID_SUBJECT,
+  };
+
+  let sent = 0;
+  let failed = 0;
+
+  for (const sub of subs.results) {
+    const ok = await sendPushNotification(
+      { endpoint: sub.endpoint, p256dh: sub.p256dh, auth: sub.auth },
+      payload,
+      vapidKeys
+    );
+
+    if (ok) {
+      sent++;
+    } else {
+      failed++;
+      await env.DB
+        .prepare(`DELETE FROM push_subscriptions WHERE endpoint = ?`)
+        .bind(sub.endpoint)
+        .run();
+    }
+  }
+
+  return { sent, failed };
+}
+
+
 export default {
   async fetch(
     request: Request,
@@ -4153,67 +4216,6 @@ if (
   }
 }
 
-// ==================================================
-// PUSH NOTIFICATIONS - SEND TO PROFILE
-// ==================================================
-
-async function sendPushToProfile(
-  env: Env,
-  profileId: string,
-  payload: { title: string; body: string; url?: string }
-): Promise<{ sent: number; failed: number }> {
-console.log(
-    "PUSH FUNCTION START",
-    {
-      profileId
-    }
-  );
-  const subs = await env.DB
-    .prepare(`
-      SELECT endpoint, p256dh, auth
-      FROM push_subscriptions
-      WHERE profile_id = ?
-    `)
-    .bind(profileId)
-    .all<{
-      endpoint: string;
-      p256dh: string;
-      auth: string;
-    }>();
-
-  if (subs.results.length === 0) {
-    return { sent: 0, failed: 0 };
-  }
-
-  const vapidKeys = {
-    publicKey: env.VAPID_PUBLIC_KEY,
-    privateKey: env.VAPID_PRIVATE_KEY,
-    subject: env.VAPID_SUBJECT,
-  };
-
-  let sent = 0;
-  let failed = 0;
-
-  for (const sub of subs.results) {
-    const ok = await sendPushNotification(
-      { endpoint: sub.endpoint, p256dh: sub.p256dh, auth: sub.auth },
-      payload,
-      vapidKeys
-    );
-
-    if (ok) {
-      sent++;
-    } else {
-      failed++;
-      await env.DB
-        .prepare(`DELETE FROM push_subscriptions WHERE endpoint = ?`)
-        .bind(sub.endpoint)
-        .run();
-    }
-  }
-
-  return { sent, failed };
-}
 
 // ==================================================
 // NOT FOUND
