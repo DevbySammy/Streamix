@@ -4255,6 +4255,14 @@ return json(
     const currentTime =
       `${getPart("hour")}:${getPart("minute")}`;
 
+     console.log(
+  "REMINDER TIME CHECK",
+  {
+    today,
+    currentTime
+  }
+);
+
     // ==================================================
     // PROCESS DUE REMINDERS
     // ==================================================
