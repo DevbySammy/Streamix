@@ -5263,10 +5263,14 @@ function Card({
   onReminder: () => void;
   onSchedule: () => void;
 }) {
+  const [watchedClicked, setWatchedClicked] =
+    useState(false);
+
   const isOnWatchlist =
     st.watchlist.includes(t.id);
 
   const isWatched =
+    watchedClicked ||
     st.watched.includes(t.id);
 
   const isRewatch =
@@ -5293,49 +5297,63 @@ function Card({
             : "TV"}
         </span>
 
-      {!isAdmin && (
-  <div className="poster-actions">
-    <button
-      type="button"
-      className="poster-reminder-button"
-      onClick={event => {
-        event.preventDefault();
-        event.stopPropagation();
-        onReminder();
-      }}
-      aria-label={"Set reminder for " + t.name}
-      title="Remind me"
-    >
-      <Bell size={15} />
-    </button>
+        {!isAdmin && (
+          <div className="poster-actions">
 
-    <button
-      type="button"
-      className="poster-list-button"
-      onClick={event => {
-        event.preventDefault();
-        event.stopPropagation();
-        onList();
-      }}
-      aria-label={
-        isOnWatchlist
-          ? "Remove " + t.name + " from Watchlist"
-          : "Add " + t.name + " to Watchlist"
-      }
-      title={
-        isOnWatchlist
-          ? "Remove from Watchlist"
-          : "Add to Watchlist"
-      }
-    >
-      {isOnWatchlist ? (
-        <Check size={15} />
-      ) : (
-        <Plus size={15} />
-      )}
-    </button>
-  </div>
-)}
+            <div className="poster-action-buttons">
+
+              <button
+                type="button"
+                className="poster-list-button"
+                onClick={event => {
+                  event.preventDefault();
+                  event.stopPropagation();
+                  onList();
+                }}
+                aria-label={
+                  isOnWatchlist
+                    ? "Remove " +
+                      t.name +
+                      " from Watchlist"
+                    : "Add " +
+                      t.name +
+                      " to Watchlist"
+                }
+                title={
+                  isOnWatchlist
+                    ? "Remove from Watchlist"
+                    : "Add to Watchlist"
+                }
+              >
+                {isOnWatchlist ? (
+                  <Check size={15} />
+                ) : (
+                  <Plus size={15} />
+                )}
+              </button>
+
+              <button
+                type="button"
+                className="poster-reminder-button"
+                onClick={event => {
+                  event.preventDefault();
+                  event.stopPropagation();
+                  onReminder();
+                }}
+                aria-label={
+                  "Set reminder for " +
+                  t.name
+                }
+                title="Remind me"
+              >
+                <Bell size={15} />
+              </button>
+
+            </div>
+
+          </div>
+        )}
+
         {isAdmin && (
           <button
             type="button"
@@ -5381,39 +5399,38 @@ function Card({
         <p>{t.year}</p>
 
         {!isAdmin && (
-          <>
+          <div className="actions">
 
-       <div className="actions">
+            <button
+              type="button"
+              className={
+                isWatched
+                  ? "on"
+                  : ""
+              }
+              onClick={() => {
+                setWatchedClicked(true);
+                onWatch();
+              }}
+            >
+              {isWatched
+                ? "✓ Watched"
+                : "Mark watched"}
+            </button>
 
-  <button
-    type="button"
-    className={
-      isWatched
-        ? "on"
-        : ""
-    }
-    onClick={onWatch}
-  >
-    {isWatched
-      ? "✓ Watched"
-      : "Mark watched"}
-  </button>
+            <button
+              type="button"
+              className={
+                isRewatch
+                  ? "rewatch-action on"
+                  : "rewatch-action"
+              }
+              onClick={onRewatch}
+            >
+              ↻ Re-watch
+            </button>
 
-  <button
-    type="button"
-    className={
-      isRewatch
-        ? "rewatch-action on"
-        : "rewatch-action"
-    }
-    onClick={onRewatch}
-  >
-    ↻ Re-watch
-  </button>
-
-</div>
-
-          </>
+          </div>
         )}
 
       </div>
@@ -5421,6 +5438,7 @@ function Card({
     </article>
   );
 }
+
 /* =========================================================
 MODAL
 ========================================================= */
