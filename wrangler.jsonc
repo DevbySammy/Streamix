@@ -7,6 +7,10 @@
 ],
   "main": "./worker/index.ts",
 
+"observability": {
+  "enabled": true
+},
+
   "d1_databases": [
     {
       "binding": "DB",
