@@ -567,12 +567,11 @@ card actions
 .small-actions button {
   min-height: 40px;
   flex: 1;
-     white-space: nowrap;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 5px;
-  padding: 7px 6px;
+  padding: 7px 10px;
   border-radius: 8px;
   background: #202023;
   color: #aaa;
