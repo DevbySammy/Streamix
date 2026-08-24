@@ -42,7 +42,10 @@ async function sendPushToProfile(
     }
   );
 
-  const subs = await env.DB
+  let subs;
+
+try {
+  subs = await env.DB
     .prepare(`
       SELECT endpoint, p256dh, auth
       FROM push_subscriptions
@@ -54,6 +57,14 @@ async function sendPushToProfile(
       p256dh: string;
       auth: string;
     }>();
+} catch (error) {
+  console.error(
+    "PUSH SUBSCRIPTIONS QUERY ERROR",
+    error
+  );
+
+  throw error;
+}
 
  if (subs.results.length === 0) {
   console.log(
