@@ -2,9 +2,9 @@
  * Web Push Protocol implementation for Cloudflare Workers.
  *
  * Implements:
- * - VAPID JWT signing (RFC 8292) using Web Crypto API
- * - AES128GCM content encryption (RFC 8291) using Web Crypto API
- * - Push message delivery to subscription endpoints
+ * - VAPID JWT signing (RFC 8292)
+ * - Web Push payload encryption (RFC 8291)
+ * - Push message delivery
  */
 
 type PushSubscription = {
@@ -28,8 +28,8 @@ function base64UrlEncode(buffer: ArrayBuffer): string {
 
   let binary = "";
 
-  for (const b of bytes) {
-    binary += String.fromCharCode(b);
+  for (const byte of bytes) {
+    binary += String.fromCharCode(byte);
   }
 
   return btoa(binary)
@@ -38,10 +38,9 @@ function base64UrlEncode(buffer: ArrayBuffer): string {
     .replace(/=+$/, "");
 }
 
-function base64UrlDecode(str: string): Uint8Array {
+function base64UrlDecode(value: string): Uint8Array {
   const padded =
-    str +
-    "=".repeat((4 - (str.length % 4)) % 4);
+    value + "=".repeat((4 - (value.length % 4)) % 4);
 
   const base64 = padded
     .replace(/-/g, "+")
@@ -50,12 +49,14 @@ function base64UrlDecode(str: string): Uint8Array {
   const binary = atob(base64);
 
   return Uint8Array.from(
-    [...binary].map((c) => c.charCodeAt(0))
+    Array.from(binary).map(char =>
+      char.charCodeAt(0)
+    )
   );
 }
 
 /* =========================================================
-   VAPID JWT (RFC 8292)
+   VAPID JWT
    ========================================================= */
 
 async function createVapidJwt(
@@ -77,16 +78,16 @@ async function createVapidJwt(
     sub: keys.subject
   };
 
-  const enc = new TextEncoder();
+  const encoder = new TextEncoder();
 
   const headerB64 = base64UrlEncode(
-    enc.encode(
+    encoder.encode(
       JSON.stringify(header)
     ).buffer as ArrayBuffer
   );
 
   const payloadB64 = base64UrlEncode(
-    enc.encode(
+    encoder.encode(
       JSON.stringify(payload)
     ).buffer as ArrayBuffer
   );
@@ -99,7 +100,7 @@ async function createVapidJwt(
 
   if (privateKeyBytes.length !== 32) {
     throw new Error(
-      `Invalid VAPID private key length: ${privateKeyBytes.length} bytes`
+      `Invalid VAPID private key length: ${privateKeyBytes.length}`
     );
   }
 
@@ -108,7 +109,7 @@ async function createVapidJwt(
       privateKeyBytes
     );
 
-  const cryptoKey =
+  const privateKey =
     await crypto.subtle.importKey(
       "pkcs8",
       pkcs8Der,
@@ -126,33 +127,35 @@ async function createVapidJwt(
         name: "ECDSA",
         hash: "SHA-256"
       },
-      cryptoKey,
-      enc.encode(unsignedToken)
+      privateKey,
+      encoder.encode(unsignedToken)
     );
 
   return (
-    `${unsignedToken}.` +
+    unsignedToken +
+    "." +
     base64UrlEncode(signature)
   );
 }
 
-/**
- * Build a PKCS#8 DER envelope around
- * a 32-byte P-256 raw private scalar.
- */
+/* =========================================================
+   PKCS8 PRIVATE KEY BUILDER
+   ========================================================= */
+
 function buildPkcs8FromRawScalar(
   scalar: Uint8Array
 ): ArrayBuffer {
   const prefix = new Uint8Array([
-    0x30, 0x3c,
+    0x30, 0x77,
     0x02, 0x01, 0x00,
     0x30, 0x10,
     0x06, 0x07,
     0x2a, 0x86, 0x48, 0xce, 0x3d, 0x02, 0x01,
     0x06, 0x05,
     0x2b, 0x81, 0x04, 0x00, 0x22,
-    0x04, 0x27,
-    0x30, 0x25,
+    0x04, 0x62,
+    0x04, 0x60,
+    0x30, 0x57,
     0x02, 0x01, 0x01,
     0x04, 0x20
   ]);
@@ -169,7 +172,7 @@ function buildPkcs8FromRawScalar(
 }
 
 /* =========================================================
-   HKDF-SHA-256
+   HKDF
    ========================================================= */
 
 async function hkdfExtract(
@@ -202,7 +205,7 @@ async function hkdfExpand(
 ): Promise<Uint8Array> {
   if (length > 32) {
     throw new Error(
-      "This HKDF implementation supports outputs up to 32 bytes."
+      "HKDF expand length greater than 32 is not supported."
     );
   }
 
@@ -224,9 +227,7 @@ async function hkdfExpand(
     );
 
   input.set(info, 0);
-
-  // First HKDF expansion block.
-  input[info.length] = 0x01;
+  input[info.length] = 1;
 
   const output =
     await crypto.subtle.sign(
@@ -241,40 +242,44 @@ async function hkdfExpand(
 }
 
 /* =========================================================
-   AES128GCM CONTENT ENCRYPTION (RFC 8291)
+   WEB PUSH ENCRYPTION
+   RFC 8291
    ========================================================= */
 
 async function encryptPayload(
   payload: string,
   subscription: PushSubscription
 ): Promise<ArrayBuffer> {
-  const enc = new TextEncoder();
-
-  const plaintext =
-    enc.encode(payload);
+  const encoder = new TextEncoder();
 
   const userPublicKey =
-    base64UrlDecode(subscription.p256dh);
+    base64UrlDecode(
+      subscription.p256dh
+    );
 
-  const userAuthSecret =
-    base64UrlDecode(subscription.auth);
+  const authSecret =
+    base64UrlDecode(
+      subscription.auth
+    );
 
   if (userPublicKey.length !== 65) {
     throw new Error(
-      `Invalid subscription public key length: ${userPublicKey.length}`
+      `Invalid p256dh key length: ${userPublicKey.length}`
     );
   }
 
-  if (userAuthSecret.length !== 16) {
+  if (authSecret.length !== 16) {
     throw new Error(
-      `Invalid subscription auth secret length: ${userAuthSecret.length}`
+      `Invalid auth secret length: ${authSecret.length}`
     );
   }
 
   /*
-   * Import the browser's P-256 ECDH public key.
+   * The browser subscription public key
+   * is the user's P-256 ECDH public key.
    */
-  const userCryptoKey =
+
+  const userPublicCryptoKey =
     await crypto.subtle.importKey(
       "raw",
       userPublicKey,
@@ -287,10 +292,11 @@ async function encryptPayload(
     );
 
   /*
-   * Generate a fresh ephemeral P-256
-   * key pair for this notification.
+   * Generate a NEW ephemeral P-256 key pair
+   * for every push message.
    */
-  const ephemeralKeyPair =
+
+  const serverKeyPair =
     await crypto.subtle.generateKey(
       {
         name: "ECDH",
@@ -301,67 +307,76 @@ async function encryptPayload(
     );
 
   /*
-   * ECDH shared secret.
+   * Derive ECDH shared secret.
    */
+
   const sharedSecret =
     new Uint8Array(
       await crypto.subtle.deriveBits(
         {
           name: "ECDH",
-          public: userCryptoKey
+          public: userPublicCryptoKey
         },
-        ephemeralKeyPair.privateKey,
+        serverKeyPair.privateKey,
         256
       )
     );
 
   /*
-   * Export the application server's
-   * ephemeral public key in uncompressed
-   * P-256 form.
+   * Export our ephemeral public key.
    *
-   * This is 65 bytes:
-   * 0x04 || X || Y
+   * This becomes the "keyid" in the
+   * aes128gcm record header.
    */
-  const ephemeralPublicKey =
+
+  const serverPublicKey =
     new Uint8Array(
       await crypto.subtle.exportKey(
         "raw",
-        ephemeralKeyPair.publicKey
+        serverKeyPair.publicKey
       )
     );
 
+  if (serverPublicKey.length !== 65) {
+    throw new Error(
+      "Invalid generated server public key."
+    );
+  }
+
   /*
-   * RFC 8291:
+   * -------------------------------------------------------
+   * RFC 8291 KEY DERIVATION
+   * -------------------------------------------------------
    *
    * PRK_key =
-   *   HMAC-SHA256(
-   *     auth_secret,
-   *     ecdh_secret
-   *   )
+   *   HKDF-Extract(auth_secret, ecdh_secret)
    */
+
   const prkKey =
     await hkdfExtract(
-      userAuthSecret,
+      authSecret,
       sharedSecret
     );
 
   /*
    * key_info =
-   *   "WebPush: info" ||
-   *   0x00 ||
-   *   ua_public ||
-   *   as_public
+   *   "WebPush: info"
+   *   || 0x00
+   *   || ua_public
+   *   || as_public
    */
+
   const webPushInfoPrefix =
-    enc.encode("WebPush: info");
+    encoder.encode(
+      "WebPush: info"
+    );
 
   const keyInfo =
     new Uint8Array(
       webPushInfoPrefix.length +
       1 +
       userPublicKey.length +
-      ephemeralPublicKey.length
+      serverPublicKey.length
     );
 
   let keyInfoOffset = 0;
@@ -374,8 +389,9 @@ async function encryptPayload(
   keyInfoOffset +=
     webPushInfoPrefix.length;
 
-  keyInfo[keyInfoOffset] = 0x00;
-  keyInfoOffset++;
+  keyInfo[keyInfoOffset] = 0;
+
+  keyInfoOffset += 1;
 
   keyInfo.set(
     userPublicKey,
@@ -386,18 +402,19 @@ async function encryptPayload(
     userPublicKey.length;
 
   keyInfo.set(
-    ephemeralPublicKey,
+    serverPublicKey,
     keyInfoOffset
   );
 
   /*
    * IKM =
-   * HKDF-Expand(
-   *   PRK_key,
-   *   key_info,
-   *   32
-   * )
+   *   HKDF-Expand(
+   *     PRK_key,
+   *     key_info,
+   *     32
+   *   )
    */
+
   const ikm =
     await hkdfExpand(
       prkKey,
@@ -406,12 +423,9 @@ async function encryptPayload(
     );
 
   /*
-   * Generate a fresh random 16-byte
-   * content encryption salt.
-   *
-   * RFC 8291 requires a new random
-   * salt for each encrypted message.
+   * Generate a fresh random 16-byte salt.
    */
+
   const salt =
     crypto.getRandomValues(
       new Uint8Array(16)
@@ -419,11 +433,12 @@ async function encryptPayload(
 
   /*
    * PRK =
-   *   HMAC-SHA256(
+   *   HKDF-Extract(
    *     salt,
    *     IKM
    *   )
    */
+
   const prk =
     await hkdfExtract(
       salt,
@@ -431,67 +446,73 @@ async function encryptPayload(
     );
 
   /*
-   * CEK info:
+   * CEK information.
    *
-   * "Content-Encoding: aes128gcm" ||
-   * 0x00
+   * RFC 8291 requires:
+   *
+   * "Content-Encoding: aes128gcm"
+   * || 0x00
    */
-  const cekInfo =
-    new Uint8Array(
-      enc.encode(
-        "Content-Encoding: aes128gcm"
-      ).length + 1
-    );
 
-  const cekInfoText =
-    enc.encode(
+  const cekInfoPrefix =
+    encoder.encode(
       "Content-Encoding: aes128gcm"
     );
 
+  const cekInfo =
+    new Uint8Array(
+      cekInfoPrefix.length + 1
+    );
+
   cekInfo.set(
-    cekInfoText,
+    cekInfoPrefix,
     0
   );
 
-  cekInfo[cekInfo.length - 1] =
-    0x00;
+  cekInfo[
+    cekInfoPrefix.length
+  ] = 0;
 
   /*
-   * Nonce info:
+   * Nonce information.
    *
-   * "Content-Encoding: nonce" ||
-   * 0x00
+   * "Content-Encoding: nonce"
+   * || 0x00
    */
-  const nonceInfo =
-    new Uint8Array(
-      enc.encode(
-        "Content-Encoding: nonce"
-      ).length + 1
-    );
 
-  const nonceInfoText =
-    enc.encode(
+  const nonceInfoPrefix =
+    encoder.encode(
       "Content-Encoding: nonce"
     );
 
+  const nonceInfo =
+    new Uint8Array(
+      nonceInfoPrefix.length + 1
+    );
+
   nonceInfo.set(
-    nonceInfoText,
+    nonceInfoPrefix,
     0
   );
 
-  nonceInfo[nonceInfo.length - 1] =
-    0x00;
+  nonceInfo[
+    nonceInfoPrefix.length
+  ] = 0;
 
   /*
-   * Derive the AES-128-GCM content
-   * encryption key and 12-byte nonce.
+   * Derive the 16-byte AES-128 key.
    */
+
   const cek =
     await hkdfExpand(
       prk,
       cekInfo,
       16
     );
+
+  /*
+   * Derive the 12-byte AES-GCM nonce.
+   */
 
   const nonce =
     await hkdfExpand(
@@ -501,28 +522,9 @@ async function encryptPayload(
     );
 
   /*
-   * RFC 8188 requires the final record
-   * to end with a padding delimiter.
-   *
-   * 0x02 = final record delimiter.
+   * Import AES key.
    */
-  const paddedPlaintext =
-    new Uint8Array(
-      plaintext.length + 1
-    );
 
-  paddedPlaintext.set(
-    plaintext,
-    0
-  );
-
-  paddedPlaintext[
-    paddedPlaintext.length - 1
-  ] = 0x02;
-
-  /*
-   * Import CEK as AES-GCM key.
-   */
   const aesKey =
     await crypto.subtle.importKey(
       "raw",
@@ -535,14 +537,41 @@ async function encryptPayload(
     );
 
   /*
-   * Encrypt plaintext + padding delimiter.
+   * RFC 8291 requires the plaintext to end
+   * with a 0x02 padding delimiter.
    */
+
+  const plaintext =
+    encoder.encode(payload);
+
+  const paddedPlaintext =
+    new Uint8Array(
+      plaintext.length + 1
+    );
+
+  paddedPlaintext.set(
+    plaintext,
+    0
+  );
+
+  paddedPlaintext[
+    plaintext.length
+  ] = 0x02;
+
+  /*
+   * Encrypt using AES-128-GCM.
+   *
+   * The authentication tag is automatically
+   * appended by Web Crypto.
+   */
+
   const ciphertext =
     new Uint8Array(
       await crypto.subtle.encrypt(
         {
           name: "AES-GCM",
-          iv: nonce
+          iv: nonce,
+          tagLength: 128
         },
         aesKey,
         paddedPlaintext
@@ -550,95 +579,67 @@ async function encryptPayload(
     );
 
   /*
-   * RFC 8188 record size.
+   * aes128gcm record size.
+   *
+   * The full push body must stay under
+   * the commonly supported 4096-byte limit.
    *
    * Header:
-   *   salt     = 16 bytes
-   *   rs       = 4 bytes
-   *   idlen    = 1 byte
-   *   keyid    = 65 bytes
+   *   16 bytes salt
+   *   4 bytes record size
+   *   1 byte keyid length
+   *   65 bytes keyid
    *
    * Total header = 86 bytes.
    *
-   * rs must be greater than:
-   *
-   * plaintext
-   * + padding delimiter
-   * + authentication tag
+   * Ciphertext includes:
+   *   plaintext
+   *   + 1 padding delimiter
+   *   + 16-byte GCM tag
    */
-  const recordSize = 4096;
 
-  if (
-    plaintext.length +
-      1 +
-      16 >=
-    recordSize
-  ) {
-    throw new Error(
-      "Push payload is too large."
-    );
-  }
-
-  return buildRfc8291Record(
-    salt,
-    ephemeralPublicKey,
-    ciphertext,
-    recordSize
-  );
-}
-
-/* =========================================================
-   RFC 8291 / RFC 8188 RECORD
-   ========================================================= */
-
-function buildRfc8291Record(
-  salt: Uint8Array,
-  ephemeralPublicKey: Uint8Array,
-  ciphertext: Uint8Array,
-  recordSize: number
-): ArrayBuffer {
-  if (salt.length !== 16) {
-    throw new Error(
-      "RFC 8291 salt must be 16 bytes."
-    );
-  }
-
-  if (ephemeralPublicKey.length !== 65) {
-    throw new Error(
-      "RFC 8291 keyid must be 65 bytes."
-    );
-  }
-
-  /*
-   * aes128gcm header:
-   *
-   * salt 16
-   * rs 4
-   * idlen 1
-   * keyid 65
-   */
   const headerSize =
-    16 + 4 + 1 +
-    ephemeralPublicKey.length;
+    16 + 4 + 1 + 65;
 
   const totalSize =
     headerSize +
     ciphertext.length;
 
+  if (totalSize > 4096) {
+    throw new Error(
+      "Push payload is too large. Maximum Web Push payload is approximately 3993 bytes."
+    );
+  }
+
+  /*
+   * rs must be greater than the sum of:
+   *
+   * plaintext
+   * + padding delimiter
+   * + padding
+   * + authentication tag
+   *
+   * 4096 is a safe record size.
+   */
+
+  const recordSize = 4096;
+
   const result =
     new Uint8Array(totalSize);
 
   /*
-   * Salt.
+   * salt
    */
+
   result.set(
     salt,
     0
   );
 
   /*
-   * Record size, big endian.
+   * rs
    */
+
   const dataView =
     new DataView(
       result.buffer
@@ -646,27 +647,32 @@ function buildRfc8291Record(
 
   dataView.setUint32(
     16,
-    recordSize
+    recordSize,
+    false
   );
 
   /*
-   * Key ID length.
+   * keyid length
+   *
+   * The server's ephemeral public key
+   * is exactly 65 bytes.
    */
-  result[20] =
-    ephemeralPublicKey.length;
+
+  result[20] = 65;
 
   /*
-   * Application server's
-   * ephemeral public key.
+   * keyid
    */
+
   result.set(
-    ephemeralPublicKey,
+    serverPublicKey,
     21
   );
 
   /*
-   * Encrypted payload.
+   * ciphertext
    */
+
   result.set(
     ciphertext,
     headerSize
@@ -689,11 +695,19 @@ export async function sendPushNotification(
   vapidKeys: VapidKeys
 ): Promise<boolean> {
   try {
+    /*
+     * Create VAPID JWT.
+     */
+
     const jwt =
       await createVapidJwt(
         vapidKeys,
         subscription.endpoint
       );
+
+    /*
+     * Encrypt notification payload.
+     */
 
     const encrypted =
       await encryptPayload(
@@ -701,11 +715,16 @@ export async function sendPushNotification(
         subscription
       );
 
+    /*
+     * Send to browser push service.
+     */
+
     const response =
       await fetch(
         subscription.endpoint,
         {
           method: "POST",
+
           headers: {
             "Content-Type":
               "application/octet-stream",
@@ -723,30 +742,32 @@ export async function sendPushNotification(
         }
       );
 
+    /*
+     * 201 Created is a successful push
+     * response and is commonly returned
+     * by push services.
+     */
+
     if (
-      !response.ok &&
-      response.status !== 201
-    ) {
-      console.error(
-        `Push delivery failed: ${response.status} ${response.statusText}`
-      );
-
-      /*
-       * 404 / 410 means the browser
-       * subscription is no longer valid.
-       */
-      if (
-        response.status === 404 ||
-        response.status === 410
-      ) {
-        return false;
-      }
-    }
-
-    return (
       response.ok ||
       response.status === 201
+    ) {
+      return true;
+    }
+
+    console.error(
+      `Push delivery failed: ${response.status} ${response.statusText}`
     );
+
+    /*
+     * 404 and 410 generally mean the
+     * subscription is no longer valid.
+     *
+     * Returning false allows the caller
+     * to remove it from the database.
+     */
+
+    return false;
   } catch (error) {
     console.error(
       "Push delivery error:",
