@@ -274,3 +274,25 @@ VALUES (
   50,
   50
 );
+
+
+-- =========================================================
+-- PUSH NOTIFICATION SUBSCRIPTIONS
+-- =========================================================
+
+CREATE TABLE IF NOT EXISTS push_subscriptions (
+  id TEXT PRIMARY KEY,
+  profile_id TEXT NOT NULL,
+  endpoint TEXT NOT NULL UNIQUE,
+  p256dh TEXT NOT NULL,
+  auth TEXT NOT NULL,
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+  FOREIGN KEY (profile_id)
+  REFERENCES profiles(id)
+  ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_push_subscriptions_profile
+ON push_subscriptions(profile_id);
+
