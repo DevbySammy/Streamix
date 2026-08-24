@@ -606,6 +606,23 @@ card actions
 
 
 /* =========================================================
+   desktop card actions
+========================================================= */
+
+@media (min-width: 1101px) {
+  .actions button {
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .actions button .action-icon,
+  .actions button .action-label {
+    display: block;
+    line-height: 1;
+  }
+}
+
+/* =========================================================
    BUTTONS
 ========================================================= */
 
