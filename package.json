@@ -19,5 +19,5 @@
     "lucide-react": "latest"
   },
   "devDependencies": {
-  "wrangler": "latest",
+  "wrangler": "latest"
 }
