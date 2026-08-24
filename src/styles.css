@@ -571,7 +571,7 @@ card actions
   align-items: center;
   justify-content: center;
   gap: 5px;
-  padding: 7px 10px;
+  padding: 7px 12px;
   border-radius: 8px;
   background: #202023;
   color: #aaa;
@@ -579,6 +579,7 @@ card actions
   font-size: 12px;
   line-height: 1.2;
   text-align: center;
+   white-space: nowrap;
 }
 
 .actions button {
