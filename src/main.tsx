@@ -4520,7 +4520,7 @@ if (
           null
         )
       }
-onSave={(
+onSave={async (
   date,
   time,
   method
@@ -4539,25 +4539,75 @@ onSave={(
   if (!profileId) {
     return;
   }
-        setReminders(
-          current => [
-            ...current,
-            {
-  id: uid(),
-  profileId,
-  titleId:
-    showReminder.id,
-  date,
-  time,
-  method
-  }
-    ]
+
+  try {
+    const sessionId =
+      localStorage.getItem(
+        "sx-session-token"
       );
 
-        setShowReminder(
-          null
-        );
-      }}
+    const response =
+      await fetch(
+        "/api/reminders",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type":
+              "application/json",
+            ...(sessionId
+              ? {
+                  Authorization:
+                    `Bearer ${sessionId}`
+                }
+              : {})
+          },
+          body: JSON.stringify({
+            profileId,
+            libraryItemId:
+              showReminder.id,
+            reminderDate:
+              date,
+            reminderTime:
+              time
+          })
+        }
+      );
+
+    const data =
+      await response.json();
+
+    if (!response.ok) {
+      throw new Error(
+        data?.error ||
+          "Failed to save reminder."
+      );
+    }
+
+    setReminders(
+      current => [
+        ...current,
+        {
+          id: data.id,
+          profileId,
+          titleId:
+            showReminder.id,
+          date,
+          time,
+          method
+        }
+      ]
+    );
+
+    setShowReminder(
+      null
+    );
+  } catch (error) {
+    console.error(
+      "Failed to save reminder:",
+      error
+    );
+  }
+}}
     />
   )}
 
