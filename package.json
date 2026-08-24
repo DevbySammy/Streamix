@@ -20,6 +20,4 @@
   },
   "devDependencies": {
   "wrangler": "latest",
-  "web-push": "latest"
-}
 }
