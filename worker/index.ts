@@ -110,7 +110,77 @@ export default {
     }
   );
 }
- 
+
+    {/*just added this entire block below for push notifications */} 
+        if (
+      url.pathname === "/api/push/subscribe" &&
+      request.method === "POST"
+    ) {
+      try {
+        const subscription = await request.json();
+
+        if (
+          !subscription ||
+          !subscription.endpoint ||
+          !subscription.keys?.p256dh ||
+          !subscription.keys?.auth
+        ) {
+          return new Response(
+            JSON.stringify({
+              error: "Invalid push subscription."
+            }),
+            {
+              status: 400,
+              headers: {
+                "Content-Type": "application/json"
+              }
+            }
+          );
+        }
+
+        await env.DB.prepare(
+          `INSERT OR REPLACE INTO push_subscriptions
+            (endpoint, p256dh, auth)
+           VALUES (?, ?, ?)`
+        )
+          .bind(
+            subscription.endpoint,
+            subscription.keys.p256dh,
+            subscription.keys.auth
+          )
+          .run();
+
+        return new Response(
+          JSON.stringify({
+            success: true
+          }),
+          {
+            status: 200,
+            headers: {
+              "Content-Type": "application/json"
+            }
+          }
+        );
+      } catch (error) {
+        console.error(
+          "Push subscription error:",
+          error
+        );
+
+        return new Response(
+          JSON.stringify({
+            error: "Failed to save push subscription."
+          }),
+          {
+            status: 500,
+            headers: {
+              "Content-Type": "application/json"
+            }
+          }
+        );
+      }
+    }
+    
     // ==================================================
     // CORS
     // ==================================================
