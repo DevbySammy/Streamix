@@ -5403,34 +5403,37 @@ const isRewatch =
 
             <div className="actions">
 
-           <button
+<button
   type="button"
   className={
     isWatched
       ? "on"
       : ""
   }
-  onClick={() => {
-    setWatchedClicked(true);
-    onWatch();
-  }}
+  onClick={onWatch}
 >
- {isWatched
-    ? "✓ Watched"
-    : "✓ Watched"}
+  <span className="action-icon">✓</span>
+  <span className="action-label">
+    {isWatched
+      ? "Watched"
+      : "Watched"}
+  </span>
 </button>
 
-              <button
-                type="button"
-                className={
-                  isRewatch
-                    ? "rewatch-action on"
-                    : "rewatch-action"
-                }
-                onClick={onRewatch}
-              >
-                ↻ Re-watch
-              </button>
+     <button
+  type="button"
+  className={
+    isRewatch
+      ? "rewatch-action on"
+      : "rewatch-action"
+  }
+  onClick={onRewatch}
+>
+  <span className="action-icon">↻</span>
+  <span className="action-label">
+    Re-watch
+  </span>
+</button>
 
             </div>
 
