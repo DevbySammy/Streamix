@@ -1,6 +1,9 @@
 export interface Env {
   TMDB_READ_ACCESS_TOKEN: string;
   ADMIN_API_TOKEN: string;
+  VAPID_PUBLIC_KEY: string;
+  VAPID_PRIVATE_KEY: string;
+  VAPID_SUBJECT: string;
   DB: D1Database;
 }
 
