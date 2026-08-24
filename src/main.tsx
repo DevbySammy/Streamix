@@ -1181,6 +1181,14 @@ useEffect(() => {
  const [sessionRestoring, setSessionRestoring] =
    useState(true);
 
+     const [pushPermission, setPushPermission] =
+    useState<NotificationPermission>(
+      "default"
+    );
+
+  const [pushSubscribed, setPushSubscribed] =
+    useState(false);
+
  useEffect(() => {
    async function restoreSession() {
      const sessionId =
