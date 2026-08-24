@@ -1272,6 +1272,46 @@ else {
    restoreSession();
  }, []);
 
+     useEffect(() => {
+    if (!("serviceWorker" in navigator)) {
+      return;
+    }
+
+    if (!("Notification" in window)) {
+      return;
+    }
+
+    const checkPushStatus = async () => {
+      try {
+        const registration =
+          await navigator.serviceWorker.register("/sw.js");
+
+        const permission =
+          Notification.permission;
+
+        setPushPermission(permission);
+
+        if (permission !== "granted") {
+          return;
+        }
+
+        const subscription =
+          await registration.pushManager.getSubscription();
+
+        if (subscription) {
+          setPushSubscribed(true);
+        }
+      } catch (error) {
+        console.error(
+          "Failed to initialize push notifications:",
+          error
+        );
+      }
+    };
+
+    checkPushStatus();
+  }, []);
+
  const [tab, setTab] =
    useState<"library" | "rewatch">(
      "library"
