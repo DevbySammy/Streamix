@@ -113,8 +113,12 @@ export default {
   );
 }
 
-          try {
-        const subscription = await request.json();
+           if (
+        url.pathname === "/api/push/subscribe" &&
+        request.method === "POST"
+      ) {
+        try {
+          const subscription = await request.json();
 
         if (
           !subscription ||
