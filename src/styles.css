@@ -553,6 +553,10 @@ header {
   font-size: 13px;
 }
 
+/* =========================================================
+card actions
+========================================================= */
+
 .actions,
 .small-actions {
   display: flex;
@@ -577,9 +581,20 @@ header {
   text-align: center;
 }
 
+.actions button {
+  border: 1px solid transparent;
+  color: #fff;
+}
+
 .actions button.on,
 .small-actions button.on {
   border: 1px solid #ff4f9a;
+  color: #fff;
+}
+
+.actions button.on {
+  border: 1px solid #ff4f9a;
+  background: #202023;
   color: #fff;
 }
 
@@ -587,6 +602,10 @@ header {
   margin-top: 7px;
 }
 
+.small-actions button.on {
+  border: 1px solid #ff4f9a;
+  color: #fff;
+}
 /* =========================================================
    BUTTONS
 ========================================================= */
