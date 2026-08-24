@@ -1342,8 +1342,8 @@ else {
         return;
       }
 
-      const publicKey =
-        import.meta.env.VITE_VAPID_PUBLIC_KEY;
+    const publicKey =
+  "BDEEMiOfULTJ28A46fKl6j-ssmIinKrVbyPIYIw5Q9Ybx0YniTtSKPC-iJNTvP3Spkylm4eTnTaXShfepvmNfVY";
 
       if (!publicKey) {
         console.error(
