@@ -113,12 +113,7 @@ export default {
   );
 }
 
-    {/*just added this entire block below for push notifications */} 
-       if (
-      url.pathname === "/api/push/subscribe" &&
-      request.method === "POST"
-    ) {
-      try {
+          try {
         const subscription = await request.json();
 
         if (
@@ -3976,7 +3971,7 @@ if (
   }
 }
 
-    // ==================================================
+// ==================================================
 // PUSH NOTIFICATIONS - TEST
 // ==================================================
 
@@ -4016,6 +4011,12 @@ if (
           auth: string;
         }>();
 
+    const vapidKeys = {
+      publicKey: env.VAPID_PUBLIC_KEY,
+      privateKey: env.VAPID_PRIVATE_KEY,
+      subject: env.VAPID_SUBJECT,
+    };
+
     const results = {
       attempted: 0,
       sent: 0,
@@ -4028,8 +4029,33 @@ if (
     ) {
       results.attempted++;
 
+      const success =
+        await sendPushNotification(
+          {
+            endpoint: subscription.endpoint,
+            p256dh: subscription.p256dh,
+            auth: subscription.auth
+          },
+          {
+            title: "Streamix",
+            body: "Push notifications are working!",
+            url: "/"
+          },
+          vapidKeys
+        );
+
       if (success) {
         results.sent++;
+      } else {
+        results.removed++;
+
+        await env.DB
+          .prepare(
+            `DELETE FROM push_subscriptions
+             WHERE endpoint = ?`
+          )
+          .bind(subscription.endpoint)
+          .run();
       }
     }
 
