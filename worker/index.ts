@@ -4311,7 +4311,12 @@ return json(
           reminder_date: string;
           reminder_time: string;
           title: string;
-        }>();
+               }>();
+
+    console.log(
+      "DUE REMINDERS",
+      dueReminders.results
+    );
 
     for (
       const reminder of dueReminders.results
