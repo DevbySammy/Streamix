@@ -4267,16 +4267,6 @@ return json(
     // PROCESS DUE REMINDERS
     // ==================================================
 
-    try {
-      await env.DB
-        .prepare(
-          `ALTER TABLE reminders ADD COLUMN sent_at TEXT`
-        )
-        .run();
-    } catch {
-      // Column already exists
-    }
-
     const dueReminders =
       await env.DB
         .prepare(`
