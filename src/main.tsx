@@ -55,9 +55,10 @@ rewatch: string[];
 type Reminder = {
   id: string;
   profileId: string;
-  libraryItemId: string;
-  reminderDate: string;
-  reminderTime: string;
+  titleId: string;
+  date: string;
+  time: string;
+  method: "push" | "calendar" | "both";
 };
 
 type Scheduled = {
@@ -2529,11 +2530,11 @@ setStates(currentStates => {
 setReminders(current =>
   current.filter(
     reminder =>
-      reminder.libraryItemId !==
+      reminder.titleId !==
       id
   )
 );
-   
+
 setScheduled(current =>
   current.filter(
     item =>
