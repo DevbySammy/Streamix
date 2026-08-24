@@ -5415,9 +5415,11 @@ const isRewatch =
     onWatch();
   }}
 >
-  {isWatched
+ <span style={{ whiteSpace: "nowrap" }}>
+ {isWatched
     ? "✓ Watched"
     : "✓ Watched"}
+    </span>
 </button>
 
               <button
