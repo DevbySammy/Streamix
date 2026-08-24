@@ -610,7 +610,8 @@ card actions
   color: #fff;
 }
 
-.rewatch-action {
+.actions .rewatch-action {
+  flex: 1.1;
   white-space: nowrap;
 }
 
@@ -618,10 +619,7 @@ card actions
   flex: 0.9;
 }
 
-.actions .rewatch-action {
-  flex: 1.1;
-  white-space: nowrap;
-}
+
 /* =========================================================
    BUTTONS
 ========================================================= */
