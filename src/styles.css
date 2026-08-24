@@ -606,6 +606,11 @@ card actions
   border: 1px solid #ff4f9a;
   color: #fff;
 }
+
+.rewatch-action {
+  white-space: nowrap;
+}
+
 /* =========================================================
    BUTTONS
 ========================================================= */
