@@ -4308,19 +4308,29 @@ return json(
       dueReminders.results
     );
 
-    for (
-      const reminder of dueReminders.results
-    ) {
-      await sendPushToProfile(
-        env,
-        reminder.profile_id,
-        {
-          title: "Streamix Reminder",
-          body:
-            `Time to watch ${reminder.title}!`,
-          url: "/"
-        }
-      );
+   for (
+  const reminder of dueReminders.results
+) {
+  const pushResult =
+    await sendPushToProfile(
+      env,
+      reminder.profile_id,
+      {
+        title: "Streamix Reminder",
+        body:
+          `Time to watch ${reminder.title}!`,
+        url: "/"
+      }
+    );
+
+  console.log(
+    "PUSH RESULT",
+    {
+      reminderId: reminder.id,
+      profileId: reminder.profile_id,
+      result: pushResult
+    }
+  );
 
       await env.DB
         .prepare(
