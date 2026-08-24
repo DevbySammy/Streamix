@@ -567,7 +567,7 @@ card actions
 .small-actions button {
   min-height: 40px;
   flex: 1;
-   display: inline-flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 5px;
@@ -579,7 +579,6 @@ card actions
   font-size: 12px;
   line-height: 1.2;
   text-align: center;
-   white-space: nowrap;
 }
 
 .actions button {
