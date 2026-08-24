@@ -5417,7 +5417,7 @@ const isRewatch =
 >
   {isWatched
     ? "✓ Watched"
-    : "Watched"}
+    : "✓ Watched"}
 </button>
 
               <button
