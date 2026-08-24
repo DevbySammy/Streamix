@@ -35,12 +35,13 @@ async function sendPushToProfile(
   profileId: string,
   payload: { title: string; body: string; url?: string }
 ): Promise<{ sent: number; failed: number }> {
-console.log(
+  console.log(
     "PUSH FUNCTION START",
     {
       profileId
     }
   );
+
   const subs = await env.DB
     .prepare(`
       SELECT endpoint, p256dh, auth
@@ -69,7 +70,11 @@ console.log(
 
   for (const sub of subs.results) {
     const ok = await sendPushNotification(
-      { endpoint: sub.endpoint, p256dh: sub.p256dh, auth: sub.auth },
+      {
+        endpoint: sub.endpoint,
+        p256dh: sub.p256dh,
+        auth: sub.auth
+      },
       payload,
       vapidKeys
     );
@@ -78,8 +83,11 @@ console.log(
       sent++;
     } else {
       failed++;
+
       await env.DB
-        .prepare(`DELETE FROM push_subscriptions WHERE endpoint = ?`)
+        .prepare(
+          `DELETE FROM push_subscriptions WHERE endpoint = ?`
+        )
         .bind(sub.endpoint)
         .run();
     }
@@ -87,7 +95,6 @@ console.log(
 
   return { sent, failed };
 }
-
 
 export default {
   async fetch(
