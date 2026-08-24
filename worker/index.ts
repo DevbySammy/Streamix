@@ -3809,6 +3809,167 @@ if (
 }
 
 // ==================================================
+// PUSH NOTIFICATIONS - SUBSCRIBE
+// ==================================================
+
+if (
+  url.pathname === "/api/push/subscribe" &&
+  request.method === "POST"
+) {
+  const auth =
+    await requireSession();
+
+  if (auth instanceof Response) {
+    return auth;
+  }
+
+  try {
+    const body =
+      await request.json<{
+        endpoint?: string;
+        keys?: {
+          p256dh?: string;
+          auth?: string;
+        };
+      }>();
+
+    const endpoint =
+      body.endpoint?.trim();
+
+    const p256dh =
+      body.keys?.p256dh?.trim();
+
+    const authKey =
+      body.keys?.auth?.trim();
+
+    if (
+      !endpoint ||
+      !p256dh ||
+      !authKey
+    ) {
+      return json(
+        {
+          error:
+            "Invalid push subscription."
+        },
+        400
+      );
+    }
+
+    await env.DB
+      .prepare(`
+        INSERT INTO push_subscriptions (
+          id,
+          profile_id,
+          endpoint,
+          p256dh,
+          auth
+        )
+        VALUES (?, ?, ?, ?, ?)
+        ON CONFLICT(endpoint)
+        DO UPDATE SET
+          profile_id = excluded.profile_id,
+          p256dh = excluded.p256dh,
+          auth = excluded.auth
+      `)
+      .bind(
+        crypto.randomUUID(),
+        auth.profileId,
+        endpoint,
+        p256dh,
+        authKey
+      )
+      .run();
+
+    return json({
+      success: true
+    });
+  } catch (error) {
+    console.error(
+      "PUSH SUBSCRIBE ERROR:",
+      error
+    );
+
+    return json(
+      {
+        error:
+          error instanceof Error
+            ? error.message
+            : "Unable to save push subscription."
+      },
+      500
+    );
+  }
+}
+
+// ==================================================
+// PUSH NOTIFICATIONS - UNSUBSCRIBE
+// ==================================================
+
+if (
+  url.pathname === "/api/push/subscribe" &&
+  request.method === "DELETE"
+) {
+  const auth =
+    await requireSession();
+
+  if (auth instanceof Response) {
+    return auth;
+  }
+
+  try {
+    const body =
+      await request.json<{
+        endpoint?: string;
+      }>();
+
+    const endpoint =
+      body.endpoint?.trim();
+
+    if (!endpoint) {
+      return json(
+        {
+          error:
+            "Push subscription endpoint is required."
+        },
+        400
+      );
+    }
+
+    await env.DB
+      .prepare(`
+        DELETE FROM push_subscriptions
+        WHERE endpoint = ?
+        AND profile_id = ?
+      `)
+      .bind(
+        endpoint,
+        auth.profileId
+      )
+      .run();
+
+    return json({
+      success: true
+    });
+  } catch (error) {
+    console.error(
+      "PUSH UNSUBSCRIBE ERROR:",
+      error
+    );
+
+    return json(
+      {
+        error:
+          error instanceof Error
+            ? error.message
+            : "Unable to remove push subscription."
+      },
+      500
+    );
+  }
+}
+
+// ==================================================
 // NOT FOUND
 // ==================================================
 
@@ -3819,5 +3980,4 @@ return json(
   },
   404
 );
-  }
-};
+    
