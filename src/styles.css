@@ -479,18 +479,11 @@ header {
   gap: 5px;
 }
 
-.poster-action-buttons {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  z-index: 5;
-}
-
 .poster-reminder-button,
 .poster-list-button {
-  width: 28px;
-  height: 28px;
-  min-height: 28px;
+  width: 30px;
+  height: 30px;
+  min-height: 30px;
   padding: 0;
   display: grid;
   place-items: center;
@@ -500,38 +493,25 @@ header {
   background: rgba(0, 0, 0, .72);
 }
 
-.poster-list-button {
-  color: #fff;
-}
-
 .poster-reminder-button {
   color: #FBCB05;
 }
 
-/* Desktop hover states only */
-@media (hover: hover) and (pointer: fine) {
-  .poster-list-button:hover {
-    background: rgba(0, 0, 0, .9);
-    color: #fff;
-  }
-
-  .poster-reminder-button:hover {
-    background: rgba(0, 0, 0, .9);
-    color: #FBCB05;
-  }
+.poster-list-button {
+  color: #fff;
 }
 
-/* Keep the buttons visually unchanged on touch devices */
-@media (hover: none) {
-  .poster-list-button:active {
-    background: rgba(0, 0, 0, .72);
-    color: #fff;
-  }
+.poster-reminder-button:hover,
+.poster-reminder-button:active {
+  background: rgba(0, 0, 0, .72);
+  color: #FBCB05;
+}
 
-  .poster-reminder-button:active {
-    background: rgba(0, 0, 0, .72);
-    color: #FBCB05;
-  }
+.poster-list-button:hover,
+.poster-list-button:active {
+  background: rgba(0, 0, 0, .72);
+  color: #fff;
+}
 
 .remove {
   position: absolute;
@@ -564,16 +544,14 @@ header {
   font-size: 13px;
 }
 
-/* =========================================================
-card actions
-========================================================= */
-
-.actions {
+.actions,
+.small-actions {
   display: flex;
   gap: 7px;
 }
 
-.actions button {
+.actions button,
+.small-actions button {
   min-height: 40px;
   flex: 1;
   display: inline-flex;
@@ -581,22 +559,25 @@ card actions
   justify-content: center;
   gap: 5px;
   padding: 7px 8px;
-  border: none;
   border-radius: 8px;
-  background: rgba(0, 0, 0, .72) !important;
-  color: #fff !important;
+  background: #202023;
+  color: #aaa;
   cursor: pointer;
   font-size: 12px;
   line-height: 1.2;
   text-align: center;
 }
 
-.actions button.on {
+.actions button.on,
+.small-actions button.on {
   border: 1px solid #ff4f9a;
-  background: rgba(0, 0, 0, .72) !important;
-  color: #fff !important;
+  color: #fff;
 }
-   
+
+.small-actions {
+  margin-top: 7px;
+}
+
 /* =========================================================
    BUTTONS
 ========================================================= */
