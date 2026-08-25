@@ -3958,6 +3958,14 @@ if (
       );
     }
 
+    console.log(
+  "PUSH SUBSCRIPTION SAVING",
+  {
+    profileId: auth.profileId,
+    endpoint
+  }
+);
+    
 await env.DB
   .prepare(`
     INSERT INTO push_subscriptions (
