@@ -3928,21 +3928,24 @@ if (
   try {
     const body =
       await request.json<{
-        endpoint?: string;
-        keys?: {
-          p256dh?: string;
-          auth?: string;
+        subscription?: {
+          endpoint?: string;
+          keys?: {
+            p256dh?: string;
+            auth?: string;
+          };
         };
+        profileId?: string;
       }>();
 
     const endpoint =
-      body.endpoint?.trim();
+      body.subscription?.endpoint?.trim();
 
     const p256dh =
-      body.keys?.p256dh?.trim();
+      body.subscription?.keys?.p256dh?.trim();
 
     const authKey =
-      body.keys?.auth?.trim();
+      body.subscription?.keys?.auth?.trim();
 
     if (
       !endpoint ||
@@ -3959,52 +3962,61 @@ if (
     }
 
     console.log(
-  "PUSH SUBSCRIPTION SAVING",
-  {
-    profileId: auth.profileId,
-    endpoint
-  }
-);
-    
-await env.DB
-  .prepare(`
-    INSERT INTO push_subscriptions (
-      endpoint,
-      profile_id,
-      p256dh,
-      auth
-    )
-    VALUES (?, ?, ?, ?)
-    ON CONFLICT(endpoint)
-    DO UPDATE SET
-      profile_id = excluded.profile_id,
-      p256dh = excluded.p256dh,
-      auth = excluded.auth
-  `)
-  .bind(
-    endpoint,
-    auth.profileId,
-    p256dh,
-    authKey
-  )
-  .run();
+      "PUSH SUBSCRIPTION SAVING",
+      {
+        authProfileId: auth.profileId,
+        requestedProfileId:
+          body.profileId,
+        profileId:
+          body.profileId ||
+          auth.profileId,
+        endpoint
+      }
+    );
+
+    await env.DB
+      .prepare(`
+        INSERT INTO push_subscriptions (
+          endpoint,
+          profile_id,
+          p256dh,
+          auth
+        )
+        VALUES (?, ?, ?, ?)
+        ON CONFLICT(endpoint)
+        DO UPDATE SET
+          profile_id = excluded.profile_id,
+          p256dh = excluded.p256dh,
+          auth = excluded.auth
+      `)
+      .bind(
+        endpoint,
+        body.profileId ||
+          auth.profileId,
+        p256dh,
+        authKey
+      )
+      .run();
 
     return json({
       success: true
     });
- } catch (error) {
-  console.error(
-    "PUSH SUBSCRIBE ERROR:",
-    error
-  );
+  } catch (error) {
+    console.error(
+      "PUSH SUBSCRIBE ERROR:",
+      error
+    );
 
-  return json(
-    {
-      error: String(error)
-    },
-    500
-  );
-}
+    return json(
+      {
+        error:
+          error instanceof Error
+            ? error.message
+            : String(error)
+      },
+      500
+    );
+  }
 }
 
 // ==================================================
