@@ -1324,10 +1324,10 @@ else {
         Authorization:
           `Bearer ${sessionId}`
       },
-      body: JSON.stringify(
-        subscription
-       profileId
-      })
+      body: JSON.stringify({
+     subscription,
+     profileId
+   })
     }
   );
 
@@ -1403,27 +1403,27 @@ async function subscribeToPushNotifications() {
         "sx-session-token"
       );
 
-    const response = await fetch(
-      "https://streamix.gaintrainstrong.workers.dev/api/push/subscribe",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type":
-            "application/json",
-          ...(sessionId
-            ? {
-                Authorization:
-                  `Bearer ${sessionId}`
-              }
-            : {})
-        },
-    body: JSON.stringify({
-  subscription,
-  profileId
-})
-      }
-    );
-
+  const response =
+  await fetch(
+    "https://streamix.gaintrainstrong.workers.dev/api/push/subscribe",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type":
+          "application/json",
+        ...(sessionId
+          ? {
+              Authorization:
+                `Bearer ${sessionId}`
+            }
+          : {})
+      },
+      body: JSON.stringify({
+        subscription,
+        profileId
+      })
+    }
+  );
     console.log(
       "PUSH SUBSCRIBE RESPONSE",
       {
