@@ -1281,41 +1281,29 @@ else {
       return;
     }
 
- useEffect(() => {
-  async function initializePushNotifications() {
-    try {
-      if (!("serviceWorker" in navigator)) {
-        return;
-      }
+    const checkPushStatus = async () => {
+      try {
+        const registration =
+          await navigator.serviceWorker.register(
+            "/sw.js"
+          );
 
-      if (!("Notification" in window)) {
-        return;
-      }
+        const permission =
+          Notification.permission;
 
-      if (!profileId) {
-        return;
-      }
+        setPushPermission(permission);
 
-      const registration =
-        await navigator.serviceWorker.register(
-          "/sw.js"
-        );
+        if (permission !== "granted") {
+          return;
+        }
 
-      await navigator.serviceWorker.ready;
+        const subscription =
+          await registration.pushManager.getSubscription();
 
-      const permission =
-        Notification.permission;
+        if (!subscription) {
+          return;
+        }
 
-      setPushPermission(permission);
-
-      if (permission !== "granted") {
-        return;
-      }
-
-      const existingSubscription =
-        await registration.pushManager.getSubscription();
-
-      if (existingSubscription) {
         const sessionId =
           localStorage.getItem(
             "sx-session-token"
@@ -1325,24 +1313,23 @@ else {
           return;
         }
 
-        const response =
-          await fetch(
-            "https://streamix.gaintrainstrong.workers.dev/api/push/subscribe",
-            {
-              method: "POST",
-              headers: {
-                "Content-Type":
-                  "application/json",
-                Authorization:
-                  `Bearer ${sessionId}`
-              },
-              body: JSON.stringify({
-                subscription:
-                  existingSubscription,
-                profileId
-              })
-            }
-          );
+      const response =
+  await fetch(
+    "https://streamix.gaintrainstrong.workers.dev/api/push/subscribe",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type":
+          "application/json",
+        Authorization:
+          `Bearer ${sessionId}`
+      },
+      body: JSON.stringify({
+     subscription,
+     profileId
+   })
+    }
+  );
 
         if (!response.ok) {
           throw new Error(
@@ -1355,22 +1342,16 @@ else {
         console.log(
           "PUSH SUBSCRIPTION SYNCED"
         );
-
-        return;
+      } catch (error) {
+        console.error(
+          "Failed to initialize push notifications:",
+          error
+        );
       }
+    };
 
-      await subscribeToPushNotifications();
-
-    } catch (error) {
-      console.error(
-        "Failed to initialize push notifications:",
-        error
-      );
-    }
-  }
-
-  initializePushNotifications();
-}, [profileId]);
+    checkPushStatus();
+  }, []);
 
 async function subscribeToPushNotifications() {
   try {
