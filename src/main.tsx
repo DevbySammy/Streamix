@@ -1416,9 +1416,10 @@ async function subscribeToPushNotifications() {
               }
             : {})
         },
-        body: JSON.stringify(
-          subscription
-        )
+    body: JSON.stringify({
+  subscription,
+  profileId
+})
       }
     );
 
