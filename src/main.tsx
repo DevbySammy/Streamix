@@ -1366,26 +1366,50 @@ else {
 async function subscribeToPushNotifications() {
   try {
     if (!("serviceWorker" in navigator)) {
+      console.error(
+        "Push notifications are not supported because service workers are unavailable."
+      );
+      return;
+    }
+
+    if (!("PushManager" in window)) {
+      console.error(
+        "Push notifications are not supported on this device."
+      );
       return;
     }
 
     if (!("Notification" in window)) {
+      console.error(
+        "Notifications are not supported on this device."
+      );
       return;
     }
 
-    const permission =
-      await Notification.requestPermission();
+    let permission =
+      Notification.permission;
+
+    if (permission === "default") {
+      permission =
+        await Notification.requestPermission();
+    }
 
     setPushPermission(permission);
 
     if (permission !== "granted") {
+      console.error(
+        "Push notification permission is not granted:",
+        permission
+      );
       return;
     }
 
-   const registration =
-  await navigator.serviceWorker.register("/sw.js");
+    const registration =
+      await navigator.serviceWorker.register(
+        "/sw.js"
+      );
 
-await navigator.serviceWorker.ready;
+    await navigator.serviceWorker.ready;
 
     const publicKey =
       "BDEEMiOfULTJ28A46fKl6j-ssmIinKrVbyPIYIw5Q9Ybx0YniTtSKPC-iJNTvP3Spkylm4eTnTaXShfepvmNfVY";
@@ -1397,51 +1421,67 @@ await navigator.serviceWorker.ready;
       return;
     }
 
-    const existingSubscription =
+    let subscription =
       await registration.pushManager.getSubscription();
 
-    const subscription =
-      existingSubscription ||
-      await registration.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey:
-          urlBase64ToUint8Array(
-            publicKey
-          )
-      });
+    if (!subscription) {
+      subscription =
+        await registration.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey:
+            urlBase64ToUint8Array(
+              publicKey
+            )
+        });
+    }
+
+    if (!subscription) {
+      console.error(
+        "Failed to create push subscription."
+      );
+      return;
+    }
 
     const sessionId =
       localStorage.getItem(
         "sx-session-token"
       );
 
-  const response =
-  await fetch(
-    "https://streamix.gaintrainstrong.workers.dev/api/push/subscribe",
-    {
-      method: "POST",
-      headers: {
-        "Content-Type":
-          "application/json",
-        ...(sessionId
-          ? {
-              Authorization:
-                `Bearer ${sessionId}`
-            }
-          : {})
-      },
-      body: JSON.stringify({
-        subscription,
-        profileId
-      })
+    if (!sessionId) {
+      console.error(
+        "Cannot save push subscription because there is no active session."
+      );
+      return;
     }
-  );
+
+    const response =
+      await fetch(
+        "https://streamix.gaintrainstrong.workers.dev/api/push/subscribe",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type":
+              "application/json",
+            Authorization:
+              `Bearer ${sessionId}`
+          },
+          body: JSON.stringify({
+            subscription,
+            profileId
+          })
+        }
+      );
+
+    const responseBody =
+      await response.text();
+
     console.log(
       "PUSH SUBSCRIBE RESPONSE",
       {
         status: response.status,
         ok: response.ok,
-        body: await response.text()
+        body: responseBody,
+        profileId
       }
     );
 
