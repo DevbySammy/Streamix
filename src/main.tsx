@@ -1272,38 +1272,41 @@ else {
    restoreSession();
  }, []);
 
-    useEffect(() => {
-    if (!("serviceWorker" in navigator)) {
-      return;
-    }
+   useEffect(() => {
+  if (!("serviceWorker" in navigator)) {
+    return;
+  }
 
-    if (!("Notification" in window)) {
-      return;
-    }
+  if (!("Notification" in window)) {
+    return;
+  }
 
-    const checkPushStatus = async () => {
-      try {
-        const registration =
-          await navigator.serviceWorker.register(
-            "/sw.js"
-          );
+  const checkPushStatus = async () => {
+    try {
+      if (!profileId) {
+        return;
+      }
 
-        const permission =
-          Notification.permission;
+      const registration =
+        await navigator.serviceWorker.register(
+          "/sw.js"
+        );
 
-        setPushPermission(permission);
+      await navigator.serviceWorker.ready;
 
-        if (permission !== "granted") {
-          return;
-        }
+      const permission =
+        Notification.permission;
 
-        const subscription =
-          await registration.pushManager.getSubscription();
+      setPushPermission(permission);
 
-        if (!subscription) {
-          return;
-        }
+      if (permission !== "granted") {
+        return;
+      }
 
+      const existingSubscription =
+        await registration.pushManager.getSubscription();
+
+      if (existingSubscription) {
         const sessionId =
           localStorage.getItem(
             "sx-session-token"
@@ -1313,23 +1316,24 @@ else {
           return;
         }
 
-      const response =
-  await fetch(
-    "https://streamix.gaintrainstrong.workers.dev/api/push/subscribe",
-    {
-      method: "POST",
-      headers: {
-        "Content-Type":
-          "application/json",
-        Authorization:
-          `Bearer ${sessionId}`
-      },
-      body: JSON.stringify({
-     subscription,
-     profileId
-   })
-    }
-  );
+        const response =
+          await fetch(
+            "https://streamix.gaintrainstrong.workers.dev/api/push/subscribe",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type":
+                  "application/json",
+                Authorization:
+                  `Bearer ${sessionId}`
+              },
+              body: JSON.stringify({
+                subscription:
+                  existingSubscription,
+                profileId
+              })
+            }
+          );
 
         if (!response.ok) {
           throw new Error(
@@ -1342,16 +1346,22 @@ else {
         console.log(
           "PUSH SUBSCRIPTION SYNCED"
         );
-      } catch (error) {
-        console.error(
-          "Failed to initialize push notifications:",
-          error
-        );
-      }
-    };
 
-    checkPushStatus();
-  }, []);
+        return;
+      }
+
+      await subscribeToPushNotifications();
+
+    } catch (error) {
+      console.error(
+        "Failed to initialize push notifications:",
+        error
+      );
+    }
+  };
+
+  checkPushStatus();
+}, [profileId]);
 
 async function subscribeToPushNotifications() {
   try {
