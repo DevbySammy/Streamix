@@ -1372,8 +1372,10 @@ async function subscribeToPushNotifications() {
       return;
     }
 
-    const registration =
-      await navigator.serviceWorker.ready;
+   const registration =
+  await navigator.serviceWorker.register("/sw.js");
+
+await navigator.serviceWorker.ready;
 
     const publicKey =
       "BDEEMiOfULTJ28A46fKl6j-ssmIinKrVbyPIYIw5Q9Ybx0YniTtSKPC-iJNTvP3Spkylm4eTnTaXShfepvmNfVY";
