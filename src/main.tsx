@@ -1313,24 +1313,22 @@ else {
           return;
         }
 
-        const response =
-          await fetch(
-            "https://streamix.gaintrainstrong.workers.dev/api/push/subscribe",
-            {
-              method: "POST",
-              headers: {
-                "Content-Type":
-                  "application/json",
-                Authorization:
-                  `Bearer ${sessionId}`
-              },
-              body:
-                JSON.stringify(
-                  subscription
-                )
-              }
-            }
-          );
+      const response =
+  await fetch(
+    "https://streamix.gaintrainstrong.workers.dev/api/push/subscribe",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type":
+          "application/json",
+        Authorization:
+          `Bearer ${sessionId}`
+      },
+      body: JSON.stringify(
+        subscription
+      )
+    }
+  );
 
         if (!response.ok) {
           throw new Error(
