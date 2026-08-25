@@ -145,18 +145,50 @@ async function createVapidJwt(
 function buildPkcs8FromRawScalar(
   scalar: Uint8Array
 ): ArrayBuffer {
+  if (scalar.length !== 32) {
+    throw new Error(
+      `Invalid P-256 private key length: ${scalar.length}`
+    );
+  }
+
+  /*
+   * PKCS#8 wrapper for a raw P-256 private scalar.
+   *
+   * Algorithm:
+   *   id-ecPublicKey
+   *
+   * Curve:
+   *   secp256r1 / P-256
+   */
+
   const prefix = new Uint8Array([
-    0x30, 0x77,
+    // PrivateKeyInfo
+    0x30, 0x41,
+
+    // version = 0
     0x02, 0x01, 0x00,
-    0x30, 0x10,
+
+    // AlgorithmIdentifier
+    0x30, 0x13,
+
+    // id-ecPublicKey
     0x06, 0x07,
     0x2a, 0x86, 0x48, 0xce, 0x3d, 0x02, 0x01,
-    0x06, 0x05,
-    0x2b, 0x81, 0x04, 0x00, 0x22,
-    0x04, 0x62,
-    0x04, 0x60,
-    0x30, 0x57,
+
+    // secp256r1 / P-256
+    0x06, 0x08,
+    0x2a, 0x86, 0x48, 0xce, 0x3d, 0x03, 0x01, 0x07,
+
+    // PrivateKey OCTET STRING
+    0x04, 0x27,
+
+    // ECPrivateKey
+    0x30, 0x25,
+
+    // version = 1
     0x02, 0x01, 0x01,
+
+    // privateKey OCTET STRING
     0x04, 0x20
   ]);
 
@@ -165,8 +197,15 @@ function buildPkcs8FromRawScalar(
       prefix.length + scalar.length
     );
 
-  result.set(prefix, 0);
-  result.set(scalar, prefix.length);
+  result.set(
+    prefix,
+    0
+  );
+
+  result.set(
+    scalar,
+    prefix.length
+  );
 
   return result.buffer;
 }
