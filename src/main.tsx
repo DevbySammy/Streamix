@@ -1272,7 +1272,7 @@ else {
    restoreSession();
  }, []);
 
-     useEffect(() => {
+    useEffect(() => {
     if (!("serviceWorker" in navigator)) {
       return;
     }
@@ -1284,7 +1284,9 @@ else {
     const checkPushStatus = async () => {
       try {
         const registration =
-          await navigator.serviceWorker.register("/sw.js");
+          await navigator.serviceWorker.register(
+            "/sw.js"
+          );
 
         const permission =
           Notification.permission;
@@ -1298,9 +1300,49 @@ else {
         const subscription =
           await registration.pushManager.getSubscription();
 
-        if (subscription) {
-          setPushSubscribed(true);
+        if (!subscription) {
+          return;
         }
+
+        const sessionId =
+          localStorage.getItem(
+            "sx-session-token"
+          );
+
+        if (!sessionId) {
+          return;
+        }
+
+        const response =
+          await fetch(
+            "https://streamix.gaintrainstrong.workers.dev/api/push/subscribe",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type":
+                  "application/json",
+                Authorization:
+                  `Bearer ${sessionId}`
+              },
+              body:
+                JSON.stringify(
+                  subscription
+                )
+              }
+            }
+          );
+
+        if (!response.ok) {
+          throw new Error(
+            "Failed to sync push subscription."
+          );
+        }
+
+        setPushSubscribed(true);
+
+        console.log(
+          "PUSH SUBSCRIPTION SYNCED"
+        );
       } catch (error) {
         console.error(
           "Failed to initialize push notifications:",
@@ -4527,7 +4569,10 @@ onSave={async (
     return;
   }
 
-  try {
+   try {
+    // Make sure this device/browser has a push subscription
+    await subscribeToPushNotifications();
+      
     const sessionId =
       localStorage.getItem(
         "sx-session-token"
