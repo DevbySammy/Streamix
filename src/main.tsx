@@ -1364,24 +1364,40 @@ else {
 }, [profileId]);
 
 async function subscribeToPushNotifications() {
+  console.log(
+    "PUSH DEBUG 1: subscribeToPushNotifications() STARTED"
+  );
+
   try {
+    console.log(
+      "PUSH DEBUG 2: Feature support",
+      {
+        serviceWorker:
+          "serviceWorker" in navigator,
+        pushManager:
+          "PushManager" in window,
+        notification:
+          "Notification" in window
+      }
+    );
+
     if (!("serviceWorker" in navigator)) {
       console.error(
-        "Push notifications are not supported because service workers are unavailable."
+        "PUSH DEBUG FAILED: Service workers are unavailable."
       );
       return;
     }
 
     if (!("PushManager" in window)) {
       console.error(
-        "Push notifications are not supported on this device."
+        "PUSH DEBUG FAILED: PushManager is unavailable."
       );
       return;
     }
 
     if (!("Notification" in window)) {
       console.error(
-        "Notifications are not supported on this device."
+        "PUSH DEBUG FAILED: Notification API is unavailable."
       );
       return;
     }
@@ -1389,42 +1405,104 @@ async function subscribeToPushNotifications() {
     let permission =
       Notification.permission;
 
+    console.log(
+      "PUSH DEBUG 3: Notification permission BEFORE request:",
+      permission
+    );
+
     if (permission === "default") {
+      console.log(
+        "PUSH DEBUG 4: Requesting notification permission..."
+      );
+
       permission =
         await Notification.requestPermission();
+
+      console.log(
+        "PUSH DEBUG 5: Notification permission AFTER request:",
+        permission
+      );
     }
 
     setPushPermission(permission);
 
     if (permission !== "granted") {
       console.error(
-        "Push notification permission is not granted:",
+        "PUSH DEBUG FAILED: Notification permission is not granted:",
         permission
       );
       return;
     }
+
+    console.log(
+      "PUSH DEBUG 6: Registering /sw.js..."
+    );
 
     const registration =
       await navigator.serviceWorker.register(
         "/sw.js"
       );
 
+    console.log(
+      "PUSH DEBUG 7: Service worker registered",
+      {
+        scope: registration.scope,
+        active:
+          registration.active?.state ||
+          null,
+        installing:
+          registration.installing?.state ||
+          null,
+        waiting:
+          registration.waiting?.state ||
+          null
+      }
+    );
+
+    console.log(
+      "PUSH DEBUG 8: Waiting for service worker..."
+    );
+
     await navigator.serviceWorker.ready;
+
+    console.log(
+      "PUSH DEBUG 9: Service worker READY"
+    );
 
     const publicKey =
       "BDEEMiOfULTJ28A46fKl6j-ssmIinKrVbyPIYIw5Q9Ybx0YniTtSKPC-iJNTvP3Spkylm4eTnTaXShfepvmNfVY";
 
     if (!publicKey) {
       console.error(
-        "Missing VITE_VAPID_PUBLIC_KEY."
+        "PUSH DEBUG FAILED: Missing VAPID public key."
       );
       return;
     }
 
+    console.log(
+      "PUSH DEBUG 10: Checking existing push subscription..."
+    );
+
     let subscription =
       await registration.pushManager.getSubscription();
 
+    console.log(
+      "PUSH DEBUG 11: Existing subscription:",
+      subscription
+        ? {
+            endpoint:
+              subscription.endpoint,
+            expirationTime:
+              subscription.expirationTime
+          }
+        : null
+    );
+
     if (!subscription) {
+      console.log(
+        "PUSH DEBUG 12: NO existing subscription. Starting pushManager.subscribe()..."
+      );
+
       subscription =
         await registration.pushManager.subscribe({
           userVisibleOnly: true,
@@ -1433,11 +1511,25 @@ async function subscribeToPushNotifications() {
               publicKey
             )
         });
+
+      console.log(
+        "PUSH DEBUG 13: pushManager.subscribe() SUCCEEDED",
+        {
+          endpoint:
+            subscription.endpoint,
+          expirationTime:
+            subscription.expirationTime
+        }
+      );
+    } else {
+      console.log(
+        "PUSH DEBUG 12: Existing subscription will be reused."
+      );
     }
 
     if (!subscription) {
       console.error(
-        "Failed to create push subscription."
+        "PUSH DEBUG FAILED: No push subscription exists."
       );
       return;
     }
@@ -1447,12 +1539,25 @@ async function subscribeToPushNotifications() {
         "sx-session-token"
       );
 
+    console.log(
+      "PUSH DEBUG 14: Session check",
+      {
+        hasSession:
+          Boolean(sessionId),
+        profileId
+      }
+    );
+
     if (!sessionId) {
       console.error(
-        "Cannot save push subscription because there is no active session."
+        "PUSH DEBUG FAILED: No active session."
       );
       return;
     }
+
+    console.log(
+      "PUSH DEBUG 15: Sending subscription to Cloudflare..."
+    );
 
     const response =
       await fetch(
@@ -1476,11 +1581,14 @@ async function subscribeToPushNotifications() {
       await response.text();
 
     console.log(
-      "PUSH SUBSCRIBE RESPONSE",
+      "PUSH DEBUG 16: Cloudflare response",
       {
-        status: response.status,
-        ok: response.ok,
-        body: responseBody,
+        status:
+          response.status,
+        ok:
+          response.ok,
+        body:
+          responseBody,
         profileId
       }
     );
@@ -1494,11 +1602,11 @@ async function subscribeToPushNotifications() {
     setPushSubscribed(true);
 
     console.log(
-      "Streamix push notifications enabled."
+      "PUSH DEBUG 17: PUSH SUBSCRIPTION COMPLETE"
     );
   } catch (error) {
     console.error(
-      "Failed to subscribe to push notifications:",
+      "PUSH DEBUG FAILED: subscribeToPushNotifications() ERROR",
       error
     );
   }
