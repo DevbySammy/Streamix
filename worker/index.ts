@@ -3910,6 +3910,148 @@ if (
   return json(data);
 }
 
+    // ==================================================
+// TMDB DETAILS
+// ==================================================
+
+if (
+  url.pathname ===
+    "/api/tmdb/details" &&
+  request.method === "GET"
+) {
+  const auth =
+    await requireSession();
+
+  if (auth instanceof Response) {
+    return auth;
+  }
+
+  const type =
+    url.searchParams.get(
+      "type"
+    );
+
+  const id =
+    url.searchParams.get(
+      "id"
+    );
+
+  if (
+    type !== "movie" &&
+    type !== "tv"
+  ) {
+    return json(
+      {
+        error:
+          "Invalid TMDB media type."
+      },
+      400
+    );
+  }
+
+  if (!id) {
+    return json(
+      {
+        error:
+          "TMDB id is required."
+      },
+      400
+    );
+  }
+
+  if (
+    !/^\d+$/.test(id)
+  ) {
+    return json(
+      {
+        error:
+          "Invalid TMDB id."
+      },
+      400
+    );
+  }
+
+  if (
+    !env.TMDB_READ_ACCESS_TOKEN
+  ) {
+    return json(
+      {
+        error:
+          "TMDB_READ_ACCESS_TOKEN is not configured."
+      },
+      500
+    );
+  }
+
+  const tmdbUrl =
+    "https://api.themoviedb.org/3/" +
+    type +
+    "/" +
+    encodeURIComponent(id) +
+    "?language=en-US" +
+    "&append_to_response=credits,videos";
+
+  try {
+    const tmdbResponse =
+      await fetch(
+        tmdbUrl,
+        {
+          headers: {
+            Authorization:
+              "Bearer " +
+              env.TMDB_READ_ACCESS_TOKEN,
+            Accept:
+              "application/json"
+          }
+        }
+      );
+
+    const data =
+      await tmdbResponse.json();
+
+    if (!tmdbResponse.ok) {
+      console.error(
+        "TMDB DETAILS ERROR:",
+        {
+          status:
+            tmdbResponse.status,
+          type,
+          id,
+          data
+        }
+      );
+
+      return json(
+        {
+          error:
+            typeof data?.status_message ===
+            "string"
+              ? data.status_message
+              : "TMDB details request failed."
+        },
+        tmdbResponse.status
+      );
+    }
+
+    return json(data);
+  } catch (error) {
+    console.error(
+      "TMDB DETAILS FETCH ERROR:",
+      error
+    );
+
+    return json(
+      {
+        error:
+          error instanceof Error
+            ? error.message
+            : "Unable to load TMDB details."
+      },
+      500
+    );
+  }
+}
+    
 // ==================================================
 // PUSH NOTIFICATIONS - SUBSCRIBE
 // ==================================================
