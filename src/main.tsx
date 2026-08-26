@@ -6669,9 +6669,20 @@ function ReminderModal({
   const [date, setDate] =
     useState("");
 
-  const [time, setTime] =
-    useState("19:00");
+const [time, setTime] =
+  useState(() => {
+    const now = new Date();
 
+    return (
+      String(
+        now.getHours()
+      ).padStart(2, "0") +
+      ":" +
+      String(
+        now.getMinutes()
+      ).padStart(2, "0")
+    );
+  });
   const [method, setMethod] =
     useState<
       "push" | "calendar" | "both"
