@@ -1,7 +1,8 @@
 import React, {
-useEffect,
-useMemo,
-useState
+  useEffect,
+  useMemo,
+  useRef,
+  useState
 } from "react";
 import { createRoot } from "react-dom/client";
 import {
@@ -1171,6 +1172,9 @@ useEffect(() => {
  const [profileId, setProfileId] =
    useState<string | null>(null);
 
+   const pushRegistrationRef =
+  useRef<ServiceWorkerRegistration | null>(null);
+   
  const [viewingAs, setViewingAs] =
    useState<string | null>(() =>
      localStorage.getItem(
@@ -1272,27 +1276,26 @@ else {
    restoreSession();
  }, []);
 
-   useEffect(() => {
+ useEffect(() => {
   if (!("serviceWorker" in navigator)) {
     return;
   }
 
-  if (!("Notification" in window)) {
-    return;
-  }
-
-  const checkPushStatus = async () => {
+  const preparePushServiceWorker = async () => {
     try {
-      if (!profileId) {
-        return;
-      }
-
       const registration =
         await navigator.serviceWorker.register(
           "/sw.js"
         );
 
       await navigator.serviceWorker.ready;
+
+      pushRegistrationRef.current =
+        registration;
+
+      if (!("Notification" in window)) {
+        return;
+      }
 
       const permission =
         Notification.permission;
@@ -1303,113 +1306,95 @@ else {
         return;
       }
 
-      const existingSubscription =
-        await registration.pushManager.getSubscription();
-
-      if (existingSubscription) {
-        const sessionId =
-          localStorage.getItem(
-            "sx-session-token"
-          );
-
-        if (!sessionId) {
-          return;
-        }
-
-        const response =
-          await fetch(
-            "https://streamix.gaintrainstrong.workers.dev/api/push/subscribe",
-            {
-              method: "POST",
-              headers: {
-                "Content-Type":
-                  "application/json",
-                Authorization:
-                  `Bearer ${sessionId}`
-              },
-              body: JSON.stringify({
-                subscription:
-                  existingSubscription,
-                profileId
-              })
-            }
-          );
-
-        if (!response.ok) {
-          throw new Error(
-            "Failed to sync push subscription."
-          );
-        }
-
-        setPushSubscribed(true);
-
-        console.log(
-          "PUSH SUBSCRIPTION SYNCED"
-        );
-
+      if (!profileId) {
         return;
       }
 
-      await subscribeToPushNotifications();
+      const existingSubscription =
+        await registration.pushManager.getSubscription();
 
+      if (!existingSubscription) {
+        return;
+      }
+
+      const sessionId =
+        localStorage.getItem(
+          "sx-session-token"
+        );
+
+      if (!sessionId) {
+        return;
+      }
+
+      const response =
+        await fetch(
+          "https://streamix.gaintrainstrong.workers.dev/api/push/subscribe",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type":
+                "application/json",
+              Authorization:
+                `Bearer ${sessionId}`
+            },
+            body: JSON.stringify({
+              subscription:
+                existingSubscription,
+              profileId
+            })
+          }
+        );
+
+      if (!response.ok) {
+        throw new Error(
+          "Failed to sync push subscription."
+        );
+      }
+
+      setPushSubscribed(true);
+
+      console.log(
+        "PUSH SUBSCRIPTION SYNCED"
+      );
     } catch (error) {
       console.error(
-        "Failed to initialize push notifications:",
+        "Failed to prepare push notifications:",
         error
       );
     }
   };
 
-  checkPushStatus();
+  preparePushServiceWorker();
 }, [profileId]);
 
 async function subscribeToPushNotifications() {
   try {
     if (!("serviceWorker" in navigator)) {
-      console.error(
-        "Push notifications are not supported because service workers are unavailable."
-      );
-      return;
-    }
-
-    if (!("PushManager" in window)) {
-      console.error(
-        "Push notifications are not supported on this device."
-      );
       return;
     }
 
     if (!("Notification" in window)) {
-      console.error(
-        "Notifications are not supported on this device."
-      );
       return;
     }
 
-    let permission =
+    const permission =
       Notification.permission;
 
-    if (permission === "default") {
-      permission =
-        await Notification.requestPermission();
+    if (permission !== "granted") {
+      return;
     }
 
     setPushPermission(permission);
 
-    if (permission !== "granted") {
+    const registration =
+      pushRegistrationRef.current;
+
+    if (!registration) {
       console.error(
-        "Push notification permission is not granted:",
-        permission
+        "Push service worker is not ready."
       );
       return;
     }
-
-    const registration =
-      await navigator.serviceWorker.register(
-        "/sw.js"
-      );
-
-    await navigator.serviceWorker.ready;
 
     const publicKey =
       "BDEEMiOfULTJ28A46fKl6j-ssmIinKrVbyPIYIw5Q9Ybx0YniTtSKPC-iJNTvP3Spkylm4eTnTaXShfepvmNfVY";
@@ -4621,14 +4606,107 @@ onSave={async (
     return;
   }
 
-   try {
-    // Make sure this device/browser has a push subscription
-    await subscribeToPushNotifications();
-      
+  try {
+    const registration =
+      pushRegistrationRef.current;
+
+    if (!registration) {
+      throw new Error(
+        "Push service worker is not ready."
+      );
+    }
+
+    if (!("Notification" in window)) {
+      throw new Error(
+        "Notifications are not supported on this device."
+      );
+    }
+
+    let permission =
+      Notification.permission;
+
+    if (permission === "default") {
+      permission =
+        await Notification.requestPermission();
+    }
+
+    setPushPermission(permission);
+
+    if (permission !== "granted") {
+      throw new Error(
+        "Push notification permission was not granted."
+      );
+    }
+
+  let subscription =
+  await registration.pushManager.getSubscription();
+
+if (!subscription) {
+  const publicKey =
+    "BDEEMiOfULTJ28A46fKl6j-ssmIinKrVbyPIYIw5Q9Ybx0YniTtSKPC-iJNTvP3Spkylm4eTnTaXShfepvmNfVY";
+
+  subscription =
+    await registration.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey:
+        urlBase64ToUint8Array(
+          publicKey
+        )
+    });
+}
+
     const sessionId =
       localStorage.getItem(
         "sx-session-token"
       );
+
+    if (!sessionId) {
+      throw new Error(
+        "Cannot save push subscription because there is no active session."
+      );
+    }
+
+    const pushResponse =
+      await fetch(
+        "https://streamix.gaintrainstrong.workers.dev/api/push/subscribe",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type":
+              "application/json",
+            Authorization:
+              `Bearer ${sessionId}`
+          },
+          body: JSON.stringify({
+            subscription,
+            profileId
+          })
+        }
+      );
+
+    const pushResponseBody =
+      await pushResponse.text();
+
+    console.log(
+      "PUSH SUBSCRIBE RESPONSE",
+      {
+        status:
+          pushResponse.status,
+        ok:
+          pushResponse.ok,
+        body:
+          pushResponseBody,
+        profileId
+      }
+    );
+
+    if (!pushResponse.ok) {
+      throw new Error(
+        "Failed to save push subscription."
+      );
+    }
+
+    setPushSubscribed(true);
 
     const response =
       await fetch(
