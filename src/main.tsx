@@ -1,8 +1,7 @@
 import React, {
-  useEffect,
-  useMemo,
-  useRef,
-  useState
+useEffect,
+useMemo,
+useState
 } from "react";
 import { createRoot } from "react-dom/client";
 import {
@@ -1172,9 +1171,6 @@ useEffect(() => {
  const [profileId, setProfileId] =
    useState<string | null>(null);
 
-   const pushRegistrationRef =
-  useRef<ServiceWorkerRegistration | null>(null);
-   
  const [viewingAs, setViewingAs] =
    useState<string | null>(() =>
      localStorage.getItem(
@@ -1276,37 +1272,96 @@ else {
    restoreSession();
  }, []);
 
- useEffect(() => {
+   useEffect(() => {
   if (!("serviceWorker" in navigator)) {
     return;
   }
 
-  const preparePushServiceWorker =
-    async () => {
-      try {
-        const registration =
-          await navigator.serviceWorker.register(
-            "/sw.js"
+  if (!("Notification" in window)) {
+    return;
+  }
+
+  const checkPushStatus = async () => {
+    try {
+      if (!profileId) {
+        return;
+      }
+
+      const registration =
+        await navigator.serviceWorker.register(
+          "/sw.js"
+        );
+
+      await navigator.serviceWorker.ready;
+
+      const permission =
+        Notification.permission;
+
+      setPushPermission(permission);
+
+      if (permission !== "granted") {
+        return;
+      }
+
+      const existingSubscription =
+        await registration.pushManager.getSubscription();
+
+      if (existingSubscription) {
+        const sessionId =
+          localStorage.getItem(
+            "sx-session-token"
           );
 
-        await navigator.serviceWorker.ready;
+        if (!sessionId) {
+          return;
+        }
 
-        pushRegistrationRef.current =
-          registration;
+        const response =
+          await fetch(
+            "https://streamix.gaintrainstrong.workers.dev/api/push/subscribe",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type":
+                  "application/json",
+                Authorization:
+                  `Bearer ${sessionId}`
+              },
+              body: JSON.stringify({
+                subscription:
+                  existingSubscription,
+                profileId
+              })
+            }
+          );
+
+        if (!response.ok) {
+          throw new Error(
+            "Failed to sync push subscription."
+          );
+        }
+
+        setPushSubscribed(true);
 
         console.log(
-          "PUSH SERVICE WORKER READY"
+          "PUSH SUBSCRIPTION SYNCED"
         );
-      } catch (error) {
-        console.error(
-          "Failed to prepare push service worker:",
-          error
-        );
-      }
-    };
 
-  preparePushServiceWorker();
-}, []);
+        return;
+      }
+
+      await subscribeToPushNotifications();
+
+    } catch (error) {
+      console.error(
+        "Failed to initialize push notifications:",
+        error
+      );
+    }
+  };
+
+  checkPushStatus();
+}, [profileId]);
 
 async function subscribeToPushNotifications() {
   try {
@@ -1350,14 +1405,11 @@ async function subscribeToPushNotifications() {
     }
 
     const registration =
-      pushRegistrationRef.current;
-
-    if (!registration) {
-      console.error(
-        "Push service worker is not ready."
+      await navigator.serviceWorker.register(
+        "/sw.js"
       );
-      return;
-    }
+
+    await navigator.serviceWorker.ready;
 
     const publicKey =
       "BDEEMiOfULTJ28A46fKl6j-ssmIinKrVbyPIYIw5Q9Ybx0YniTtSKPC-iJNTvP3Spkylm4eTnTaXShfepvmNfVY";
