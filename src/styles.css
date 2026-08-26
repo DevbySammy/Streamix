@@ -286,6 +286,43 @@ header {
   width: auto;
 }
 
+.hero-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin: 0 0 16px;
+}
+
+.hero-actions .poster-reminder-button,
+.hero-actions .poster-list-button {
+  width: 30px;
+  height: 30px;
+  min-height: 30px;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  background: rgba(0, 0, 0, .72);
+}
+
+.hero-actions .poster-reminder-button {
+  color: #FBCB05;
+}
+
+.hero-actions .poster-reminder-button svg {
+  fill: #FBCB05;
+  stroke: #FBCB05;
+}
+
+.hero-actions .poster-list-button {
+  color: #fff;
+}
+
+.hero-actions .poster-list-button svg {
+  stroke-width: 2.5;
+}
 
 /* =========================================================
    NAVIGATION
