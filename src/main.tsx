@@ -3613,7 +3613,11 @@ return ( <div className="app">
     onClick={event => {
       event.preventDefault();
       event.stopPropagation();
-      setShowDetails(hero);
+  console.log(
+    "MORE INFO CLICKED",
+    hero
+  );
+       setShowDetails(hero);
     }}
   >
     More Info
