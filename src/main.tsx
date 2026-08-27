@@ -6194,14 +6194,13 @@ function DetailsView({
               ""
             )
           : null,
-
-      /*
-       * Do not use the incoming title backdrop here.
-       * The details page should wait for the actual
-       * TMDB details response before showing a backdrop.
-       */
-      backdrop_path: null,
-
+      backdrop_path:
+        title.backdrop
+          ? title.backdrop.replace(
+              "https://image.tmdb.org/t/p/w1280",
+              ""
+            )
+          : null,
       release_date:
         title.kind === "movie" && title.year
           ? `${title.year}-01-01`
@@ -6404,6 +6403,12 @@ function DetailsView({
   const lastEpisode =
     details?.last_episode_to_air;
 
+  const detailsBackdrop =
+    details?.backdrop_path
+      ? "https://image.tmdb.org/t/p/original" +
+        details.backdrop_path
+      : title.backdrop || "";
+
   return (
     <div className="details-page">
 
@@ -6423,9 +6428,9 @@ function DetailsView({
             className="details-backdrop"
             style={{
               backgroundImage:
-                details.backdrop_path
-                  ? "linear-gradient(90deg, rgba(17,17,19,.98) 0%, rgba(17,17,19,.78) 40%, rgba(17,17,19,.35) 75%, rgba(17,17,19,.12) 100%), linear-gradient(0deg, #111113 0%, transparent 55%), url(https://image.tmdb.org/t/p/original" +
-                    details.backdrop_path +
+                detailsBackdrop
+                  ? "linear-gradient(90deg, rgba(17,17,19,.98) 0%, rgba(17,17,19,.78) 40%, rgba(17,17,19,.35) 75%, rgba(17,17,19,.12) 100%), linear-gradient(0deg, #111113 0%, transparent 55%), url(" +
+                    detailsBackdrop +
                     ")"
                   : "linear-gradient(0deg, #111113 0%, #202023 100%)"
             }}
@@ -6464,7 +6469,6 @@ function DetailsView({
               )}
 
               <div className="details-meta">
-
                 <span>
                   {year}
                 </span>
@@ -6493,7 +6497,6 @@ function DetailsView({
                     {details.status}
                   </span>
                 )}
-
               </div>
 
               {details.genres &&
@@ -6668,7 +6671,6 @@ function DetailsView({
                             }
                           </p>
                         )}
-
                       </div>
 
                     </div>
@@ -7070,59 +7072,6 @@ function DetailsView({
         </div>
       )}
 
-    </div>
-  );
-}
-
-
-/* =========================================================
-MODAL
-========================================================= */
-
-function Modal({
-  title,
-  onClose,
-  children,
-  compact = false
-}: {
-  title: string;
-  onClose: () => void;
-  children: React.ReactNode;
-  compact?: boolean;
-}) {
-  return (
-    <div
-      className="overlay"
-      onMouseDown={event => {
-        if (
-          event.currentTarget ===
-          event.target
-        ) {
-          onClose();
-        }
-      }}
-    >
-      <div
-        className={
-          compact
-            ? "modal compact"
-            : "modal"
-        }
-      >
-        <div className="modal-head">
-          <h2>{title}</h2>
-
-          <button
-            className="icon"
-            onClick={onClose}
-            aria-label="Close"
-          >
-            <X />
-          </button>
-        </div>
-
-        {children}
-      </div>
     </div>
   );
 }
