@@ -4169,31 +4169,45 @@ LIBRARY CONTROLS
     <button
       type="button"
       className="show-more-button"
-      onClick={() => {
-        if (
-          sort === "just-added"
-        ) {
-          if (
-            justAddedView ===
-            "hidden"
-          ) {
-            setHiddenJustAddedLimit(
-              current =>
-                current +
-                (isMobile
-                  ? 20
-                  : 30)
-            );
-          } else {
-            setJustAddedLimit(
-              current =>
-                current + 30
-            );
-          }
-        } else {
-          loadNextTMDBCatalogPage();
-        }
-      }}
+    onClick={event => {
+  event.preventDefault();
+
+  const scrollPosition =
+    window.scrollY;
+
+  if (
+    sort === "just-added"
+  ) {
+    if (
+      justAddedView ===
+      "hidden"
+    ) {
+      setHiddenJustAddedLimit(
+        current =>
+          current +
+          (isMobile
+            ? 20
+            : 30)
+      );
+    } else {
+      setJustAddedLimit(
+        current =>
+          current + 30
+      );
+    }
+  } else {
+    loadNextTMDBCatalogPage();
+
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        window.scrollTo(
+          0,
+          scrollPosition
+        );
+      });
+    });
+  }
+}}
     >
       Show more
     </button>
