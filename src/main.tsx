@@ -1691,7 +1691,7 @@ async function subscribeToPushNotifications() {
 
 
 const [sort, setSort] =
-  useState<SortOption>("just-added");
+  useState<SortOption>("year-desc");
 
  useEffect(() => {
    if (sort !== "just-added") {
