@@ -3571,8 +3571,9 @@ return ( <div className="app">
   />
 )}
 
-     {!showDetails && (
-   
+    {!showDetails && (
+  <>
+
   {/* HERO */}
 
   <section
@@ -4105,7 +4106,9 @@ LIBRARY CONTROLS
   )}
 
 </main>
-     )}
+
+  </>
+      )}
 
   {/* TODAY'S RECOMMENDATION */}
 
