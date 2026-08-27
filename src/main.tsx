@@ -3557,6 +3557,22 @@ return ( <div className="app">
     </div>
   </header>
 
+   {/* DETAILS */}
+
+{showDetails && (
+  <DetailsView
+    title={showDetails}
+    onClose={() =>
+      setShowDetails(null)
+    }
+    onDetails={(title) =>
+      setShowDetails(title)
+    }
+  />
+)}
+
+     {!showDetails && (
+   
   {/* HERO */}
 
   <section
@@ -4089,6 +4105,7 @@ LIBRARY CONTROLS
   )}
 
 </main>
+     )}
 
   {/* TODAY'S RECOMMENDATION */}
 
@@ -4830,19 +4847,6 @@ if (
     />
   )}
 
-{/* DETAILS */}
-
-{showDetails && (
-  <DetailsView
-    title={showDetails}
-    onClose={() =>
-      setShowDetails(null)
-    }
-    onDetails={(title) =>
-      setShowDetails(title)
-    }
-  />
-)}
 
   {/* REMINDER */}
 
