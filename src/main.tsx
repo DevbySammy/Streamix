@@ -4199,6 +4199,10 @@ LIBRARY CONTROLS
       Show more
     </button>
       )}
+     </main>
+
+  </>
+      )}
 
      
   {/* TODAY'S RECOMMENDATION */}
