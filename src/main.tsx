@@ -3940,8 +3940,7 @@ More Info →
       ) : (
         <>
           <h1>
-            Your library is
-            empty
+            Your library is empty
           </h1>
            
           {isAdmin && (
