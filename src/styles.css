@@ -494,6 +494,22 @@ header {
   object-fit: cover;
 }
 
+.poster-details-button {
+  display: block;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.poster-details-button img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
 .kind {
   position: absolute;
   top: 8px;
@@ -2050,20 +2066,20 @@ footer span {
 }
 
 .details-tagline {
-  margin: 0 0 18px;
-  color: #bbb;
-  font-size: 16px;
+  margin: 0 0 20px;
+  color: #c5c5c5;
+  font-size: 18px;
   font-style: italic;
-  line-height: 1.5;
+  line-height: 1.55;
 }
 
 .details-meta {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
-  margin: 0 0 14px;
-  color: #ddd;
-  font-size: 14px;
+  gap: 9px;
+  margin: 0 0 16px;
+  color: #e2e2e2;
+  font-size: 15px;
 }
 
 .details-meta span {
@@ -2073,18 +2089,18 @@ footer span {
 }
 
 .details-genres {
-  margin: 0 0 20px;
-  color: #aaa;
-  font-size: 14px;
-  line-height: 1.5;
+  margin: 0 0 22px;
+  color: #bdbdbd;
+  font-size: 15px;
+  line-height: 1.55;
 }
 
 .details-overview {
   max-width: 740px;
-  margin: 0 0 22px;
-  color: #ddd;
-  font-size: 16px;
-  line-height: 1.7;
+  margin: 0 0 24px;
+  color: #e1e1e1;
+  font-size: 17px;
+  line-height: 1.75;
 }
 
 .details-facts {
@@ -2104,15 +2120,15 @@ footer span {
 .details-facts strong,
 .details-credits strong {
   color: #fff;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 700;
 }
 
 .details-facts span,
 .details-credits span {
-  color: #aaa;
-  font-size: 13px;
-  line-height: 1.4;
+  color: #c0c0c0;
+  font-size: 14px;
+  line-height: 1.5;
 }
 
 .details-credits {
@@ -2169,16 +2185,16 @@ footer span {
 }
 
 .details-cast-card strong {
-  margin-bottom: 4px;
+  margin-bottom: 5px;
   color: #fff;
-  font-size: 12px;
-  line-height: 1.3;
+  font-size: 14px;
+  line-height: 1.35;
 }
 
 .details-cast-card span {
-  color: #999;
-  font-size: 11px;
-  line-height: 1.35;
+  color: #aaa;
+  font-size: 13px;
+  line-height: 1.4;
 }
 
 /* =========================================================
@@ -2232,14 +2248,14 @@ footer span {
 
 .details-season-card strong {
   color: #fff;
-  font-size: 12px;
-  line-height: 1.3;
+  font-size: 14px;
+  line-height: 1.35;
 }
 
 .details-season-card span {
-  color: #999;
-  font-size: 11px;
-  line-height: 1.3;
+  color: #aaa;
+  font-size: 13px;
+  line-height: 1.4;
 }
 
 /* =========================================================
@@ -2271,9 +2287,9 @@ footer span {
 }
 
 .details-production-card span {
-  color: #ccc;
-  font-size: 12px;
-  line-height: 1.3;
+  color: #ddd;
+  font-size: 14px;
+  line-height: 1.4;
 }
 
 /* =========================================================
@@ -2305,7 +2321,7 @@ footer span {
 
 .details-provider span {
   color: #ddd;
-  font-size: 12px;
+  font-size: 14px;
 }
 
 /* =========================================================
@@ -2341,13 +2357,13 @@ footer span {
 
 .details-recommendation strong {
   color: #fff;
-  font-size: 12px;
-  line-height: 1.3;
+  font-size: 14px;
+  line-height: 1.35;
 }
 
 .details-recommendation span {
   color: #aaa;
-  font-size: 11px;
+  font-size: 13px;
 }
 
 /* =========================================================
@@ -2477,11 +2493,11 @@ footer span {
   }
 
   .details-cast-card strong {
-    font-size: 11px;
+    font-size: 13px;
   }
 
   .details-cast-card span {
-    font-size: 10px;
+    font-size: 12px;
   }
 
   .details-seasons {
@@ -2498,11 +2514,11 @@ footer span {
   }
 
   .details-season-card strong {
-    font-size: 11px;
+    font-size: 13px;
   }
 
   .details-season-card span {
-    font-size: 10px;
+    font-size: 12px;
   }
 
   .details-production {
@@ -2551,13 +2567,12 @@ footer span {
   }
 
   .details-recommendation strong {
-    font-size: 11px;
+    font-size: 13px;
   }
 
   .details-recommendation span {
-    font-size: 10px;
+    font-size: 12px;
   }
-}
 
 /* =========================================================
    DETAILS PAGE - VERY SMALL PHONES
