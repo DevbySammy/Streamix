@@ -552,150 +552,149 @@ const [
   loadTMDBCatalog();
 }, []);
 
- async function loadNextTMDBCatalogPage() {
-  if (tmdbCatalogLoading) {
-    return;
-  }
+  async function loadNextTMDBCatalogPage() {
+    if (tmdbCatalogLoading) {
+      return;
+    }
 
-  const scrollPosition =
-    window.scrollY;
+    const nextPage =
+      tmdbCatalogPage + 1;
 
-  const nextPage =
-    tmdbCatalogPage + 1;
+    setTmdbCatalogLoading(true);
 
-  setTmdbCatalogLoading(true);
+    try {
+      const sessionId =
+        localStorage.getItem(
+          "sx-session-token"
+        );
 
-  try {
-    const sessionId =
-      localStorage.getItem(
-        "sx-session-token"
-      );
+      const response =
+        await fetch(
+          `https://streamix.gaintrainstrong.workers.dev/api/tmdb/catalog?page=${nextPage}&type=all`,
+          {
+            headers: sessionId
+              ? {
+                  Authorization:
+                    `Bearer ${sessionId}`
+                }
+              : {}
+          }
+        );
 
-    const response =
-      await fetch(
-        `https://streamix.gaintrainstrong.workers.dev/api/tmdb/catalog?page=${nextPage}&type=all`,
-        {
-          headers: sessionId
-            ? {
-                Authorization:
-                  `Bearer ${sessionId}`
+      if (!response.ok) {
+        throw new Error(
+          "Failed to load next TMDB catalog page"
+        );
+      }
+
+      const data =
+        await response.json();
+
+      const titles: Title[] =
+        Array.isArray(data.results)
+          ? data.results.map(
+              (item: any): Title => {
+                const kind: Kind =
+                  item.media_type === "tv"
+                    ? "tv"
+                    : "movie";
+
+                const releaseDate =
+                  kind === "movie"
+                    ? item.release_date
+                    : item.first_air_date;
+
+                return {
+                  id:
+                    "tmdb-" +
+                    kind +
+                    "-" +
+                    String(item.id),
+
+                  name:
+                    kind === "movie"
+                      ? item.title ||
+                        "Untitled"
+                      : item.name ||
+                        "Untitled",
+
+                  kind,
+
+                  year:
+                    releaseDate
+                      ? Number(
+                          String(
+                            releaseDate
+                          ).slice(0, 4)
+                        )
+                      : 0,
+
+                  poster:
+                    getPosterUrl(
+                      item.poster_path
+                    ),
+
+                  backdrop:
+                    getBackdropUrl(
+                      item.backdrop_path
+                    ),
+
+                  overview:
+                    item.overview || "",
+
+                  addedAt:
+                    new Date().toISOString()
+                };
               }
-            : {}
+            )
+          : [];
+
+      setTmdbCatalog(
+        current => {
+          const existingIds =
+            new Set(
+              current.map(
+                title => title.id
+              )
+            );
+
+          const newTitles =
+            titles.filter(
+              title =>
+                !existingIds.has(
+                  title.id
+                )
+            );
+
+          return [
+            ...current,
+            ...newTitles
+          ];
         }
       );
 
-    if (!response.ok) {
-      throw new Error(
-        "Failed to load next TMDB catalog page"
+      setTmdbCatalogPage(
+        nextPage
+      );
+
+      setTmdbCatalogHasMore(
+        Boolean(
+          data.total_pages &&
+          nextPage <
+            data.total_pages
+        )
+      );
+    } catch (error) {
+      console.error(
+        "Failed to load next TMDB catalog page:",
+        error
+      );
+    } finally {
+      setTmdbCatalogLoading(
+        false
       );
     }
-
-    const data =
-      await response.json();
-
-    const titles: Title[] =
-      Array.isArray(data.results)
-        ? data.results.map(
-            (item: any): Title => {
-              const kind: Kind =
-                item.media_type === "tv"
-                  ? "tv"
-                  : "movie";
-
-              const releaseDate =
-                kind === "movie"
-                  ? item.release_date
-                  : item.first_air_date;
-
-              return {
-                id:
-                  "tmdb-" +
-                  kind +
-                  "-" +
-                  String(item.id),
-
-                name:
-                  kind === "movie"
-                    ? item.title ||
-                      "Untitled"
-                    : item.name ||
-                      "Untitled",
-
-                kind,
-
-                year:
-                  releaseDate
-                    ? Number(
-                        String(
-                          releaseDate
-                        ).slice(0, 4)
-                      )
-                    : 0,
-
-                poster:
-                  getPosterUrl(
-                    item.poster_path
-                  ),
-
-                backdrop:
-                  getBackdropUrl(
-                    item.backdrop_path
-                  ),
-
-                overview:
-                  item.overview || "",
-
-                addedAt:
-                  new Date().toISOString()
-              };
-            }
-          )
-        : [];
-
-    setTmdbCatalog(
-      current => [
-        ...current,
-        ...titles.filter(
-          title =>
-            !current.some(
-              existing =>
-                existing.id ===
-                title.id
-            )
-        )
-      ]
-    );
-
-    setTmdbCatalogPage(
-      nextPage
-    );
-
-    setTmdbCatalogHasMore(
-      Boolean(
-        data.total_pages &&
-        nextPage < data.total_pages
-      )
-    );
-
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        window.scrollTo(
-          0,
-          scrollPosition
-        );
-      });
-    });
-  } catch (error) {
-    console.error(
-      "Failed to load next TMDB catalog page:",
-      error
-    );
-  } finally {
-    setTmdbCatalogLoading(
-      false
-    );
   }
-}
    
   const [
     justAdded,
