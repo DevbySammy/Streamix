@@ -4229,9 +4229,9 @@ LIBRARY CONTROLS
             : visible.length <
               justAdded.length
         )
-      : tmdbCatalogHasMore
+      : tmdbCatalog.length < 200
   ) && (
-       <button
+    <button
       type="button"
       className="show-more-button"
       onClick={event => {
@@ -4246,25 +4246,33 @@ LIBRARY CONTROLS
           ) {
             setHiddenJustAddedLimit(
               current =>
-                current +
-                (isMobile
-                  ? 20
-                  : 30)
+                Math.min(
+                  current +
+                    (isMobile
+                      ? 20
+                      : 30),
+                  hiddenJustAdded.length
+                )
             );
           } else {
             setJustAddedLimit(
               current =>
-                current + 40
+                Math.min(
+                  current + 30,
+                  justAdded.length
+                )
             );
           }
-        } else {
-          loadNextTMDBCatalogPage();
+
+          return;
         }
+
+        loadNextTMDBCatalogPage();
       }}
     >
       Show more
     </button>
-      )}
+  )}
      </main>
 
   </>
