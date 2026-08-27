@@ -6036,10 +6036,12 @@ const isRewatch =
 
 function DetailsView({
   title,
-  onClose
+  onClose,
+  onDetails
 }: {
   title: Title;
   onClose: () => void;
+  onDetails: (title: Title) => void;
 }) {
   const [details, setDetails] =
     useState<any | null>(null);
@@ -6222,6 +6224,47 @@ function DetailsView({
           )
           .slice(0, 12)
       : [];
+
+  const keywords =
+    Array.isArray(
+      details?.keywords?.keywords
+    )
+      ? details.keywords.keywords
+      : Array.isArray(
+          details?.keywords?.results
+        )
+        ? details.keywords.results
+        : [];
+
+  const backdrops =
+    Array.isArray(
+      details?.images?.backdrops
+    )
+      ? details.images.backdrops
+          .filter(
+            (image: any) =>
+              image.file_path
+          )
+          .slice(0, 8)
+      : [];
+
+  const posters =
+    Array.isArray(
+      details?.images?.posters
+    )
+      ? details.images.posters
+          .filter(
+            (image: any) =>
+              image.file_path
+          )
+          .slice(0, 6)
+      : [];
+
+  const externalIds =
+    details?.external_ids || {};
+
+  const lastEpisode =
+    details?.last_episode_to_air;
 
   return (
     <div className="details-page">
@@ -6442,6 +6485,69 @@ function DetailsView({
                   </div>
                 )}
 
+                {title.kind === "tv" &&
+                  lastEpisode && (
+                    <div className="details-last-episode">
+
+                      <h3>
+                        Last Episode
+                      </h3>
+
+                      <div className="details-last-episode-content">
+
+                        {lastEpisode.still_path && (
+                          <img
+                            src={
+                              "https://image.tmdb.org/t/p/w300" +
+                              lastEpisode.still_path
+                            }
+                            alt={
+                              lastEpisode.name ||
+                              "Last episode"
+                            }
+                          />
+                        )}
+
+                        <div>
+                          <strong>
+                            {lastEpisode.name}
+                          </strong>
+
+                          {lastEpisode.season_number != null &&
+                            lastEpisode.episode_number != null && (
+                              <span>
+                                Season{" "}
+                                {
+                                  lastEpisode.season_number
+                                }
+                                {" · "}
+                                Episode{" "}
+                                {
+                                  lastEpisode.episode_number
+                                }
+                              </span>
+                            )}
+
+                          {lastEpisode.air_date && (
+                            <span>
+                              {lastEpisode.air_date}
+                            </span>
+                          )}
+
+                          {lastEpisode.overview && (
+                            <p>
+                              {
+                                lastEpisode.overview
+                              }
+                            </p>
+                          )}
+                        </div>
+
+                      </div>
+
+                    </div>
+                  )}
+
               </div>
 
             </div>
@@ -6596,6 +6702,133 @@ function DetailsView({
 
                 </section>
               )}
+
+            {backdrops.length > 0 && (
+              <section className="details-section">
+
+                <h2>
+                  Images
+                </h2>
+
+                <div className="details-gallery">
+
+                  {backdrops.map(
+                    (image: any) => (
+                      <img
+                        key={
+                          image.file_path
+                        }
+                        src={
+                          "https://image.tmdb.org/t/p/w780" +
+                          image.file_path
+                        }
+                        alt={
+                          displayTitle +
+                          " backdrop"
+                        }
+                      />
+                    )
+                  )}
+
+                  {posters.map(
+                    (image: any) => (
+                      <img
+                        key={
+                          "poster-" +
+                          image.file_path
+                        }
+                        src={
+                          "https://image.tmdb.org/t/p/w342" +
+                          image.file_path
+                        }
+                        alt={
+                          displayTitle +
+                          " poster"
+                        }
+                      />
+                    )
+                  )}
+
+                </div>
+
+              </section>
+            )}
+
+            {keywords.length > 0 && (
+              <section className="details-section">
+
+                <h2>
+                  Keywords
+                </h2>
+
+                <div className="details-keywords">
+
+                  {keywords.map(
+                    (keyword: any) => (
+                      <span
+                        key={
+                          keyword.id ||
+                          keyword.name
+                        }
+                      >
+                        {keyword.name}
+                      </span>
+                    )
+                  )}
+
+                </div>
+
+              </section>
+            )}
+
+            {(externalIds.imdb_id ||
+              externalIds.tvdb_id ||
+              externalIds.tmdb_id) && (
+              <section className="details-section">
+
+                <h2>
+                  External IDs
+                </h2>
+
+                <div className="details-external-ids">
+
+                  {externalIds.imdb_id && (
+                    <div>
+                      <strong>
+                        IMDb
+                      </strong>
+                      <span>
+                        {externalIds.imdb_id}
+                      </span>
+                    </div>
+                  )}
+
+                  {externalIds.tvdb_id && (
+                    <div>
+                      <strong>
+                        TVDB
+                      </strong>
+                      <span>
+                        {externalIds.tvdb_id}
+                      </span>
+                    </div>
+                  )}
+
+                  {externalIds.tmdb_id && (
+                    <div>
+                      <strong>
+                        TMDB
+                      </strong>
+                      <span>
+                        {externalIds.tmdb_id}
+                      </span>
+                    </div>
+                  )}
+
+                </div>
+
+              </section>
+            )}
 
             {productionCompanies.length > 0 && (
               <section className="details-section">
@@ -6759,10 +6992,41 @@ function DetailsView({
 
                   {recommendations.map(
                     (item: any) => (
-                      <div
+                      <button
+                        type="button"
                         className="details-recommendation"
                         key={
                           item.id
+                        }
+                        onClick={() =>
+                          onDetails({
+                            id:
+                              "tmdb-" +
+                              (title.kind ===
+                              "movie"
+                                ? "movie-"
+                                : "tv-") +
+                              item.id,
+                            name:
+                              item.title ||
+                              item.name,
+                            kind:
+                              title.kind,
+                            year:
+                              (
+                                item.release_date ||
+                                item.first_air_date ||
+                                ""
+                              ).slice(0, 4),
+                            poster:
+                              item.poster_path
+                                ? "https://image.tmdb.org/t/p/w500" +
+                                  item.poster_path
+                                : "",
+                            overview:
+                              item.overview ||
+                              ""
+                          })
                         }
                       >
 
@@ -6793,7 +7057,7 @@ function DetailsView({
                           )}
                         </div>
 
-                      </div>
+                      </button>
                     )
                   )}
 
@@ -6808,6 +7072,7 @@ function DetailsView({
     </div>
   );
 }
+
 
 /* =========================================================
 MODAL
