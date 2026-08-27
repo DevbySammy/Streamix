@@ -558,10 +558,13 @@ const [
   loadTMDBCatalog();
 }, []);
 
-   async function loadNextTMDBCatalogPage() {
+  async function loadNextTMDBCatalogPage() {
   if (tmdbCatalogLoading) {
     return;
   }
+
+  const scrollPosition =
+    window.scrollY;
 
   const nextPage =
     tmdbCatalogPage + 1;
@@ -596,12 +599,13 @@ const [
     const data =
       await response.json();
 
-     setTmdbCatalogHasMore(
-  Boolean(
-    data.total_pages &&
-    nextPage < data.total_pages
-  )
-);
+    setTmdbCatalogHasMore(
+      Boolean(
+        data.total_pages &&
+        nextPage < data.total_pages
+      )
+    );
+
     const titles: Title[] =
       Array.isArray(data.results)
         ? data.results.map(
@@ -660,6 +664,42 @@ const [
             }
           )
         : [];
+
+    setTmdbCatalog(
+      current => [
+        ...current,
+        ...titles.filter(
+          title =>
+            !current.some(
+              existing =>
+                existing.id ===
+                title.id
+            )
+        )
+      ]
+    );
+
+    setTmdbCatalogPage(
+      nextPage
+    );
+
+    requestAnimationFrame(() => {
+      window.scrollTo(
+        0,
+        scrollPosition
+      );
+    });
+  } catch (error) {
+    console.error(
+      "TMDB CATALOG PAGINATION ERROR:",
+      error
+    );
+  } finally {
+    setTmdbCatalogLoading(
+      false
+    );
+  }
+}
 
     setTmdbCatalog(
       current => [
