@@ -4026,6 +4026,9 @@ LIBRARY CONTROLS
       onSchedule={() =>
         setShowSchedule(title)
       }
+       onDetails={() =>
+       setShowDetails(title)
+      }
     />
   ))}
 
@@ -5816,8 +5819,9 @@ function Card({
   onList,
   onRewatch,
   onRemove,
-  onReminder,
-  onSchedule
+ onReminder,
+ onSchedule,
+ onDetails
 }: {
   t: Title;
   st: State;
@@ -5829,6 +5833,7 @@ function Card({
   onRemove: () => void;
   onReminder: () => void;
   onSchedule: () => void;
+   onDetails: () => void;
 }) {
 
    {/*just added this code
@@ -5959,16 +5964,28 @@ const isRewatch =
 
       </div>
 
-      <div className="card-body">
+    <div className="card-body">
 
-        <h3>{t.name}</h3>
+  <h3>{t.name}</h3>
 
-        <p>{t.year}</p>
+  <p>{t.year}</p>
 
-        {!isAdmin && (
-          <>
+  <button
+    type="button"
+    className="details-card-button"
+    onClick={event => {
+      event.preventDefault();
+      event.stopPropagation();
+      onDetails();
+    }}
+  >
+    More Info
+  </button>
 
-            <div className="actions">
+  {!isAdmin && (
+    <>
+
+      <div className="actions">
 
 <button
   type="button"
@@ -6141,13 +6158,13 @@ function DetailsView({
       }}
     >
 
-      <button
-        type="button"
-        className="ghost"
-        onClick={onClose}
-      >
-        ← Back
-      </button>
+   <button
+  type="button"
+  className="details-back-button"
+  onClick={onClose}
+>
+  ← Back
+</button>
 
       {loading && (
         <div className="empty">
