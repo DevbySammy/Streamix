@@ -1954,36 +1954,35 @@ async function fetchTMDBDetails(
 }
    
 async function openDetails(title: Title) {
-  const params =
-    new URLSearchParams(
-      window.location.search
+  try {
+    const details =
+      await fetchTMDBDetails(title);
+
+    setShowDetailsData(details);
+
+    const params =
+      new URLSearchParams(
+        window.location.search
+      );
+
+    params.set(
+      "details",
+      title.id
     );
 
-  params.set("details", title.id);
+    window.history.pushState(
+      {},
+      "",
+      `${window.location.pathname}?${params.toString()}`
+    );
 
-  window.history.pushState(
-    {},
-    "",
-    `${window.location.pathname}?${params.toString()}`
-  );
-
-  if (title.backdrop) {
-    await new Promise<void>(resolve => {
-      const image =
-        new Image();
-
-      image.onload = () =>
-        resolve();
-
-      image.onerror = () =>
-        resolve();
-
-      image.src =
-        title.backdrop;
-    });
+    setShowDetails(title);
+  } catch (error) {
+    console.error(
+      "Failed to load title details:",
+      error
+    );
   }
-
-  setShowDetails(title);
 }
 
 useEffect(() => {
