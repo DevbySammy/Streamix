@@ -1818,8 +1818,94 @@ const [sort, setSort] =
    useState<Title | null>(null);
 
    const [showDetails, setShowDetails] =
-  useState<Title | null>(null);
+  useState<Title | null>(() => {
+    const params =
+      new URLSearchParams(
+        window.location.search
+      );
 
+    const detailsId =
+      params.get("details");
+
+    if (!detailsId) {
+      return null;
+    }
+
+    return {
+      id: detailsId,
+      name: "",
+      kind: detailsId.startsWith(
+        "tmdb-tv-"
+      )
+        ? "tv"
+        : "movie",
+      year: 0,
+      poster: "",
+      backdrop: "",
+      overview: ""
+    };
+  });
+
+   function openDetails(title: Title) {
+  const params =
+    new URLSearchParams(
+      window.location.search
+    );
+
+  params.set("details", title.id);
+
+  window.history.pushState(
+    {},
+    "",
+    `${window.location.pathname}?${params.toString()}`
+  );
+
+  setShowDetails(title);
+}
+
+   useEffect(() => {
+  function handlePopState() {
+    const params =
+      new URLSearchParams(
+        window.location.search
+      );
+
+    const detailsId =
+      params.get("details");
+
+    if (!detailsId) {
+      setShowDetails(null);
+      return;
+    }
+
+    setShowDetails({
+      id: detailsId,
+      name: "",
+      kind: detailsId.startsWith(
+        "tmdb-tv-"
+      )
+        ? "tv"
+        : "movie",
+      year: 0,
+      poster: "",
+      backdrop: "",
+      overview: ""
+    });
+  }
+
+  window.addEventListener(
+    "popstate",
+    handlePopState
+  );
+
+  return () => {
+    window.removeEventListener(
+      "popstate",
+      handlePopState
+    );
+  };
+}, []);
+   
  const [showSchedule, setShowSchedule] =
    useState<Title | null>(null);
 
@@ -3562,12 +3648,16 @@ return ( <div className="app">
 {showDetails && (
   <DetailsView
     title={showDetails}
-    onClose={() =>
-      setShowDetails(null)
-    }
-    onDetails={(title) =>
-      setShowDetails(title)
-    }
+    onClose={() => {
+      window.history.pushState(
+        {},
+        "",
+        window.location.pathname
+      );
+
+      setShowDetails(null);
+    }}
+    onDetails={openDetails}
   />
 )}
 
@@ -3624,17 +3714,13 @@ return ( <div className="app">
 </p>
 
 <div className="hero-actions">
-     <button
+  <button
     type="button"
     className="hero-more-info-button"
     onClick={event => {
       event.preventDefault();
       event.stopPropagation();
-  console.log(
-    "MORE INFO CLICKED",
-    hero
-  );
-       setShowDetails(hero);
+      openDetails(hero);
     }}
   >
     More Info
@@ -4043,9 +4129,9 @@ LIBRARY CONTROLS
       onSchedule={() =>
         setShowSchedule(title)
       }
-       onDetails={() =>
-       setShowDetails(title)
-      }
+    onDetails={() =>
+  openDetails(title)
+}
     />
   ))}
 
@@ -6164,10 +6250,10 @@ let cancelled = false;
     title.kind
   ]);
 
-  const displayTitle =
-    details?.title ||
-    details?.name ||
-    title.name;
+const displayTitle =
+  details?.title ||
+  details?.name ||
+  "Loading…";
 
   const releaseDate =
     details?.release_date ||
