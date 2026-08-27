@@ -21,7 +21,7 @@ Trash2,
 Tv,
 X
 } from "lucide-react";
-import "./styles.css";
+import "./styles.css"; 
    
 /* =========================================================
 TYPES 
