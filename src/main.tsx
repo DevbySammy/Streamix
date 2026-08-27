@@ -5990,18 +5990,6 @@ const isRewatch =
 
   <p>{t.year}</p>
 
-  <button
-    type="button"
-    className="details-card-button"
-    onClick={event => {
-      event.preventDefault();
-      event.stopPropagation();
-      onDetails();
-    }}
-  >
-    More Info
-  </button>
-
   {!isAdmin && (
     <>
 
@@ -6073,7 +6061,16 @@ function DetailsView({
     useState("");
 
   useEffect(() => {
-    let cancelled = false;
+    window.scrollTo({
+      top: 0,
+      behavior: "auto"
+    });
+  }, [
+    title.id,
+    title.kind
+  ]);
+
+  useEffect(() => {
 
     async function loadDetails() {
       try {
