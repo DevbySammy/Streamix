@@ -21,7 +21,7 @@ Trash2,
 Tv,
 X
 } from "lucide-react";
-import "./styles.css"; 
+import "./styles.css";
    
 /* =========================================================
 TYPES 
@@ -3940,7 +3940,8 @@ More Info →
       ) : (
         <>
           <h1>
-            Your library is empty
+            Your library is
+            empty
           </h1>
            
           {isAdmin && (
