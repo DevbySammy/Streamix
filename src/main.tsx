@@ -4166,17 +4166,13 @@ LIBRARY CONTROLS
         )
       : tmdbCatalogHasMore
   ) && (
-    <button
+       <button
       type="button"
       className="show-more-button"
-      onClick={event => {
-        const button =
-          event.currentTarget;
-
-        const buttonTop =
-          button.getBoundingClientRect()
-            .top;
-
+      onMouseDown={event => {
+        event.preventDefault();
+      }}
+      onClick={() => {
         if (
           sort === "just-added"
         ) {
@@ -4202,31 +4198,10 @@ LIBRARY CONTROLS
         }
 
         loadNextTMDBCatalogPage();
-
-        requestAnimationFrame(() => {
-          requestAnimationFrame(() => {
-            const newButtonTop =
-              button.getBoundingClientRect()
-                .top;
-
-            window.scrollBy(
-              0,
-              newButtonTop -
-                buttonTop
-            );
-          });
-        });
       }}
     >
       Show more
     </button>
-  )}
-
-</main>
-
-  </>
-      )}
-
   {/* TODAY'S RECOMMENDATION */}
 
   {showReco &&
