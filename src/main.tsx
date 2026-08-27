@@ -6175,44 +6175,45 @@ function DetailsView({
   onClose: () => void;
   onDetails: (title: Title) => void;
 }) {
-const [details, setDetails] =
-  useState<any | null>({
-    title:
-      title.kind === "movie"
-        ? title.name
-        : undefined,
-    name:
-      title.kind === "tv"
-        ? title.name
-        : undefined,
-    overview:
-      title.overview || "",
-    poster_path:
-      title.poster
-        ? title.poster.replace(
-            "https://image.tmdb.org/t/p/w500",
-            ""
-          )
-        : null,
-    backdrop_path:
-      title.backdrop
-        ? title.backdrop.replace(
-            "https://image.tmdb.org/t/p/w1280",
-            ""
-          )
-        : null,
-    release_date:
-      title.kind === "movie" && title.year
-        ? `${title.year}-01-01`
-        : "",
-    first_air_date:
-      title.kind === "tv" && title.year
-        ? `${title.year}-01-01`
-        : ""
-  });
+  const [details, setDetails] =
+    useState<any | null>({
+      title:
+        title.kind === "movie"
+          ? title.name
+          : undefined,
+      name:
+        title.kind === "tv"
+          ? title.name
+          : undefined,
+      overview:
+        title.overview || "",
+      poster_path:
+        title.poster
+          ? title.poster.replace(
+              "https://image.tmdb.org/t/p/w500",
+              ""
+            )
+          : null,
 
-const [loading, setLoading] =
-  useState(false);
+      /*
+       * Do not use the incoming title backdrop here.
+       * The details page should wait for the actual
+       * TMDB details response before showing a backdrop.
+       */
+      backdrop_path: null,
+
+      release_date:
+        title.kind === "movie" && title.year
+          ? `${title.year}-01-01`
+          : "",
+      first_air_date:
+        title.kind === "tv" && title.year
+          ? `${title.year}-01-01`
+          : ""
+    });
+
+  const [loading, setLoading] =
+    useState(false);
 
   const [error, setError] =
     useState("");
@@ -6228,8 +6229,8 @@ const [loading, setLoading] =
   ]);
 
   useEffect(() => {
-let cancelled = false;
-   
+    let cancelled = false;
+
     async function loadDetails() {
       try {
         setLoading(true);
@@ -6321,10 +6322,10 @@ let cancelled = false;
     title.kind
   ]);
 
-const displayTitle =
-  details?.title ||
-  details?.name ||
-  "Loading…";
+  const displayTitle =
+    details?.title ||
+    details?.name ||
+    "Loading…";
 
   const releaseDate =
     details?.release_date ||
@@ -6414,657 +6415,660 @@ const displayTitle =
         ← Back
       </button>
 
-  {details && (
-       
-          <div className="details-shell">
+      {details && (
 
-            <div
-              className="details-backdrop"
-              style={{
-                backgroundImage:
-                  details.backdrop_path
-                    ? "linear-gradient(90deg, rgba(17,17,19,.98) 0%, rgba(17,17,19,.78) 40%, rgba(17,17,19,.35) 75%, rgba(17,17,19,.12) 100%), linear-gradient(0deg, #111113 0%, transparent 55%), url(https://image.tmdb.org/t/p/original" +
-                      details.backdrop_path +
-                      ")"
-                    : "linear-gradient(0deg, #111113 0%, #202023 100%)"
-              }}
-            />
+        <div className="details-shell">
 
-            <div className="details-content">
+          <div
+            className="details-backdrop"
+            style={{
+              backgroundImage:
+                details.backdrop_path
+                  ? "linear-gradient(90deg, rgba(17,17,19,.98) 0%, rgba(17,17,19,.78) 40%, rgba(17,17,19,.35) 75%, rgba(17,17,19,.12) 100%), linear-gradient(0deg, #111113 0%, transparent 55%), url(https://image.tmdb.org/t/p/original" +
+                    details.backdrop_path +
+                    ")"
+                  : "linear-gradient(0deg, #111113 0%, #202023 100%)"
+            }}
+          />
 
-              <div className="details-poster">
-                <img
-                  src={
-                    details.poster_path
-                      ? "https://image.tmdb.org/t/p/w500" +
-                        details.poster_path
-                      : title.poster
-                  }
-                  alt={displayTitle}
-                />
+          <div className="details-content">
+
+            <div className="details-poster">
+              <img
+                src={
+                  details.poster_path
+                    ? "https://image.tmdb.org/t/p/w500" +
+                      details.poster_path
+                    : title.poster
+                }
+                alt={displayTitle}
+              />
+            </div>
+
+            <div className="details-info">
+
+              <div className="eyebrow">
+                {title.kind === "movie"
+                  ? "MOVIE"
+                  : "TV SHOW"}
               </div>
 
-              <div className="details-info">
+              <h1>
+                {displayTitle}
+              </h1>
 
-                <div className="eyebrow">
-                  {title.kind === "movie"
-                    ? "MOVIE"
-                    : "TV SHOW"}
-                </div>
+              {details.tagline && (
+                <p className="details-tagline">
+                  {details.tagline}
+                </p>
+              )}
 
-                <h1>
-                  {displayTitle}
-                </h1>
+              <div className="details-meta">
 
-                {details.tagline && (
-                  <p className="details-tagline">
-                    {details.tagline}
+                <span>
+                  {year}
+                </span>
+
+                {details.vote_average && (
+                  <span>
+                    ★{" "}
+                    {Number(
+                      details.vote_average
+                    ).toFixed(1)}
+                    /10
+                  </span>
+                )}
+
+                {details.vote_count && (
+                  <span>
+                    {Number(
+                      details.vote_count
+                    ).toLocaleString()}{" "}
+                    ratings
+                  </span>
+                )}
+
+                {details.status && (
+                  <span>
+                    {details.status}
+                  </span>
+                )}
+
+              </div>
+
+              {details.genres &&
+                Array.isArray(
+                  details.genres
+                ) &&
+                details.genres.length > 0 && (
+                  <p className="details-genres">
+                    {details.genres
+                      .map(
+                        (genre: {
+                          id: number;
+                          name: string;
+                        }) =>
+                          genre.name
+                      )
+                      .join(" · ")}
                   </p>
                 )}
 
-                <div className="details-meta">
-                  <span>
-                    {year}
-                  </span>
+              <p className="details-overview">
+                {details.overview ||
+                  title.overview ||
+                  "No overview available."}
+              </p>
 
-                  {details.vote_average && (
-                    <span>
-                      ★{" "}
-                      {Number(
-                        details.vote_average
-                      ).toFixed(1)}
-                      /10
-                    </span>
-                  )}
+              <div className="details-facts">
 
-                  {details.vote_count && (
-                    <span>
-                      {Number(
-                        details.vote_count
-                      ).toLocaleString()}{" "}
-                      ratings
-                    </span>
-                  )}
-
-                  {details.status && (
-                    <span>
-                      {details.status}
-                    </span>
-                  )}
-                </div>
-
-                {details.genres &&
-                  Array.isArray(
-                    details.genres
-                  ) &&
-                  details.genres.length > 0 && (
-                    <p className="details-genres">
-                      {details.genres
-                        .map(
-                          (genre: {
-                            id: number;
-                            name: string;
-                          }) =>
-                            genre.name
-                        )
-                        .join(" · ")}
-                    </p>
-                  )}
-
-                <p className="details-overview">
-                  {details.overview ||
-                    title.overview ||
-                    "No overview available."}
-                </p>
-
-                <div className="details-facts">
-
-                  {title.kind === "movie" &&
-                    details.runtime && (
-                      <div>
-                        <strong>
-                          Runtime
-                        </strong>
-                        <span>
-                          {details.runtime} minutes
-                        </span>
-                      </div>
-                    )}
-
-                  {title.kind === "tv" &&
-                    details.number_of_seasons && (
-                      <div>
-                        <strong>
-                          Seasons
-                        </strong>
-                        <span>
-                          {details.number_of_seasons}
-                        </span>
-                      </div>
-                    )}
-
-                  {title.kind === "tv" &&
-                    details.number_of_episodes && (
-                      <div>
-                        <strong>
-                          Episodes
-                        </strong>
-                        <span>
-                          {details.number_of_episodes}
-                        </span>
-                      </div>
-                    )}
-
-                  {details.original_language && (
+                {title.kind === "movie" &&
+                  details.runtime && (
                     <div>
                       <strong>
-                        Language
+                        Runtime
                       </strong>
                       <span>
-                        {details.original_language.toUpperCase()}
+                        {details.runtime} minutes
+                      </span>
+                    </div>
+                  )}
+
+                {title.kind === "tv" &&
+                  details.number_of_seasons && (
+                    <div>
+                      <strong>
+                        Seasons
+                      </strong>
+                      <span>
+                        {details.number_of_seasons}
+                      </span>
+                    </div>
+                  )}
+
+                {title.kind === "tv" &&
+                  details.number_of_episodes && (
+                    <div>
+                      <strong>
+                        Episodes
+                      </strong>
+                      <span>
+                        {details.number_of_episodes}
+                      </span>
+                    </div>
+                  )}
+
+                {details.original_language && (
+                  <div>
+                    <strong>
+                      Language
+                    </strong>
+                    <span>
+                      {details.original_language.toUpperCase()}
+                    </span>
+                  </div>
+                )}
+
+              </div>
+
+              {(creators.length > 0 ||
+                directors.length > 0) && (
+                <div className="details-credits">
+
+                  {creators.length > 0 && (
+                    <div>
+                      <strong>
+                        Created by
+                      </strong>
+
+                      <span>
+                        {creators
+                          .map(
+                            (person: any) =>
+                              person.name
+                          )
+                          .join(", ")}
+                      </span>
+                    </div>
+                  )}
+
+                  {directors.length > 0 && (
+                    <div>
+                      <strong>
+                        Director
+                      </strong>
+
+                      <span>
+                        {directors
+                          .map(
+                            (person: any) =>
+                              person.name
+                          )
+                          .join(", ")}
                       </span>
                     </div>
                   )}
 
                 </div>
+              )}
 
-                {(creators.length > 0 ||
-                  directors.length > 0) && (
-                  <div className="details-credits">
+              {title.kind === "tv" &&
+                lastEpisode && (
+                  <div className="details-last-episode">
 
-                    {creators.length > 0 && (
+                    <h3>
+                      Last Episode
+                    </h3>
+
+                    <div className="details-last-episode-content">
+
+                      {lastEpisode.still_path && (
+                        <img
+                          src={
+                            "https://image.tmdb.org/t/p/w300" +
+                            lastEpisode.still_path
+                          }
+                          alt={
+                            lastEpisode.name ||
+                            "Last episode"
+                          }
+                        />
+                      )}
+
                       <div>
                         <strong>
-                          Created by
+                          {lastEpisode.name}
                         </strong>
 
-                        <span>
-                          {creators
-                            .map(
-                              (person: any) =>
-                                person.name
-                            )
-                            .join(", ")}
-                        </span>
-                      </div>
-                    )}
-
-                    {directors.length > 0 && (
-                      <div>
-                        <strong>
-                          Director
-                        </strong>
-
-                        <span>
-                          {directors
-                            .map(
-                              (person: any) =>
-                                person.name
-                            )
-                            .join(", ")}
-                        </span>
-                      </div>
-                    )}
-
-                  </div>
-                )}
-
-                {title.kind === "tv" &&
-                  lastEpisode && (
-                    <div className="details-last-episode">
-
-                      <h3>
-                        Last Episode
-                      </h3>
-
-                      <div className="details-last-episode-content">
-
-                        {lastEpisode.still_path && (
-                          <img
-                            src={
-                              "https://image.tmdb.org/t/p/w300" +
-                              lastEpisode.still_path
-                            }
-                            alt={
-                              lastEpisode.name ||
-                              "Last episode"
-                            }
-                          />
-                        )}
-
-                        <div>
-                          <strong>
-                            {lastEpisode.name}
-                          </strong>
-
-                          {lastEpisode.season_number != null &&
-                            lastEpisode.episode_number != null && (
-                              <span>
-                                Season{" "}
-                                {
-                                  lastEpisode.season_number
-                                }
-                                {" · "}
-                                Episode{" "}
-                                {
-                                  lastEpisode.episode_number
-                                }
-                              </span>
-                            )}
-
-                          {lastEpisode.air_date && (
+                        {lastEpisode.season_number != null &&
+                          lastEpisode.episode_number != null && (
                             <span>
-                              {lastEpisode.air_date}
+                              Season{" "}
+                              {
+                                lastEpisode.season_number
+                              }
+                              {" · "}
+                              Episode{" "}
+                              {
+                                lastEpisode.episode_number
+                              }
                             </span>
                           )}
 
-                          {lastEpisode.overview && (
-                            <p>
-                              {
-                                lastEpisode.overview
-                              }
-                            </p>
-                          )}
-                        </div>
+                        {lastEpisode.air_date && (
+                          <span>
+                            {lastEpisode.air_date}
+                          </span>
+                        )}
+
+                        {lastEpisode.overview && (
+                          <p>
+                            {
+                              lastEpisode.overview
+                            }
+                          </p>
+                        )}
 
                       </div>
 
                     </div>
-                  )}
 
-              </div>
+                  </div>
+                )}
 
             </div>
 
-            {cast.length > 0 && (
-              <section className="details-section">
+          </div>
 
-                <h2>
-                  Cast
-                </h2>
+          {cast.length > 0 && (
+            <section className="details-section">
 
-                <div className="details-cast-grid">
+              <h2>
+                Cast
+              </h2>
 
-                  {cast.map(
-                    (person: any) => (
-                      <div
-                        className="details-cast-card"
-                        key={
-                          person.credit_id ||
-                          person.id
+              <div className="details-cast-grid">
+
+                {cast.map(
+                  (person: any) => (
+                    <div
+                      className="details-cast-card"
+                      key={
+                        person.credit_id ||
+                        person.id
+                      }
+                    >
+
+                      <img
+                        src={
+                          person.profile_path
+                            ? "https://image.tmdb.org/t/p/w185" +
+                              person.profile_path
+                            : "https://placehold.co/185x278/202023/ffffff?text=No+Photo"
                         }
-                      >
+                        alt={
+                          person.name
+                        }
+                      />
 
-                        <img
-                          src={
-                            person.profile_path
-                              ? "https://image.tmdb.org/t/p/w185" +
-                                person.profile_path
-                              : "https://placehold.co/185x278/202023/ffffff?text=No+Photo"
-                          }
-                          alt={
-                            person.name
-                          }
-                        />
+                      <div>
+                        <strong>
+                          {person.name}
+                        </strong>
 
-                        <div>
-                          <strong>
-                            {person.name}
-                          </strong>
-
-                          {person.character && (
-                            <span>
-                              {person.character}
-                            </span>
-                          )}
-                        </div>
-
+                        {person.character && (
+                          <span>
+                            {person.character}
+                          </span>
+                        )}
                       </div>
+
+                    </div>
+                  )
+                )}
+
+              </div>
+
+            </section>
+          )}
+
+          {trailer && (
+            <section className="details-section">
+
+              <h2>
+                Trailer
+              </h2>
+
+              <div className="details-video">
+                <iframe
+                  src={
+                    "https://www.youtube.com/embed/" +
+                    trailer.key
+                  }
+                  title={
+                    trailer.name ||
+                    displayTitle +
+                      " trailer"
+                  }
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  allowFullScreen
+                />
+              </div>
+
+            </section>
+          )}
+
+          {title.kind === "tv" &&
+            Array.isArray(
+              details.seasons
+            ) &&
+            details.seasons.length > 0 && (
+              <section className="details-section">
+
+                <h2>
+                  Seasons
+                </h2>
+
+                <div className="details-seasons">
+
+                  {details.seasons
+                    .filter(
+                      (season: any) =>
+                        season.season_number >=
+                        0
                     )
-                  )}
+                    .map(
+                      (season: any) => (
+                        <div
+                          className="details-season-card"
+                          key={
+                            season.id
+                          }
+                        >
 
-                </div>
-
-              </section>
-            )}
-
-            {trailer && (
-              <section className="details-section">
-
-                <h2>
-                  Trailer
-                </h2>
-
-                <div className="details-video">
-                  <iframe
-                    src={
-                      "https://www.youtube.com/embed/" +
-                      trailer.key
-                    }
-                    title={
-                      trailer.name ||
-                      displayTitle +
-                        " trailer"
-                    }
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                    allowFullScreen
-                  />
-                </div>
-
-              </section>
-            )}
-
-            {title.kind === "tv" &&
-              Array.isArray(
-                details.seasons
-              ) &&
-              details.seasons.length > 0 && (
-                <section className="details-section">
-
-                  <h2>
-                    Seasons
-                  </h2>
-
-                  <div className="details-seasons">
-
-                    {details.seasons
-                      .filter(
-                        (season: any) =>
-                          season.season_number >=
-                          0
-                      )
-                      .map(
-                        (season: any) => (
-                          <div
-                            className="details-season-card"
-                            key={
-                              season.id
-                            }
-                          >
-
-                            <img
-                              src={
-                                season.poster_path
-                                  ? "https://image.tmdb.org/t/p/w342" +
-                                    season.poster_path
-                                  : "https://placehold.co/342x513/202023/ffffff?text=No+Poster"
-                              }
-                              alt={
-                                season.name
-                              }
-                            />
-
-                            <div>
-                              <strong>
-                                {season.name}
-                              </strong>
-
-                              <span>
-                                {season.episode_count}{" "}
-                                {season.episode_count ===
-                                1
-                                  ? "episode"
-                                  : "episodes"}
-                              </span>
-
-                              {season.air_date && (
-                                <span>
-                                  {season.air_date.slice(
-                                    0,
-                                    4
-                                  )}
-                                </span>
-                              )}
-
-                            </div>
-
-                          </div>
-                        )
-                      )}
-
-                  </div>
-
-                </section>
-              )}
-
-            {productionCompanies.length > 0 && (
-              <section className="details-section">
-
-                <h2>
-                  Production
-                </h2>
-
-                <div className="details-production">
-
-                  {productionCompanies.map(
-                    (company: any) => (
-                      <div
-                        className="details-production-card"
-                        key={
-                          company.id
-                        }
-                      >
-
-                        {company.logo_path && (
                           <img
                             src={
-                              "https://image.tmdb.org/t/p/w300" +
-                              company.logo_path
+                              season.poster_path
+                                ? "https://image.tmdb.org/t/p/w342" +
+                                  season.poster_path
+                                : "https://placehold.co/342x513/202023/ffffff?text=No+Poster"
                             }
                             alt={
-                              company.name
+                              season.name
+                            }
+                          />
+
+                          <div>
+                            <strong>
+                              {season.name}
+                            </strong>
+
+                            <span>
+                              {season.episode_count}{" "}
+                              {season.episode_count ===
+                              1
+                                ? "episode"
+                                : "episodes"}
+                            </span>
+
+                            {season.air_date && (
+                              <span>
+                                {season.air_date.slice(
+                                  0,
+                                  4
+                                )}
+                              </span>
+                            )}
+
+                          </div>
+
+                        </div>
+                      )
+                    )}
+
+                </div>
+
+              </section>
+            )}
+
+          {productionCompanies.length > 0 && (
+            <section className="details-section">
+
+              <h2>
+                Production
+              </h2>
+
+              <div className="details-production">
+
+                {productionCompanies.map(
+                  (company: any) => (
+                    <div
+                      className="details-production-card"
+                      key={
+                        company.id
+                      }
+                    >
+
+                      {company.logo_path && (
+                        <img
+                          src={
+                            "https://image.tmdb.org/t/p/w300" +
+                            company.logo_path
+                          }
+                          alt={
+                            company.name
+                          }
+                        />
+                      )}
+
+                      <span>
+                        {company.name}
+                      </span>
+
+                    </div>
+                  )
+                )}
+
+              </div>
+
+            </section>
+          )}
+
+          {watchProviders && (
+            <section className="details-section">
+
+              <h2>
+                Where to Watch
+              </h2>
+
+              <div className="details-providers">
+
+                {watchProviders.flatrate &&
+                  watchProviders.flatrate.map(
+                    (provider: any) => (
+                      <div
+                        className="details-provider"
+                        key={
+                          provider.provider_id
+                        }
+                      >
+
+                        {provider.logo_path && (
+                          <img
+                            src={
+                              "https://image.tmdb.org/t/p/w92" +
+                              provider.logo_path
+                            }
+                            alt={
+                              provider.provider_name
                             }
                           />
                         )}
 
                         <span>
-                          {company.name}
+                          {provider.provider_name}
                         </span>
 
                       </div>
                     )
                   )}
 
-                </div>
-
-              </section>
-            )}
-
-            {watchProviders && (
-              <section className="details-section">
-
-                <h2>
-                  Where to Watch
-                </h2>
-
-                <div className="details-providers">
-
-                  {watchProviders.flatrate &&
-                    watchProviders.flatrate.map(
-                      (provider: any) => (
-                        <div
-                          className="details-provider"
-                          key={
-                            provider.provider_id
-                          }
-                        >
-
-                          {provider.logo_path && (
-                            <img
-                              src={
-                                "https://image.tmdb.org/t/p/w92" +
-                                provider.logo_path
-                              }
-                              alt={
-                                provider.provider_name
-                              }
-                            />
-                          )}
-
-                          <span>
-                            {provider.provider_name}
-                          </span>
-
-                        </div>
-                      )
-                    )}
-
-                  {watchProviders.rent &&
-                    watchProviders.rent.map(
-                      (provider: any) => (
-                        <div
-                          className="details-provider"
-                          key={
-                            "rent-" +
-                            provider.provider_id
-                          }
-                        >
-
-                          {provider.logo_path && (
-                            <img
-                              src={
-                                "https://image.tmdb.org/t/p/w92" +
-                                provider.logo_path
-                              }
-                              alt={
-                                provider.provider_name
-                              }
-                            />
-                          )}
-
-                          <span>
-                            Rent:{" "}
-                            {provider.provider_name}
-                          </span>
-
-                        </div>
-                      )
-                    )}
-
-                  {watchProviders.buy &&
-                    watchProviders.buy.map(
-                      (provider: any) => (
-                        <div
-                          className="details-provider"
-                          key={
-                            "buy-" +
-                            provider.provider_id
-                          }
-                        >
-
-                          {provider.logo_path && (
-                            <img
-                              src={
-                                "https://image.tmdb.org/t/p/w92" +
-                                provider.logo_path
-                              }
-                              alt={
-                                provider.provider_name
-                              }
-                            />
-                          )}
-
-                          <span>
-                            Buy:{" "}
-                            {provider.provider_name}
-                          </span>
-
-                        </div>
-                      )
-                    )}
-
-                </div>
-
-              </section>
-            )}
-
-            {recommendations.length > 0 && (
-              <section className="details-section">
-
-                <h2>
-                  You May Also Like
-                </h2>
-
-                <div className="details-recommendations">
-
-                  {recommendations.map(
-                    (item: any) => (
-                      <button
-                        type="button"
-                        className="details-recommendation"
+                {watchProviders.rent &&
+                  watchProviders.rent.map(
+                    (provider: any) => (
+                      <div
+                        className="details-provider"
                         key={
-                          item.id
-                        }
-                        onClick={() =>
-                          onDetails({
-                            id:
-                              "tmdb-" +
-                              (title.kind ===
-                              "movie"
-                                ? "movie-"
-                                : "tv-") +
-                              item.id,
-                            name:
-                              item.title ||
-                              item.name,
-                            kind:
-                              title.kind,
-                            year:
-                              (
-                                item.release_date ||
-                                item.first_air_date ||
-                                ""
-                              ).slice(0, 4),
-                            poster:
-                              item.poster_path
-                                ? "https://image.tmdb.org/t/p/w500" +
-                                  item.poster_path
-                                : "",
-                            overview:
-                              item.overview ||
-                              ""
-                          })
+                          "rent-" +
+                          provider.provider_id
                         }
                       >
 
-                        <img
-                          src={
-                            "https://image.tmdb.org/t/p/w342" +
-                            item.poster_path
-                          }
-                          alt={
-                            item.title ||
-                            item.name
-                          }
-                        />
+                        {provider.logo_path && (
+                          <img
+                            src={
+                              "https://image.tmdb.org/t/p/w92" +
+                              provider.logo_path
+                            }
+                            alt={
+                              provider.provider_name
+                            }
+                          />
+                        )}
 
-                        <div>
-                          <strong>
-                            {item.title ||
-                              item.name}
-                          </strong>
+                        <span>
+                          Rent:{" "}
+                          {provider.provider_name}
+                        </span>
 
-                          {item.vote_average && (
-                            <span>
-                              ★{" "}
-                              {Number(
-                                item.vote_average
-                              ).toFixed(1)}
-                            </span>
-                          )}
-                        </div>
-
-                      </button>
+                      </div>
                     )
                   )}
 
-                </div>
+                {watchProviders.buy &&
+                  watchProviders.buy.map(
+                    (provider: any) => (
+                      <div
+                        className="details-provider"
+                        key={
+                          "buy-" +
+                          provider.provider_id
+                        }
+                      >
 
-              </section>
-            )}
+                        {provider.logo_path && (
+                          <img
+                            src={
+                              "https://image.tmdb.org/t/p/w92" +
+                              provider.logo_path
+                            }
+                            alt={
+                              provider.provider_name
+                            }
+                          />
+                        )}
 
-          </div>
-        )}
+                        <span>
+                          Buy:{" "}
+                          {provider.provider_name}
+                        </span>
+
+                      </div>
+                    )
+                  )}
+
+              </div>
+
+            </section>
+          )}
+
+          {recommendations.length > 0 && (
+            <section className="details-section">
+
+              <h2>
+                You May Also Like
+              </h2>
+
+              <div className="details-recommendations">
+
+                {recommendations.map(
+                  (item: any) => (
+                    <button
+                      type="button"
+                      className="details-recommendation"
+                      key={
+                        item.id
+                      }
+                      onClick={() =>
+                        onDetails({
+                          id:
+                            "tmdb-" +
+                            (title.kind ===
+                            "movie"
+                              ? "movie-"
+                              : "tv-") +
+                            item.id,
+                          name:
+                            item.title ||
+                            item.name,
+                          kind:
+                            title.kind,
+                          year:
+                            (
+                              item.release_date ||
+                              item.first_air_date ||
+                              ""
+                            ).slice(0, 4),
+                          poster:
+                            item.poster_path
+                              ? "https://image.tmdb.org/t/p/w500" +
+                                item.poster_path
+                              : "",
+                          overview:
+                            item.overview ||
+                            ""
+                        })
+                      }
+                    >
+
+                      <img
+                        src={
+                          "https://image.tmdb.org/t/p/w342" +
+                          item.poster_path
+                        }
+                        alt={
+                          item.title ||
+                          item.name
+                        }
+                      />
+
+                      <div>
+                        <strong>
+                          {item.title ||
+                            item.name}
+                        </strong>
+
+                        {item.vote_average && (
+                          <span>
+                            ★{" "}
+                            {Number(
+                              item.vote_average
+                            ).toFixed(1)}
+                          </span>
+                        )}
+                      </div>
+
+                    </button>
+                  )
+                )}
+
+              </div>
+
+            </section>
+          )}
+
+        </div>
+      )}
 
     </div>
   );
