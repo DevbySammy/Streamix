@@ -4202,6 +4202,8 @@ LIBRARY CONTROLS
     >
       Show more
     </button>
+       )}
+     
   {/* TODAY'S RECOMMENDATION */}
 
   {showReco &&
