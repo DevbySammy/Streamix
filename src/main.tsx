@@ -6144,55 +6144,47 @@ function DetailsView({
     title.kind
   ]);
 
-  return (
-    <div
-      className="details-page"
-      style={{
-        position: "fixed",
-        inset: 0,
-        zIndex: 99999,
-        overflowY: "auto",
-        background: "#111113",
-        color: "#fff",
-        padding: "28px"
-      }}
+ return (
+  <div className="details-page">
+
+    <button
+      type="button"
+      className="details-back-button"
+      onClick={onClose}
     >
+      ← Back
+    </button>
 
-   <button
-  type="button"
-  className="details-back-button"
-  onClick={onClose}
->
-  ← Back
-</button>
+    {loading && (
+      <div className="empty">
+        Loading details…
+      </div>
+    )}
 
-      {loading && (
-        <div className="empty">
-          Loading details…
-        </div>
-      )}
+    {!loading && error && (
+      <div className="empty">
+        {error}
+      </div>
+    )}
 
-      {!loading && error && (
-        <div className="empty">
-          {error}
-        </div>
-      )}
+    {!loading &&
+      !error &&
+      details && (
+        <div className="details-shell">
 
-      {!loading &&
-        !error &&
-        details && (
           <div
-            className="details-content"
+            className="details-backdrop"
             style={{
-              maxWidth: "1200px",
-              margin: "40px auto",
-              display: "grid",
-              gridTemplateColumns:
-                "280px 1fr",
-              gap: "36px",
-              alignItems: "start"
+              backgroundImage:
+                details.backdrop_path
+                  ? "linear-gradient(90deg, rgba(17,17,19,.98) 0%, rgba(17,17,19,.72) 45%, rgba(17,17,19,.25) 100%), linear-gradient(0deg, #111113 0%, transparent 55%), url(https://image.tmdb.org/t/p/original" +
+                    details.backdrop_path +
+                    ")"
+                  : "linear-gradient(0deg, #111113 0%, #202023 100%)"
             }}
-          >
+          />
+
+          <div className="details-content">
 
             <div className="details-poster">
               <img
@@ -6207,12 +6199,6 @@ function DetailsView({
                   details.name ||
                   title.name
                 }
-                style={{
-                  display: "block",
-                  width: "100%",
-                  maxWidth: "280px",
-                  borderRadius: "12px"
-                }}
               />
             </div>
 
@@ -6250,8 +6236,7 @@ function DetailsView({
                 Array.isArray(
                   details.genres
                 ) &&
-                details.genres.length >
-                  0 && (
+                details.genres.length > 0 && (
                   <p className="details-genres">
                     {details.genres
                       .map(
@@ -6280,8 +6265,7 @@ function DetailsView({
               {details.number_of_seasons && (
                 <p className="details-runtime">
                   {details.number_of_seasons}{" "}
-                  {details.number_of_seasons ===
-                  1
+                  {details.number_of_seasons === 1
                     ? "season"
                     : "seasons"}
                 </p>
@@ -6290,10 +6274,12 @@ function DetailsView({
             </div>
 
           </div>
-        )}
 
-    </div>
-  );
+        </div>
+      )}
+
+  </div>
+);
 }
 
 /* =========================================================
