@@ -1846,7 +1846,7 @@ const [sort, setSort] =
     };
   });
 
-   function openDetails(title: Title) {
+ function openDetails(title: Title) {
   const params =
     new URLSearchParams(
       window.location.search
@@ -1863,8 +1863,9 @@ const [sort, setSort] =
   setShowDetails(title);
 }
 
-   useEffect(() => {
-  function handlePopState() {
+
+useEffect(() => {
+  function getTitleFromUrl(): Title | null {
     const params =
       new URLSearchParams(
         window.location.search
@@ -1874,11 +1875,10 @@ const [sort, setSort] =
       params.get("details");
 
     if (!detailsId) {
-      setShowDetails(null);
-      return;
+      return null;
     }
 
-    setShowDetails({
+    return {
       id: detailsId,
       name: "",
       kind: detailsId.startsWith(
@@ -1890,7 +1890,13 @@ const [sort, setSort] =
       poster: "",
       backdrop: "",
       overview: ""
-    });
+    };
+  }
+
+  function handlePopState() {
+    setShowDetails(
+      getTitleFromUrl()
+    );
   }
 
   window.addEventListener(
