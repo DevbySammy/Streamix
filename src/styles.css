@@ -1961,10 +1961,10 @@ footer span {
 ========================================================= */
 
 .details-page {
-  position: fixed;
-  inset: 0;
-  z-index: 99999;
-  overflow-y: auto;
+  position: relative;
+  width: 100%;
+  min-height: calc(100vh - 76px);
+  overflow-y: visible;
   background: #111113;
   color: #fff;
   padding: 0 28px 50px;
