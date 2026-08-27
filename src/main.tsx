@@ -4827,16 +4827,36 @@ if (
     />
   )}
 
-     {/* DETAILS */}
+  {/* DETAILS */}
 
-  {showDetails && (
-    <DetailsView
-      title={showDetails}
-      onClose={() =>
+{showDetails && (
+  <div
+    style={{
+      position: "fixed",
+      inset: 0,
+      zIndex: 99999,
+      background: "#111113",
+      color: "#fff",
+      padding: "40px"
+    }}
+  >
+    <h1>
+      Details test:
+      {" "}
+      {showDetails.name}
+    </h1>
+
+    <button
+      type="button"
+      className="ghost"
+      onClick={() =>
         setShowDetails(null)
       }
-    />
-  )}
+    >
+      Close
+    </button>
+  </div>
+)}
 
   {/* REMINDER */}
 
