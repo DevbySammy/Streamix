@@ -2539,7 +2539,7 @@ const visible = useMemo(() => {
 
   let source: Title[];
 
-  if (filter === "watchlist") {
+   if (filter === "watchlist") {
     source = library.filter(title =>
       state.watchlist.includes(title.id)
     );
@@ -2560,7 +2560,7 @@ const visible = useMemo(() => {
         ? hiddenJustAdded
         : tmdbCatalog;
   } else {
-    source = tmdbCatalog;
+    source = library;
   }
 
   const filtered =
