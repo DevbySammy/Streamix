@@ -3607,6 +3607,17 @@ return ( <div className="app">
 </p>
 
 <div className="hero-actions">
+     <button
+    type="button"
+    className="hero-more-info-button"
+    onClick={event => {
+      event.preventDefault();
+      event.stopPropagation();
+      setShowDetails(hero);
+    }}
+  >
+    More Info
+  </button>
   <button
     type="button"
     className="poster-reminder-button"
@@ -5994,6 +6005,244 @@ const isRewatch =
       </div>
 
     </article>
+  );
+}
+
+/* =========================================================
+   DETAILS VIEW
+========================================================= */
+
+function DetailsView({
+  title,
+  onClose
+}: {
+  title: Title;
+  onClose: () => void;
+}) {
+  const [details, setDetails] =
+    useState<any | null>(null);
+
+  const [loading, setLoading] =
+    useState(true);
+
+  const [error, setError] =
+    useState("");
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadDetails() {
+      try {
+        setLoading(true);
+        setError("");
+
+        const sessionId =
+          localStorage.getItem(
+            "sx-session-token"
+          );
+
+        if (!sessionId) {
+          throw new Error(
+            "You must be logged in to view details."
+          );
+        }
+
+        const prefix =
+          title.kind === "movie"
+            ? "tmdb-movie-"
+            : "tmdb-tv-";
+
+        if (!title.id.startsWith(prefix)) {
+          throw new Error(
+            "This title does not have a TMDB ID."
+          );
+        }
+
+        const tmdbId =
+          title.id.slice(prefix.length);
+
+        const response =
+          await fetch(
+            "https://streamix.gaintrainstrong.workers.dev/api/tmdb/details?type=" +
+              encodeURIComponent(
+                title.kind
+              ) +
+              "&id=" +
+              encodeURIComponent(
+                tmdbId
+              ),
+            {
+              headers: {
+                Authorization:
+                  `Bearer ${sessionId}`
+              }
+            }
+          );
+
+        const data =
+          await response.json();
+
+        if (!response.ok) {
+          throw new Error(
+            data?.error ||
+              "Unable to load title details."
+          );
+        }
+
+        if (!cancelled) {
+          setDetails(data);
+        }
+      } catch (error) {
+        console.error(
+          "Failed to load title details:",
+          error
+        );
+
+        if (!cancelled) {
+          setError(
+            error instanceof Error
+              ? error.message
+              : "Unable to load title details."
+          );
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    }
+
+    loadDetails();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    title.id,
+    title.kind
+  ]);
+
+  return (
+    <div className="details-page">
+
+      <button
+        type="button"
+        className="ghost"
+        onClick={onClose}
+      >
+        ← Back
+      </button>
+
+      {loading && (
+        <div className="empty">
+          Loading details…
+        </div>
+      )}
+
+      {!loading && error && (
+        <div className="empty">
+          {error}
+        </div>
+      )}
+
+      {!loading &&
+        !error &&
+        details && (
+          <div className="details-content">
+
+            <div className="details-poster">
+              <img
+                src={
+                  details.poster_path
+                    ? "https://image.tmdb.org/t/p/w500" +
+                      details.poster_path
+                    : title.poster
+                }
+                alt={
+                  details.title ||
+                  details.name ||
+                  title.name
+                }
+              />
+            </div>
+
+            <div className="details-info">
+
+              <div className="eyebrow">
+                {title.kind === "movie"
+                  ? "MOVIE"
+                  : "TV SHOW"}
+              </div>
+
+              <h1>
+                {details.title ||
+                  details.name ||
+                  title.name}
+              </h1>
+
+              <p className="details-meta">
+                {(
+                  details.release_date ||
+                  details.first_air_date ||
+                  ""
+                ).slice(0, 4)}
+
+                {details.vote_average
+                  ? " · " +
+                    Number(
+                      details.vote_average
+                    ).toFixed(1) +
+                    "/10"
+                  : ""}
+              </p>
+
+              {details.genres &&
+                Array.isArray(
+                  details.genres
+                ) &&
+                details.genres.length >
+                  0 && (
+                  <p className="details-genres">
+                    {details.genres
+                      .map(
+                        (genre: {
+                          id: number;
+                          name: string;
+                        }) =>
+                          genre.name
+                      )
+                      .join(" · ")}
+                  </p>
+                )}
+
+              <p className="details-overview">
+                {details.overview ||
+                  title.overview ||
+                  "No overview available."}
+              </p>
+
+              {details.runtime && (
+                <p className="details-runtime">
+                  {details.runtime} minutes
+                </p>
+              )}
+
+              {details.number_of_seasons && (
+                <p className="details-runtime">
+                  {details.number_of_seasons}{" "}
+                  {details.number_of_seasons ===
+                  1
+                    ? "season"
+                    : "seasons"}
+                </p>
+              )}
+
+            </div>
+
+          </div>
+        )}
+
+    </div>
   );
 }
 
