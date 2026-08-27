@@ -4168,10 +4168,9 @@ LIBRARY CONTROLS
        <button
       type="button"
       className="show-more-button"
-      onMouseDown={event => {
-        event.preventDefault();
-      }}
-      onClick={() => {
+      onClick={event => {
+        event.currentTarget.blur();
+
         if (
           sort === "just-added"
         ) {
@@ -4192,18 +4191,13 @@ LIBRARY CONTROLS
                 current + 30
             );
           }
-
-          return;
+        } else {
+          loadNextTMDBCatalogPage();
         }
-
-        loadNextTMDBCatalogPage();
       }}
     >
       Show more
     </button>
-       )}
-     </main>
-     </>
       )}
 
      
