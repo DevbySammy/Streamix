@@ -4841,9 +4841,12 @@ if (
     onDetails={(title) =>
       setShowDetails(title)
     }
+    profile={profile}
+    isViewingAs={isViewingAs}
+    setShowProfile={setShowProfile}
+    signOut={signOut}
   />
 )}
-
   {/* REMINDER */}
 
   {showReminder && (
@@ -6039,11 +6042,19 @@ const isRewatch =
 function DetailsView({
   title,
   onClose,
-  onDetails
+  onDetails,
+  profile,
+  isViewingAs,
+  setShowProfile,
+  signOut
 }: {
   title: Title;
   onClose: () => void;
   onDetails: (title: Title) => void;
+  profile: Profile | null;
+  isViewingAs: boolean;
+  setShowProfile: (value: boolean) => void;
+  signOut: () => void;
 }) {
   const [details, setDetails] =
     useState<any | null>(null);
@@ -6268,16 +6279,61 @@ function DetailsView({
   const lastEpisode =
     details?.last_episode_to_air;
 
-  return (
-    <div className="details-page">
+ return (
+  <div className="details-page">
 
-      <button
-        type="button"
-        className="details-back-button"
-        onClick={onClose}
-      >
-        ← Back
-      </button>
+    <header>
+
+      <div className="logo">
+        <img
+          src="/streamix-logo.png"
+          alt="Streamix"
+        />
+      </div>
+
+      <div className="header-right">
+
+        <button
+          className="profile-pill"
+          onClick={() =>
+            setShowProfile(true)
+          }
+        >
+          <span>
+            {isViewingAs
+              ? "👑"
+              : profile?.avatar}
+          </span>
+
+          <span>
+            {isViewingAs
+              ? "Admin"
+              : profile?.name}
+          </span>
+
+          <ChevronDown
+            size={16}
+          />
+        </button>
+
+        <button
+          className="admin-badge"
+          onClick={signOut}
+        >
+          LOG OUT
+        </button>
+
+      </div>
+
+    </header>
+
+    <button
+      type="button"
+      className="details-back-button"
+      onClick={onClose}
+    >
+      ← Back
+    </button>
 
       {loading && (
         <div className="empty">
