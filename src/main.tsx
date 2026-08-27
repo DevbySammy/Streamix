@@ -429,10 +429,15 @@ const [
   setTmdbCatalogLoading
 ] = useState(false);
 
-   const [
+const [
   tmdbCatalogHasMore,
   setTmdbCatalogHasMore
 ] = useState(true);
+
+const [
+  tmdbCatalogLimit,
+  setTmdbCatalogLimit
+] = useState(40);
 
    useEffect(() => {
   async function loadTMDBCatalog() {
@@ -552,10 +557,10 @@ const [
   loadTMDBCatalog();
 }, []);
 
- async function loadNextTMDBCatalogPage() {
+async function loadNextTMDBCatalogPage() {
   if (
     tmdbCatalogLoading ||
-    tmdbCatalog.length >= 200
+    tmdbCatalogLimit >= 200
   ) {
     return;
   }
@@ -568,181 +573,142 @@ const [
         "sx-session-token"
       );
 
-    let currentPage =
-      tmdbCatalogPage;
+    const nextPage =
+      tmdbCatalogPage + 1;
 
-    let totalPages =
-      currentPage;
-
-    const existingIds =
-      new Set(
-        tmdbCatalog.map(
-          title => title.id
-        )
+    const response =
+      await fetch(
+        `https://streamix.gaintrainstrong.workers.dev/api/tmdb/catalog?page=${nextPage}&type=all`,
+        {
+          headers: sessionId
+            ? {
+                Authorization:
+                  `Bearer ${sessionId}`
+              }
+            : {}
+        }
       );
 
-    const newTitles: Title[] = [];
-
-    while (
-      newTitles.length < 40 &&
-      tmdbCatalog.length +
-        newTitles.length <
-        200 &&
-      currentPage < totalPages
-    ) {
-      currentPage += 1;
-
-      const response =
-        await fetch(
-          `https://streamix.gaintrainstrong.workers.dev/api/tmdb/catalog?page=${currentPage}&type=all`,
-          {
-            headers: sessionId
-              ? {
-                  Authorization:
-                    `Bearer ${sessionId}`
-                }
-              : {}
-          }
-        );
-
-      if (!response.ok) {
-        throw new Error(
-          "Failed to load next TMDB catalog page"
-        );
-      }
-
-      const data =
-        await response.json();
-
-      totalPages =
-        Number(
-          data.total_pages
-        ) || currentPage;
-
-      const titles: Title[] =
-        Array.isArray(
-          data.results
-        )
-          ? data.results.map(
-              (item: any): Title => {
-                const kind: Kind =
-                  item.media_type ===
-                  "tv"
-                    ? "tv"
-                    : "movie";
-
-                const releaseDate =
-                  kind === "movie"
-                    ? item.release_date
-                    : item.first_air_date;
-
-                return {
-                  id:
-                    "tmdb-" +
-                    kind +
-                    "-" +
-                    String(
-                      item.id
-                    ),
-
-                  name:
-                    kind === "movie"
-                      ? item.title ||
-                        "Untitled"
-                      : item.name ||
-                        "Untitled",
-
-                  kind,
-
-                  year:
-                    releaseDate
-                      ? Number(
-                          String(
-                            releaseDate
-                          ).slice(
-                            0,
-                            4
-                          )
-                        )
-                      : 0,
-
-                  poster:
-                    getPosterUrl(
-                      item.poster_path
-                    ),
-
-                  backdrop:
-                    getBackdropUrl(
-                      item.backdrop_path
-                    ),
-
-                  overview:
-                    item.overview ||
-                    "",
-
-                  addedAt:
-                    new Date().toISOString()
-                };
-              }
-            )
-          : [];
-
-      for (
-        const title of titles
-      ) {
-        if (
-          newTitles.length >= 40 ||
-          tmdbCatalog.length +
-            newTitles.length >=
-            200
-        ) {
-          break;
-        }
-
-        if (
-          !existingIds.has(
-            title.id
-          )
-        ) {
-          existingIds.add(
-            title.id
-          );
-
-          newTitles.push(
-            title
-          );
-        }
-      }
-
-      if (
-        currentPage >=
-        totalPages
-      ) {
-        break;
-      }
+    if (!response.ok) {
+      throw new Error(
+        "Failed to load next TMDB catalog page"
+      );
     }
 
-    if (
-      newTitles.length > 0
-    ) {
-      setTmdbCatalog(
-        current => [
+    const data =
+      await response.json();
+
+    const titles: Title[] =
+      Array.isArray(data.results)
+        ? data.results.map(
+            (item: any): Title => {
+              const kind: Kind =
+                item.media_type === "tv"
+                  ? "tv"
+                  : "movie";
+
+              const releaseDate =
+                kind === "movie"
+                  ? item.release_date
+                  : item.first_air_date;
+
+              return {
+                id:
+                  "tmdb-" +
+                  kind +
+                  "-" +
+                  String(item.id),
+
+                name:
+                  kind === "movie"
+                    ? item.title ||
+                      "Untitled"
+                    : item.name ||
+                      "Untitled",
+
+                kind,
+
+                year:
+                  releaseDate
+                    ? Number(
+                        String(
+                          releaseDate
+                        ).slice(0, 4)
+                      )
+                    : 0,
+
+                poster:
+                  getPosterUrl(
+                    item.poster_path
+                  ),
+
+                backdrop:
+                  getBackdropUrl(
+                    item.backdrop_path
+                  ),
+
+                overview:
+                  item.overview || "",
+
+                addedAt:
+                  new Date().toISOString()
+              };
+            }
+          )
+        : [];
+
+    setTmdbCatalog(
+      current => {
+        const existingIds =
+          new Set(
+            current.map(
+              title => title.id
+            )
+          );
+
+        const newTitles =
+          titles.filter(
+            title => {
+              if (
+                existingIds.has(
+                  title.id
+                )
+              ) {
+                return false;
+              }
+
+              existingIds.add(
+                title.id
+              );
+
+              return true;
+            }
+          );
+
+        return [
           ...current,
           ...newTitles
-        ]
-      );
-    }
+        ];
+      }
+    );
 
     setTmdbCatalogPage(
-      currentPage
+      nextPage
     );
 
     setTmdbCatalogHasMore(
-      tmdbCatalog.length +
-        newTitles.length <
-        200 &&
-      currentPage <
-        totalPages
+      nextPage <
+        Number(
+          data.total_pages || 0
+        )
+    );
+
+    setTmdbCatalogLimit(
+      current =>
+        Math.min(
+          current + 40,
+          200
+        )
     );
   } catch (error) {
     console.error(
@@ -2649,28 +2615,38 @@ const visible = useMemo(() => {
     return filtered;
   }
 
-  return [...filtered].sort(
-    (a, b) => {
-      switch (sort) {
-        case "name-desc":
-          return b.name.localeCompare(
-            a.name
-          );
-
-        case "year-desc":
-          return b.year - a.year;
-
-        case "year-asc":
-          return a.year - b.year;
-
-        case "name-asc":
-        default:
-          return a.name.localeCompare(
-            b.name
-          );
-      }
-    }
+ if (
+  filter === "all" &&
+  sort === "just-added"
+) {
+  return filtered.slice(
+    0,
+    tmdbCatalogLimit
   );
+}
+
+return [...filtered].sort(
+  (a, b) => {
+    switch (sort) {
+      case "name-desc":
+        return b.name.localeCompare(
+          a.name
+        );
+
+      case "year-desc":
+        return b.year - a.year;
+
+      case "year-asc":
+        return a.year - b.year;
+
+      case "name-asc":
+      default:
+        return a.name.localeCompare(
+          b.name
+        );
+    }
+  }
+);
 
 }, [
   library,
