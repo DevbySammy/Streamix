@@ -1930,99 +1930,27 @@ if (
       "type"
     ) || "all";
 
- const resultsPerRequest = 40;
+  const resultsPerRequest = 40;
 
-const startPage =
-  Math.floor(
-    ((page - 1) *
-      resultsPerRequest) /
-      20
-  ) + 1;
+  const startPage =
+    Math.floor(
+      ((page - 1) *
+        resultsPerRequest) /
+        20
+    ) + 1;
 
-const endPage =
-  Math.ceil(
-    (page *
-      resultsPerRequest) /
-      20
-  );
+  const endPage =
+    Math.ceil(
+      (page *
+        resultsPerRequest) /
+        20
+    );
 
-async function discover(
-  mediaType:
-    | "movie"
-    | "tv"
-) {
-  const allResults: any[] = [];
-  let totalPages = 1;
-
-  for (
-    let tmdbPage = startPage;
-    tmdbPage <= endPage;
-    tmdbPage++
+  async function discover(
+    mediaType:
+      | "movie"
+      | "tv"
   ) {
-    const response =
-      await fetch(
-        "https://api.themoviedb.org/3/discover/" +
-          mediaType +
-          "?include_adult=false" +
-          "&include_video=false" +
-          "&language=en-US" +
-          "&with_original_language=en" +
-          "&sort_by=popularity.desc" +
-          "&page=" +
-          tmdbPage,
-        {
-          headers: {
-            Authorization:
-              "Bearer " +
-              env.TMDB_READ_ACCESS_TOKEN,
-            accept:
-              "application/json"
-          }
-        }
-      );
-
-    const data =
-      await response.json();
-
-    if (!response.ok) {
-      throw new Error(
-        typeof data?.status_message ===
-        "string"
-          ? data.status_message
-          : "TMDB request failed."
-      );
-    }
-
-    if (
-      Array.isArray(
-        data.results
-      )
-    ) {
-      allResults.push(
-        ...data.results
-      );
-    }
-
-    totalPages =
-      Number(
-        data.total_pages || 1
-      );
-
-    if (
-      tmdbPage >=
-      totalPages
-    ) {
-      break;
-    }
-  }
-
-  return {
-    results:
-      allResults,
-    total_pages:
-      totalPages
-  };
-}
     const allResults: any[] = [];
     let totalPages = 1;
 
@@ -2110,7 +2038,7 @@ async function discover(
       totalPages =
         Math.ceil(
           movieData.total_pages /
-          pagesPerRequest
+          (resultsPerRequest / 20)
         );
     } else if (type === "tv") {
       const tvData =
@@ -2122,7 +2050,7 @@ async function discover(
       totalPages =
         Math.ceil(
           tvData.total_pages /
-          pagesPerRequest
+          (resultsPerRequest / 20)
         );
     } else {
       const [
@@ -2154,11 +2082,11 @@ async function discover(
         Math.max(
           Math.ceil(
             movieData.total_pages /
-            pagesPerRequest
+            (resultsPerRequest / 20)
           ),
           Math.ceil(
             tvData.total_pages /
-            pagesPerRequest
+            (resultsPerRequest / 20)
           )
         );
 
