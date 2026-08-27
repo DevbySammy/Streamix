@@ -1844,7 +1844,7 @@ const [sort, setSort] =
  const [showReminder, setShowReminder] =
    useState<Title | null>(null);
 
-   const [showDetails, setShowDetails] =
+  const [showDetails, setShowDetails] =
   useState<Title | null>(() => {
     const params =
       new URLSearchParams(
@@ -1873,26 +1873,120 @@ const [sort, setSort] =
     };
   });
 
- function openDetails(title: Title) {
-  const params =
-    new URLSearchParams(
-      window.location.search
+const [showDetailsData, setShowDetailsData] =
+  useState<any | null>(null);
+
+   const tmdbDetailsCache =
+  new Map<string, any>();
+
+async function fetchTMDBDetails(
+  title: Title
+) {
+  const cacheKey =
+    title.kind + ":" + title.id;
+
+  const cached =
+    tmdbDetailsCache.get(cacheKey);
+
+  if (cached) {
+    return cached;
+  }
+
+  const sessionId =
+    localStorage.getItem(
+      "sx-session-token"
     );
 
-  params.set("details", title.id);
+  if (!sessionId) {
+    throw new Error(
+      "You must be logged in to view details."
+    );
+  }
 
-  window.history.pushState(
-    {},
-    "",
-    `${window.location.pathname}?${params.toString()}`
+  const prefix =
+    title.kind === "movie"
+      ? "tmdb-movie-"
+      : "tmdb-tv-";
+
+  if (!title.id.startsWith(prefix)) {
+    throw new Error(
+      "This title does not have a TMDB ID."
+    );
+  }
+
+  const tmdbId =
+    title.id.slice(prefix.length);
+
+  const response =
+    await fetch(
+      "https://streamix.gaintrainstrong.workers.dev/api/tmdb/details?type=" +
+        encodeURIComponent(
+          title.kind
+        ) +
+        "&id=" +
+        encodeURIComponent(
+          tmdbId
+        ),
+      {
+        headers: {
+          Authorization:
+            `Bearer ${sessionId}`
+        }
+      }
+    );
+
+  const data =
+    await response.json();
+
+  if (!response.ok) {
+    throw new Error(
+      data?.error ||
+        "Unable to load title details."
+    );
+  }
+
+  tmdbDetailsCache.set(
+    cacheKey,
+    data
   );
 
-  setShowDetails(title);
+  return data;
+}
+   
+async function openDetails(title: Title) {
+  try {
+    const details =
+      await fetchTMDBDetails(title);
+
+    setShowDetailsData(details);
+
+    const params =
+      new URLSearchParams(
+        window.location.search
+      );
+
+    params.set(
+      "details",
+      title.id
+    );
+
+    window.history.pushState(
+      {},
+      "",
+      `${window.location.pathname}?${params.toString()}`
+    );
+
+    setShowDetails(title);
+  } catch (error) {
+    console.error(
+      "Failed to load title details:",
+      error
+    );
+  }
 }
 
-
 useEffect(() => {
-  function getTitleFromUrl(): Title | null {
+  async function handlePopState() {
     const params =
       new URLSearchParams(
         window.location.search
@@ -1902,10 +1996,12 @@ useEffect(() => {
       params.get("details");
 
     if (!detailsId) {
-      return null;
+      setShowDetailsData(null);
+      setShowDetails(null);
+      return;
     }
 
-    return {
+    const title: Title = {
       id: detailsId,
       name: "",
       kind: detailsId.startsWith(
@@ -1918,12 +2014,22 @@ useEffect(() => {
       backdrop: "",
       overview: ""
     };
-  }
 
-  function handlePopState() {
-    setShowDetails(
-      getTitleFromUrl()
-    );
+    try {
+      const details =
+        await fetchTMDBDetails(title);
+
+      setShowDetailsData(details);
+      setShowDetails(title);
+    } catch (error) {
+      console.error(
+        "Failed to load title details from URL:",
+        error
+      );
+
+      setShowDetailsData(null);
+      setShowDetails(title);
+    }
   }
 
   window.addEventListener(
@@ -3674,9 +3780,10 @@ return ( <div className="app">
    {/* DETAILS */}
 
 {showDetails && (
-  <DetailsView
-    title={showDetails}
-    onClose={() => {
+<DetailsView
+  title={showDetails}
+  initialDetails={showDetailsData}
+  onClose={() => {
       window.history.pushState(
         {},
         "",
@@ -6168,54 +6275,20 @@ const isRewatch =
 
 function DetailsView({
   title,
+  initialDetails,
   onClose,
   onDetails
 }: {
   title: Title;
+  initialDetails: any | null;
   onClose: () => void;
   onDetails: (title: Title) => void;
 }) {
-  const [details, setDetails] =
-    useState<any | null>({
-      title:
-        title.kind === "movie"
-          ? title.name
-          : undefined,
-      name:
-        title.kind === "tv"
-          ? title.name
-          : undefined,
-      overview:
-        title.overview || "",
-      poster_path:
-        title.poster
-          ? title.poster.replace(
-              "https://image.tmdb.org/t/p/w500",
-              ""
-            )
-          : null,
-      backdrop_path:
-        title.backdrop
-          ? title.backdrop.replace(
-              "https://image.tmdb.org/t/p/w1280",
-              ""
-            )
-          : null,
-      release_date:
-        title.kind === "movie" && title.year
-          ? `${title.year}-01-01`
-          : "",
-      first_air_date:
-        title.kind === "tv" && title.year
-          ? `${title.year}-01-01`
-          : ""
-    });
-
-  const [loading, setLoading] =
-    useState(false);
-
-  const [error, setError] =
-    useState("");
+   
+const [details, setDetails] =
+  useState<any | null>(
+    initialDetails
+  );
 
   useEffect(() => {
     window.scrollTo({
@@ -6227,99 +6300,6 @@ function DetailsView({
     title.kind
   ]);
 
-  useEffect(() => {
-    let cancelled = false;
-
-    async function loadDetails() {
-      try {
-        setLoading(true);
-        setError("");
-
-        const sessionId =
-          localStorage.getItem(
-            "sx-session-token"
-          );
-
-        if (!sessionId) {
-          throw new Error(
-            "You must be logged in to view details."
-          );
-        }
-
-        const prefix =
-          title.kind === "movie"
-            ? "tmdb-movie-"
-            : "tmdb-tv-";
-
-        if (!title.id.startsWith(prefix)) {
-          throw new Error(
-            "This title does not have a TMDB ID."
-          );
-        }
-
-        const tmdbId =
-          title.id.slice(prefix.length);
-
-        const response =
-          await fetch(
-            "https://streamix.gaintrainstrong.workers.dev/api/tmdb/details?type=" +
-              encodeURIComponent(
-                title.kind
-              ) +
-              "&id=" +
-              encodeURIComponent(
-                tmdbId
-              ),
-            {
-              headers: {
-                Authorization:
-                  `Bearer ${sessionId}`
-              }
-            }
-          );
-
-        const data =
-          await response.json();
-
-        if (!response.ok) {
-          throw new Error(
-            data?.error ||
-              "Unable to load title details."
-          );
-        }
-
-        if (!cancelled) {
-          setDetails(data);
-        }
-      } catch (error) {
-        console.error(
-          "Failed to load title details:",
-          error
-        );
-
-        if (!cancelled) {
-          setError(
-            error instanceof Error
-              ? error.message
-              : "Unable to load title details."
-          );
-        }
-      } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
-      }
-    }
-
-    loadDetails();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [
-    title.id,
-    title.kind
-  ]);
 
   const displayTitle =
     details?.title ||
