@@ -1665,7 +1665,7 @@ async function subscribeToPushNotifications() {
 
 
 const [sort, setSort] =
-  useState<SortOption>("year-desc");
+  useState<SortOption>("just-added");
 
  useEffect(() => {
    if (sort !== "just-added") {
@@ -4194,7 +4194,7 @@ LIBRARY CONTROLS
           } else {
             setJustAddedLimit(
               current =>
-                current + 30
+                current + 40
             );
           }
         } else {
