@@ -4137,9 +4137,9 @@ LIBRARY CONTROLS
       onSchedule={() =>
         setShowSchedule(title)
       }
-    onDetails={() =>
-  openDetails(title)
-}
+      onDetails={() =>
+        openDetails(title)
+      }
     />
   ))}
 
@@ -4169,45 +4169,54 @@ LIBRARY CONTROLS
     <button
       type="button"
       className="show-more-button"
-    onClick={event => {
-  event.preventDefault();
+      onClick={event => {
+        const button =
+          event.currentTarget;
 
-  const scrollPosition =
-    window.scrollY;
+        const buttonTop =
+          button.getBoundingClientRect()
+            .top;
 
-  if (
-    sort === "just-added"
-  ) {
-    if (
-      justAddedView ===
-      "hidden"
-    ) {
-      setHiddenJustAddedLimit(
-        current =>
-          current +
-          (isMobile
-            ? 20
-            : 30)
-      );
-    } else {
-      setJustAddedLimit(
-        current =>
-          current + 30
-      );
-    }
-  } else {
-    loadNextTMDBCatalogPage();
+        if (
+          sort === "just-added"
+        ) {
+          if (
+            justAddedView ===
+            "hidden"
+          ) {
+            setHiddenJustAddedLimit(
+              current =>
+                current +
+                (isMobile
+                  ? 20
+                  : 30)
+            );
+          } else {
+            setJustAddedLimit(
+              current =>
+                current + 30
+            );
+          }
 
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        window.scrollTo(
-          0,
-          scrollPosition
-        );
-      });
-    });
-  }
-}}
+          return;
+        }
+
+        loadNextTMDBCatalogPage();
+
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            const newButtonTop =
+              button.getBoundingClientRect()
+                .top;
+
+            window.scrollBy(
+              0,
+              newButtonTop -
+                buttonTop
+            );
+          });
+        });
+      }}
     >
       Show more
     </button>
