@@ -4832,15 +4832,17 @@ if (
 
 {/* DETAILS */}
 
-     {showDetails && (
-    <DetailsView
-      title={showDetails}
-      onClose={() =>
-        setShowDetails(null)
-      }
-    />
-  )}
-
+{showDetails && (
+  <DetailsView
+    title={showDetails}
+    onClose={() =>
+      setShowDetails(null)
+    }
+    onDetails={(title) =>
+      setShowDetails(title)
+    }
+  />
+)}
 
   {/* REMINDER */}
 
