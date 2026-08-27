@@ -1967,14 +1967,14 @@ footer span {
 }
 
 .details-back-button {
-  min-height: 40px;
-  padding: 7px 14px;
+  min-height: 42px;
+  padding: 8px 18px;
   border: 1px solid #2f2f33;
-  border-radius: 8px;
+  border-radius: 999px;
   background: #202023;
-  color: #aaa;
+  color: #fff;
   cursor: pointer;
-  font-size: 12px;
+  font-size: 14px;
   line-height: 1.2;
 }
 
@@ -2025,4 +2025,53 @@ footer span {
   color: #aaa;
   font-size: 13px;
 }
+
+.details-card-button {
+  min-height: 40px;
+  padding: 7px 14px;
+  margin-bottom: 12px;
+  border: 1px solid #2f2f33;
+  border-radius: 8px;
+  background: #202023;
+  color: #fff;
+  cursor: pointer;
+  font-size: 12px;
+  line-height: 1.2;
+}
+
+.details-card-button:hover,
+.details-card-button:active {
+  border-color: #ff4f9a;
+  color: #fff;
+}
+
+@media (max-width: 700px) {
+  .details-page {
+    padding: 20px !important;
+  }
+
+  .details-content {
+    margin: 28px auto !important;
+    grid-template-columns: 1fr !important;
+    gap: 24px !important;
+  }
+
+  .details-poster img {
+    max-width: 220px !important;
+    margin: 0 auto;
+  }
+
+  .details-info {
+    padding-top: 0;
+  }
+
+  .details-info h1 {
+    font-size: 38px;
+  }
+
+  .details-overview {
+    font-size: 14px;
+  }
+}
+
 
