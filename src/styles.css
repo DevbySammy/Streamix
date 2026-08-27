@@ -1955,3 +1955,74 @@ footer span {
 .remind-button {
   white-space: nowrap;
 }
+
+/* =========================================================
+   DETAILS PAGE
+========================================================= */
+
+.details-page {
+  min-height: 100vh;
+  background: #111113;
+  color: #fff;
+}
+
+.details-back-button {
+  min-height: 40px;
+  padding: 7px 14px;
+  border: 1px solid #2f2f33;
+  border-radius: 8px;
+  background: #202023;
+  color: #aaa;
+  cursor: pointer;
+  font-size: 12px;
+  line-height: 1.2;
+}
+
+.details-back-button:hover,
+.details-back-button:active {
+  border-color: #ff4f9a;
+  color: #fff;
+}
+
+.details-content {
+  min-height: 500px;
+}
+
+.details-info {
+  padding-top: 8px;
+}
+
+.details-info h1 {
+  margin: 0;
+  font-size: clamp(34px, 5vw, 64px);
+  line-height: 1.02;
+  letter-spacing: -.035em;
+}
+
+.details-meta {
+  margin: 14px 0 10px;
+  color: #ccc;
+  font-size: 15px;
+}
+
+.details-genres {
+  margin: 0 0 24px;
+  color: #ff4f9a;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.details-overview {
+  max-width: 720px;
+  margin: 0 0 20px;
+  color: #ccc;
+  font-size: 15px;
+  line-height: 1.7;
+}
+
+.details-runtime {
+  margin: 8px 0;
+  color: #aaa;
+  font-size: 13px;
+}
+
