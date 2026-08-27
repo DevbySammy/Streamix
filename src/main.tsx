@@ -6385,7 +6385,7 @@ const [details, setDetails] =
 
   const detailsBackdrop =
     details?.backdrop_path
-      ? "https://image.tmdb.org/t/p/original" +
+    ? "https://image.tmdb.org/t/p/w1280" +
         details.backdrop_path
       : title.backdrop || "";
 
