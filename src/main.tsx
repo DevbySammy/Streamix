@@ -392,12 +392,6 @@ async function ensureTMDBLibraryItem(
 const data =
   await response.json();
 
-setTmdbCatalogHasMore(
-  Boolean(
-    data.total_pages &&
-    1 < data.total_pages
-  )
-);
 
   if (!response.ok) {
     throw new Error(
