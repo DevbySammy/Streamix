@@ -2593,54 +2593,44 @@ const visible = useMemo(() => {
           ) === index
       );
 
- if (
-  sort === "just-added" &&
-  !usingPersonalFilter
-) {
-  const limit =
-    isAdmin &&
-    justAddedView === "hidden"
-      ? hiddenJustAddedLimit
-      : justAddedLimit;
+  if (
+    sort === "just-added" &&
+    !usingPersonalFilter
+  ) {
+    const limit =
+      isAdmin &&
+      justAddedView === "hidden"
+        ? hiddenJustAddedLimit
+        : justAddedLimit;
 
-  return filtered.slice(
-    0,
-    limit
-  );
-}
-
-if (
-  filter === "all" &&
-  kind === "all"
-) {
-  return filtered.slice(
-    0,
-    tmdbCatalogLimit
-  );
-}
-
-return [...filtered].sort(
-  (a, b) => {
-    switch (sort) {
-      case "name-desc":
-        return b.name.localeCompare(
-          a.name
-        );
-
-      case "year-desc":
-        return b.year - a.year;
-
-      case "year-asc":
-        return a.year - b.year;
-
-      case "name-asc":
-      default:
-        return a.name.localeCompare(
-          b.name
-        );
-    }
+    return filtered.slice(
+      0,
+      limit
+    );
   }
-);
+
+  return [...filtered].sort(
+    (a, b) => {
+      switch (sort) {
+        case "name-desc":
+          return b.name.localeCompare(
+            a.name
+          );
+
+        case "year-desc":
+          return b.year - a.year;
+
+        case "year-asc":
+          return a.year - b.year;
+
+        case "name-asc":
+        default:
+          return a.name.localeCompare(
+            b.name
+          );
+      }
+    }
+  );
 
 }, [
   library,
