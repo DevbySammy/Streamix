@@ -2609,6 +2609,35 @@ const visible = useMemo(() => {
     );
   }
 
+  if (
+    filter === "all"
+  ) {
+    return [...filtered].sort(
+      (a, b) => {
+        switch (sort) {
+          case "name-desc":
+            return b.name.localeCompare(
+              a.name
+            );
+
+          case "year-desc":
+            return b.year - a.year;
+
+          case "year-asc":
+            return a.year - b.year;
+
+          case "name-asc":
+            return a.name.localeCompare(
+              b.name
+            );
+
+          default:
+            return 0;
+        }
+      }
+    );
+  }
+
   return [...filtered].sort(
     (a, b) => {
       switch (sort) {
@@ -2624,10 +2653,12 @@ const visible = useMemo(() => {
           return a.year - b.year;
 
         case "name-asc":
-        default:
           return a.name.localeCompare(
             b.name
           );
+
+        default:
+          return 0;
       }
     }
   );
