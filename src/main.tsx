@@ -5867,15 +5867,26 @@ const isRewatch =
 
       <div className="poster-wrap">
 
-        <img
-          src={t.poster}
-          alt={t.name}
-          onError={event => {
-            event.currentTarget.src =
-              "https://placehold.co/500x750/171717/ffffff?text=" +
-              encodeURIComponent(t.name);
+                <button
+          type="button"
+          className="poster-details-button"
+          onClick={event => {
+            event.preventDefault();
+            event.stopPropagation();
+            onDetails();
           }}
-        />
+          aria-label={"View details for " + t.name}
+        >
+          <img
+            src={t.poster}
+            alt={t.name}
+            onError={event => {
+              event.currentTarget.src =
+                "https://placehold.co/500x750/171717/ffffff?text=" +
+                encodeURIComponent(t.name);
+            }}
+          />
+        </button>
 
         <span className="kind">
           {t.kind === "movie"
@@ -6233,44 +6244,6 @@ function DetailsView({
           )
           .slice(0, 12)
       : [];
-
-  const keywords =
-    Array.isArray(
-      details?.keywords?.keywords
-    )
-      ? details.keywords.keywords
-      : Array.isArray(
-          details?.keywords?.results
-        )
-        ? details.keywords.results
-        : [];
-
-  const backdrops =
-    Array.isArray(
-      details?.images?.backdrops
-    )
-      ? details.images.backdrops
-          .filter(
-            (image: any) =>
-              image.file_path
-          )
-          .slice(0, 8)
-      : [];
-
-  const posters =
-    Array.isArray(
-      details?.images?.posters
-    )
-      ? details.images.posters
-          .filter(
-            (image: any) =>
-              image.file_path
-          )
-          .slice(0, 6)
-      : [];
-
-  const externalIds =
-    details?.external_ids || {};
 
   const lastEpisode =
     details?.last_episode_to_air;
@@ -6711,133 +6684,6 @@ function DetailsView({
 
                 </section>
               )}
-
-            {backdrops.length > 0 && (
-              <section className="details-section">
-
-                <h2>
-                  Images
-                </h2>
-
-                <div className="details-gallery">
-
-                  {backdrops.map(
-                    (image: any) => (
-                      <img
-                        key={
-                          image.file_path
-                        }
-                        src={
-                          "https://image.tmdb.org/t/p/w780" +
-                          image.file_path
-                        }
-                        alt={
-                          displayTitle +
-                          " backdrop"
-                        }
-                      />
-                    )
-                  )}
-
-                  {posters.map(
-                    (image: any) => (
-                      <img
-                        key={
-                          "poster-" +
-                          image.file_path
-                        }
-                        src={
-                          "https://image.tmdb.org/t/p/w342" +
-                          image.file_path
-                        }
-                        alt={
-                          displayTitle +
-                          " poster"
-                        }
-                      />
-                    )
-                  )}
-
-                </div>
-
-              </section>
-            )}
-
-            {keywords.length > 0 && (
-              <section className="details-section">
-
-                <h2>
-                  Keywords
-                </h2>
-
-                <div className="details-keywords">
-
-                  {keywords.map(
-                    (keyword: any) => (
-                      <span
-                        key={
-                          keyword.id ||
-                          keyword.name
-                        }
-                      >
-                        {keyword.name}
-                      </span>
-                    )
-                  )}
-
-                </div>
-
-              </section>
-            )}
-
-            {(externalIds.imdb_id ||
-              externalIds.tvdb_id ||
-              externalIds.tmdb_id) && (
-              <section className="details-section">
-
-                <h2>
-                  External IDs
-                </h2>
-
-                <div className="details-external-ids">
-
-                  {externalIds.imdb_id && (
-                    <div>
-                      <strong>
-                        IMDb
-                      </strong>
-                      <span>
-                        {externalIds.imdb_id}
-                      </span>
-                    </div>
-                  )}
-
-                  {externalIds.tvdb_id && (
-                    <div>
-                      <strong>
-                        TVDB
-                      </strong>
-                      <span>
-                        {externalIds.tvdb_id}
-                      </span>
-                    </div>
-                  )}
-
-                  {externalIds.tmdb_id && (
-                    <div>
-                      <strong>
-                        TMDB
-                      </strong>
-                      <span>
-                        {externalIds.tmdb_id}
-                      </span>
-                    </div>
-                  )}
-
-                </div>
-
-              </section>
-            )}
 
             {productionCompanies.length > 0 && (
               <section className="details-section">
