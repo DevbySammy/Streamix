@@ -1967,8 +1967,14 @@ footer span {
   overflow-y: auto;
   background: #111113;
   color: #fff;
-  padding: 28px;
+  padding: 0 28px 50px;
   box-sizing: border-box;
+}
+
+.details-page > .details-back-button {
+  position: relative;
+  z-index: 10;
+  margin-top: 18px;
 }
 
 .details-back-button {
@@ -2000,10 +2006,10 @@ footer span {
 
 .details-backdrop {
   position: absolute;
-  top: -28px;
+  top: -18px;
   left: 50%;
   width: 100vw;
-  height: 620px;
+  height: 640px;
   transform: translateX(-50%);
   background-position: center top;
   background-size: cover;
@@ -2016,30 +2022,30 @@ footer span {
   position: relative;
   z-index: 1;
   max-width: 1200px;
-  margin: 70px auto 0;
+  margin: 48px auto 0;
   display: grid;
-  grid-template-columns: 280px 1fr;
-  gap: 40px;
+  grid-template-columns: 250px minmax(0, 1fr);
+  gap: 38px;
   align-items: start;
 }
 
 .details-poster img {
   display: block;
   width: 100%;
-  max-width: 280px;
+  max-width: 250px;
   border-radius: 12px;
   box-shadow: 0 18px 45px rgba(0, 0, 0, .45);
 }
 
 .details-info {
-  max-width: 760px;
-  padding-top: 20px;
+  max-width: 780px;
+  padding-top: 10px;
 }
 
 .details-info h1 {
   margin: 6px 0 10px;
-  font-size: 44px;
-  line-height: 1.05;
+  font-size: clamp(36px, 4vw, 50px);
+  line-height: 1.04;
   letter-spacing: -1px;
 }
 
@@ -2048,6 +2054,7 @@ footer span {
   color: #bbb;
   font-size: 16px;
   font-style: italic;
+  line-height: 1.5;
 }
 
 .details-meta {
@@ -2062,16 +2069,18 @@ footer span {
 .details-meta span {
   display: inline-flex;
   align-items: center;
+  gap: 4px;
 }
 
 .details-genres {
   margin: 0 0 20px;
   color: #aaa;
   font-size: 14px;
+  line-height: 1.5;
 }
 
 .details-overview {
-  max-width: 720px;
+  max-width: 740px;
   margin: 0 0 22px;
   color: #ddd;
   font-size: 16px;
@@ -2081,7 +2090,7 @@ footer span {
 .details-facts {
   display: flex;
   flex-wrap: wrap;
-  gap: 24px;
+  gap: 20px 30px;
   margin-top: 20px;
 }
 
@@ -2095,19 +2104,21 @@ footer span {
 .details-facts strong,
 .details-credits strong {
   color: #fff;
-  font-size: 13px;
+  font-size: 12px;
+  font-weight: 700;
 }
 
 .details-facts span,
 .details-credits span {
   color: #aaa;
   font-size: 13px;
+  line-height: 1.4;
 }
 
 .details-credits {
   display: flex;
   flex-wrap: wrap;
-  gap: 28px;
+  gap: 20px 28px;
   margin-top: 24px;
 }
 
@@ -2115,14 +2126,19 @@ footer span {
   position: relative;
   z-index: 1;
   max-width: 1200px;
-  margin: 58px auto 0;
+  margin: 52px auto 0;
 }
 
 .details-section h2 {
-  margin: 0 0 18px;
-  font-size: 24px;
+  margin: 0 0 16px;
+  font-size: 23px;
   line-height: 1.2;
+  letter-spacing: -.2px;
 }
+
+/* =========================================================
+   DETAILS - CAST
+========================================================= */
 
 .details-cast-grid {
   display: grid;
@@ -2144,7 +2160,7 @@ footer span {
 }
 
 .details-cast-card div {
-  padding: 10px;
+  padding: 9px;
 }
 
 .details-cast-card strong,
@@ -2155,14 +2171,19 @@ footer span {
 .details-cast-card strong {
   margin-bottom: 4px;
   color: #fff;
-  font-size: 13px;
+  font-size: 12px;
+  line-height: 1.3;
 }
 
 .details-cast-card span {
   color: #999;
-  font-size: 12px;
+  font-size: 11px;
   line-height: 1.35;
 }
+
+/* =========================================================
+   DETAILS - TRAILER
+========================================================= */
 
 .details-video {
   overflow: hidden;
@@ -2179,15 +2200,19 @@ footer span {
   border: 0;
 }
 
+/* =========================================================
+   DETAILS - SEASONS
+========================================================= */
+
 .details-seasons {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 14px;
 }
 
 .details-season-card {
   overflow: hidden;
-  border-radius: 10px;
+  border-radius: 9px;
   background: #202023;
 }
 
@@ -2201,31 +2226,37 @@ footer span {
 .details-season-card div {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  padding: 10px;
+  gap: 3px;
+  padding: 8px;
 }
 
 .details-season-card strong {
   color: #fff;
-  font-size: 13px;
+  font-size: 12px;
+  line-height: 1.3;
 }
 
 .details-season-card span {
   color: #999;
-  font-size: 12px;
+  font-size: 11px;
+  line-height: 1.3;
 }
+
+/* =========================================================
+   DETAILS - PRODUCTION
+========================================================= */
 
 .details-production {
   display: flex;
   flex-wrap: wrap;
-  gap: 12px;
+  gap: 10px;
 }
 
 .details-production-card {
   display: flex;
   align-items: center;
   gap: 10px;
-  min-height: 54px;
+  min-height: 52px;
   padding: 8px 12px;
   border-radius: 9px;
   background: #202023;
@@ -2234,42 +2265,52 @@ footer span {
 .details-production-card img {
   display: block;
   width: 70px;
-  max-height: 32px;
+  max-height: 30px;
   object-fit: contain;
+  filter: brightness(0) invert(1);
 }
 
 .details-production-card span {
   color: #ccc;
-  font-size: 13px;
+  font-size: 12px;
+  line-height: 1.3;
 }
+
+/* =========================================================
+   DETAILS - WATCH PROVIDERS
+========================================================= */
 
 .details-providers {
   display: flex;
   flex-wrap: wrap;
-  gap: 12px;
+  gap: 10px;
 }
 
 .details-provider {
   display: flex;
   align-items: center;
   gap: 9px;
-  min-height: 48px;
-  padding: 7px 12px;
+  min-height: 46px;
+  padding: 7px 11px;
   border-radius: 9px;
   background: #202023;
 }
 
 .details-provider img {
-  width: 32px;
-  height: 32px;
+  width: 30px;
+  height: 30px;
   border-radius: 7px;
   object-fit: cover;
 }
 
 .details-provider span {
   color: #ddd;
-  font-size: 13px;
+  font-size: 12px;
 }
+
+/* =========================================================
+   DETAILS - RECOMMENDATIONS
+========================================================= */
 
 .details-recommendations {
   display: grid;
@@ -2281,6 +2322,7 @@ footer span {
   overflow: hidden;
   border-radius: 10px;
   background: #202023;
+  cursor: pointer;
 }
 
 .details-recommendation img {
@@ -2294,20 +2336,56 @@ footer span {
   display: flex;
   flex-direction: column;
   gap: 5px;
-  padding: 10px;
+  padding: 9px;
 }
 
 .details-recommendation strong {
   color: #fff;
-  font-size: 13px;
+  font-size: 12px;
   line-height: 1.3;
 }
 
 .details-recommendation span {
   color: #aaa;
-  font-size: 12px;
+  font-size: 11px;
 }
 
+/* =========================================================
+   DETAILS PAGE - TABLET
+========================================================= */
+
+@media (max-width: 1000px) {
+  .details-page {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+
+  .details-content {
+    max-width: 900px;
+    grid-template-columns: 210px minmax(0, 1fr);
+    gap: 28px;
+  }
+
+  .details-poster img {
+    max-width: 210px;
+  }
+
+  .details-info h1 {
+    font-size: 38px;
+  }
+
+  .details-seasons {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+
+  .details-cast-grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+
+  .details-recommendations {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+}
 
 /* =========================================================
    DETAILS PAGE - MOBILE
@@ -2315,39 +2393,187 @@ footer span {
 
 @media (max-width: 700px) {
   .details-page {
-    padding: 20px 16px;
+    padding: 0 14px 35px;
+  }
+
+  .details-page > .details-back-button {
+    margin-top: 12px;
+  }
+
+  .details-back-button {
+    min-height: 40px;
+    padding: 8px 14px;
+    font-size: 14px;
   }
 
   .details-backdrop {
-    top: -20px;
+    top: -12px;
     height: 430px;
   }
 
   .details-content {
-    margin-top: 45px;
+    margin-top: 34px;
     grid-template-columns: 1fr;
-    gap: 24px;
+    gap: 22px;
   }
 
   .details-poster img {
-    max-width: 220px;
+    max-width: 190px;
     margin: 0 auto;
   }
 
   .details-info {
+    max-width: none;
     padding-top: 0;
   }
 
   .details-info h1 {
-    font-size: 34px;
+    font-size: 32px;
+    line-height: 1.08;
+  }
+
+  .details-tagline {
+    font-size: 14px;
+  }
+
+  .details-meta {
+    gap: 7px;
+    font-size: 13px;
+  }
+
+  .details-genres {
+    font-size: 13px;
   }
 
   .details-overview {
     font-size: 15px;
+    line-height: 1.65;
+  }
+
+  .details-facts {
+    gap: 18px 24px;
+  }
+
+  .details-credits {
+    gap: 18px 24px;
+  }
+
+  .details-section {
+    margin-top: 42px;
+  }
+
+  .details-section h2 {
+    margin-bottom: 14px;
+    font-size: 21px;
   }
 
   .details-cast-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .details-cast-card div {
+    padding: 8px;
+  }
+
+  .details-cast-card strong {
+    font-size: 11px;
+  }
+
+  .details-cast-card span {
+    font-size: 10px;
+  }
+
+  .details-seasons {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .details-season-card {
+    border-radius: 8px;
+  }
+
+  .details-season-card div {
+    padding: 7px;
+  }
+
+  .details-season-card strong {
+    font-size: 11px;
+  }
+
+  .details-season-card span {
+    font-size: 10px;
+  }
+
+  .details-production {
+    gap: 8px;
+  }
+
+  .details-production-card {
+    min-height: 48px;
+    padding: 7px 9px;
+  }
+
+  .details-production-card img {
+    width: 58px;
+    max-height: 26px;
+  }
+
+  .details-production-card span {
+    font-size: 11px;
+  }
+
+  .details-providers {
+    gap: 8px;
+  }
+
+  .details-provider {
+    min-height: 44px;
+    padding: 6px 9px;
+  }
+
+  .details-provider img {
+    width: 28px;
+    height: 28px;
+  }
+
+  .details-provider span {
+    font-size: 11px;
+  }
+
+  .details-recommendations {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .details-recommendation div {
+    padding: 8px;
+  }
+
+  .details-recommendation strong {
+    font-size: 11px;
+  }
+
+  .details-recommendation span {
+    font-size: 10px;
+  }
+}
+
+/* =========================================================
+   DETAILS PAGE - VERY SMALL PHONES
+========================================================= */
+
+@media (max-width: 380px) {
+  .details-content {
+    margin-top: 28px;
+  }
+
+  .details-poster img {
+    max-width: 170px;
+  }
+
+  .details-info h1 {
+    font-size: 29px;
   }
 
   .details-seasons {
@@ -2358,6 +2584,8 @@ footer span {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+
+
 
 
 
