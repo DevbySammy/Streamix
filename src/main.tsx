@@ -1802,6 +1802,9 @@ const [sort, setSort] =
  const [showProfile, setShowProfile] =
    useState(false);
 
+   const [watchlistMessage, setWatchlistMessage] =
+  useState("");
+
  const [loginProfile, setLoginProfile] =
    useState<Profile | null>(null);
 
@@ -1813,6 +1816,9 @@ const [sort, setSort] =
 
  const [showReminder, setShowReminder] =
    useState<Title | null>(null);
+
+   const [showDetails, setShowDetails] =
+  useState<Title | null>(null);
 
  const [showSchedule, setShowSchedule] =
    useState<Title | null>(null);
@@ -2739,6 +2745,20 @@ async function toggle(
       libraryItemId
     ]
     }));
+
+     if (
+  array === "watchlist" &&
+  !exists
+) {
+  setWatchlistMessage(
+    "Added to Watchlist"
+  );
+
+  window.setTimeout(() => {
+    setWatchlistMessage("");
+  }, 2000);
+}
+     
   } catch (error) {
     console.error(
       "Failed to update media state:",
@@ -3352,6 +3372,11 @@ MAIN APP
 
 return ( <div className="app">
 
+         {watchlistMessage && (
+        <div className="watchlist-message">
+          {watchlistMessage}
+        </div>
+      )}
 
   {/* HEADER */}
 
