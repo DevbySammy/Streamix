@@ -4829,6 +4829,15 @@ if (
 
 {/* DETAILS */}
 
+     {showDetails && (
+    <DetailsView
+      title={showDetails}
+      onClose={() =>
+        setShowDetails(null)
+      }
+    />
+  )}
+
 
   {/* REMINDER */}
 
