@@ -4827,36 +4827,8 @@ if (
     />
   )}
 
-  {/* DETAILS */}
+{/* DETAILS */}
 
-{showDetails && (
-  <div
-    style={{
-      position: "fixed",
-      inset: 0,
-      zIndex: 99999,
-      background: "#111113",
-      color: "#fff",
-      padding: "40px"
-    }}
-  >
-    <h1>
-      Details test:
-      {" "}
-      {showDetails.name}
-    </h1>
-
-    <button
-      type="button"
-      className="ghost"
-      onClick={() =>
-        setShowDetails(null)
-      }
-    >
-      Close
-    </button>
-  </div>
-)}
 
   {/* REMINDER */}
 
@@ -6147,7 +6119,18 @@ function DetailsView({
   ]);
 
   return (
-    <div className="details-page">
+    <div
+      className="details-page"
+      style={{
+        position: "fixed",
+        inset: 0,
+        zIndex: 99999,
+        overflowY: "auto",
+        background: "#111113",
+        color: "#fff",
+        padding: "28px"
+      }}
+    >
 
       <button
         type="button"
@@ -6172,7 +6155,18 @@ function DetailsView({
       {!loading &&
         !error &&
         details && (
-          <div className="details-content">
+          <div
+            className="details-content"
+            style={{
+              maxWidth: "1200px",
+              margin: "40px auto",
+              display: "grid",
+              gridTemplateColumns:
+                "280px 1fr",
+              gap: "36px",
+              alignItems: "start"
+            }}
+          >
 
             <div className="details-poster">
               <img
@@ -6187,6 +6181,12 @@ function DetailsView({
                   details.name ||
                   title.name
                 }
+                style={{
+                  display: "block",
+                  width: "100%",
+                  maxWidth: "280px",
+                  borderRadius: "12px"
+                }}
               />
             </div>
 
