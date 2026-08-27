@@ -3989,7 +3989,7 @@ if (
     "/" +
     encodeURIComponent(id) +
     "?language=en-US" +
-    "&append_to_response=credits,videos";
+    "&append_to_response=credits,videos,keywords,external_ids,recommendations,images,watch/providers";
 
   try {
     const tmdbResponse =
