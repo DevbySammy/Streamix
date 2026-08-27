@@ -2593,31 +2593,25 @@ const visible = useMemo(() => {
           ) === index
       );
 
-  if (
-    sort === "just-added" &&
-    !usingPersonalFilter
-  ) {
-    const limit =
-      isAdmin &&
-      justAddedView === "hidden"
-        ? hiddenJustAddedLimit
-        : justAddedLimit;
-
-    return filtered.slice(
-      0,
-      limit
-    );
-  }
-
-  if (
-    sort === "just-added"
-  ) {
-    return filtered;
-  }
-
  if (
+  sort === "just-added" &&
+  !usingPersonalFilter
+) {
+  const limit =
+    isAdmin &&
+    justAddedView === "hidden"
+      ? hiddenJustAddedLimit
+      : justAddedLimit;
+
+  return filtered.slice(
+    0,
+    limit
+  );
+}
+
+if (
   filter === "all" &&
-  sort === "just-added"
+  kind === "all"
 ) {
   return filtered.slice(
     0,
