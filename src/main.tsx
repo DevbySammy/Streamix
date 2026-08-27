@@ -6175,11 +6175,44 @@ function DetailsView({
   onClose: () => void;
   onDetails: (title: Title) => void;
 }) {
-  const [details, setDetails] =
-    useState<any | null>(null);
+const [details, setDetails] =
+  useState<any | null>({
+    title:
+      title.kind === "movie"
+        ? title.name
+        : undefined,
+    name:
+      title.kind === "tv"
+        ? title.name
+        : undefined,
+    overview:
+      title.overview || "",
+    poster_path:
+      title.poster
+        ? title.poster.replace(
+            "https://image.tmdb.org/t/p/w500",
+            ""
+          )
+        : null,
+    backdrop_path:
+      title.backdrop
+        ? title.backdrop.replace(
+            "https://image.tmdb.org/t/p/w1280",
+            ""
+          )
+        : null,
+    release_date:
+      title.kind === "movie" && title.year
+        ? `${title.year}-01-01`
+        : "",
+    first_air_date:
+      title.kind === "tv" && title.year
+        ? `${title.year}-01-01`
+        : ""
+  });
 
-  const [loading, setLoading] =
-    useState(true);
+const [loading, setLoading] =
+  useState(false);
 
   const [error, setError] =
     useState("");
@@ -6381,21 +6414,8 @@ const displayTitle =
         ← Back
       </button>
 
-      {loading && (
-        <div className="empty">
-          Loading details…
-        </div>
-      )}
-
-      {!loading && error && (
-        <div className="empty">
-          {error}
-        </div>
-      )}
-
-      {!loading &&
-        !error &&
-        details && (
+  {details && (
+       
           <div className="details-shell">
 
             <div
