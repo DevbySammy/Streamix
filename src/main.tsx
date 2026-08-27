@@ -2583,35 +2583,34 @@ const visible = useMemo(() => {
     );
   }
 
-if (
-  filter === "all" &&
-  kind === "all"
-) {
-  return filtered;
-}
-
-return [...filtered].sort(
-  (a, b) => {
-    switch (sort) {
-      case "name-desc":
-        return b.name.localeCompare(
-          a.name
-        );
-
-      case "year-desc":
-        return b.year - a.year;
-
-      case "year-asc":
-        return a.year - b.year;
-
-      case "name-asc":
-      default:
-        return a.name.localeCompare(
-          b.name
-        );
-    }
+  if (
+    sort === "just-added"
+  ) {
+    return filtered;
   }
-);
+
+  return [...filtered].sort(
+    (a, b) => {
+      switch (sort) {
+        case "name-desc":
+          return b.name.localeCompare(
+            a.name
+          );
+
+        case "year-desc":
+          return b.year - a.year;
+
+        case "year-asc":
+          return a.year - b.year;
+
+        case "name-asc":
+        default:
+          return a.name.localeCompare(
+            b.name
+          );
+      }
+    }
+  );
 
 }, [
   library,
