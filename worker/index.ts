@@ -1931,20 +1931,17 @@ if (
     ) || "all";
 
   const resultsPerRequest = 40;
+  const tmdbPagesPerRequest = 2;
 
   const startPage =
-    Math.floor(
-      ((page - 1) *
-        resultsPerRequest) /
-        20
-    ) + 1;
+    ((page - 1) *
+      tmdbPagesPerRequest) +
+    1;
 
   const endPage =
-    Math.ceil(
-      (page *
-        resultsPerRequest) /
-        20
-    );
+    startPage +
+    tmdbPagesPerRequest -
+    1;
 
   async function discover(
     mediaType:
@@ -2038,7 +2035,7 @@ if (
       totalPages =
         Math.ceil(
           movieData.total_pages /
-          (resultsPerRequest / 20)
+          tmdbPagesPerRequest
         );
     } else if (type === "tv") {
       const tvData =
@@ -2050,7 +2047,7 @@ if (
       totalPages =
         Math.ceil(
           tvData.total_pages /
-          (resultsPerRequest / 20)
+          tmdbPagesPerRequest
         );
     } else {
       const [
@@ -2082,11 +2079,11 @@ if (
         Math.max(
           Math.ceil(
             movieData.total_pages /
-            (resultsPerRequest / 20)
+            tmdbPagesPerRequest
           ),
           Math.ceil(
             tvData.total_pages /
-            (resultsPerRequest / 20)
+            tmdbPagesPerRequest
           )
         );
 
@@ -2118,6 +2115,12 @@ if (
             )
           );
         }
+      );
+
+    results =
+      results.slice(
+        0,
+        resultsPerRequest
       );
 
     return json({
