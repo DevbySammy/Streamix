@@ -552,25 +552,49 @@ const [
   loadTMDBCatalog();
 }, []);
 
-  async function loadNextTMDBCatalogPage() {
-    if (tmdbCatalogLoading) {
-      return;
-    }
+ async function loadNextTMDBCatalogPage() {
+  if (
+    tmdbCatalogLoading ||
+    tmdbCatalog.length >= 200
+  ) {
+    return;
+  }
 
-    const nextPage =
-      tmdbCatalogPage + 1;
+  setTmdbCatalogLoading(true);
 
-    setTmdbCatalogLoading(true);
+  try {
+    const sessionId =
+      localStorage.getItem(
+        "sx-session-token"
+      );
 
-    try {
-      const sessionId =
-        localStorage.getItem(
-          "sx-session-token"
-        );
+    let currentPage =
+      tmdbCatalogPage;
+
+    let totalPages =
+      currentPage;
+
+    const existingIds =
+      new Set(
+        tmdbCatalog.map(
+          title => title.id
+        )
+      );
+
+    const newTitles: Title[] = [];
+
+    while (
+      newTitles.length < 40 &&
+      tmdbCatalog.length +
+        newTitles.length <
+        200 &&
+      currentPage < totalPages
+    ) {
+      currentPage += 1;
 
       const response =
         await fetch(
-          `https://streamix.gaintrainstrong.workers.dev/api/tmdb/catalog?page=${nextPage}&type=all`,
+          `https://streamix.gaintrainstrong.workers.dev/api/tmdb/catalog?page=${currentPage}&type=all`,
           {
             headers: sessionId
               ? {
@@ -590,12 +614,20 @@ const [
       const data =
         await response.json();
 
+      totalPages =
+        Number(
+          data.total_pages
+        ) || currentPage;
+
       const titles: Title[] =
-        Array.isArray(data.results)
+        Array.isArray(
+          data.results
+        )
           ? data.results.map(
               (item: any): Title => {
                 const kind: Kind =
-                  item.media_type === "tv"
+                  item.media_type ===
+                  "tv"
                     ? "tv"
                     : "movie";
 
@@ -609,7 +641,9 @@ const [
                     "tmdb-" +
                     kind +
                     "-" +
-                    String(item.id),
+                    String(
+                      item.id
+                    ),
 
                   name:
                     kind === "movie"
@@ -625,7 +659,10 @@ const [
                       ? Number(
                           String(
                             releaseDate
-                          ).slice(0, 4)
+                          ).slice(
+                            0,
+                            4
+                          )
                         )
                       : 0,
 
@@ -640,7 +677,8 @@ const [
                     ),
 
                   overview:
-                    item.overview || "",
+                    item.overview ||
+                    "",
 
                   addedAt:
                     new Date().toISOString()
@@ -649,52 +687,74 @@ const [
             )
           : [];
 
-      setTmdbCatalog(
-        current => {
-          const existingIds =
-            new Set(
-              current.map(
-                title => title.id
-              )
-            );
-
-          const newTitles =
-            titles.filter(
-              title =>
-                !existingIds.has(
-                  title.id
-                )
-            );
-
-          return [
-            ...current,
-            ...newTitles
-          ];
+      for (
+        const title of titles
+      ) {
+        if (
+          newTitles.length >= 40 ||
+          tmdbCatalog.length +
+            newTitles.length >=
+            200
+        ) {
+          break;
         }
-      );
 
-      setTmdbCatalogPage(
-        nextPage
-      );
+        if (
+          !existingIds.has(
+            title.id
+          )
+        ) {
+          existingIds.add(
+            title.id
+          );
 
-      setTmdbCatalogHasMore(
-        Boolean(
-          data.total_pages &&
-          nextPage <
-            data.total_pages
-        )
-      );
-    } catch (error) {
-      console.error(
-        "Failed to load next TMDB catalog page:",
-        error
-      );
-    } finally {
-      setTmdbCatalogLoading(
-        false
+          newTitles.push(
+            title
+          );
+        }
+      }
+
+      if (
+        currentPage >=
+        totalPages
+      ) {
+        break;
+      }
+    }
+
+    if (
+      newTitles.length > 0
+    ) {
+      setTmdbCatalog(
+        current => [
+          ...current,
+          ...newTitles
+        ]
       );
     }
+
+    setTmdbCatalogPage(
+      currentPage
+    );
+
+    setTmdbCatalogHasMore(
+      tmdbCatalog.length +
+        newTitles.length <
+        200 &&
+      currentPage <
+        totalPages
+    );
+  } catch (error) {
+    console.error(
+      "Failed to load next TMDB catalog page:",
+      error
+    );
+  } finally {
+    setTmdbCatalogLoading(
+      false
+    );
   }
+}
    
   const [
     justAdded,
