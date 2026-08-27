@@ -302,18 +302,30 @@ header {
   margin: 0 0 16px;
 }
 
+.hero-actions .hero-more-info-button,
 .hero-actions .poster-reminder-button,
 .hero-actions .poster-list-button {
-  width: 30px;
   height: 30px;
   min-height: 30px;
-  padding: 0;
+  padding: 0 12px;
   display: grid;
   place-items: center;
   border: none;
   border-radius: 6px;
   cursor: pointer;
   background: rgba(0, 0, 0, .72);
+  color: #fff;
+  transition: background .2s ease, transform .2s ease;
+}
+
+.hero-actions .hero-more-info-button {
+  padding: 0 14px;
+}
+
+.hero-actions .poster-reminder-button,
+.hero-actions .poster-list-button {
+  width: 30px;
+  padding: 0;
 }
 
 .hero-actions .poster-reminder-button {
@@ -331,6 +343,13 @@ header {
 
 .hero-actions .poster-list-button svg {
   stroke-width: 2.5;
+}
+
+.hero-actions .hero-more-info-button:hover,
+.hero-actions .poster-reminder-button:hover,
+.hero-actions .poster-list-button:hover {
+  background: rgba(0, 0, 0, .92);
+  transform: translateY(-1px);
 }
 
 /* =========================================================
