@@ -2539,7 +2539,7 @@ const visible = useMemo(() => {
 
   let source: Title[];
 
-   if (filter === "watchlist") {
+  if (filter === "watchlist") {
     source = library.filter(title =>
       state.watchlist.includes(title.id)
     );
@@ -2551,18 +2551,16 @@ const visible = useMemo(() => {
     source = library.filter(title =>
       state.rewatch.includes(title.id)
     );
-  } else if (
-    sort === "just-added"
-  ) {
+  } else if (sort === "just-added") {
     source =
       isAdmin &&
       justAddedView === "hidden"
         ? hiddenJustAdded
-        : tmdbCatalog;
+        : justAdded;
   } else {
-    source = library;
+    source = tmdbCatalog;
   }
-   
+
   const filtered =
     source
       .filter(title =>
@@ -2588,8 +2586,7 @@ const visible = useMemo(() => {
         (title, index, array) =>
           array.findIndex(
             item =>
-              item.id ===
-              title.id
+              item.id === title.id
           ) === index
       );
 
@@ -2609,35 +2606,6 @@ const visible = useMemo(() => {
     );
   }
 
-  if (
-    filter === "all"
-  ) {
-    return [...filtered].sort(
-      (a, b) => {
-        switch (sort) {
-          case "name-desc":
-            return b.name.localeCompare(
-              a.name
-            );
-
-          case "year-desc":
-            return b.year - a.year;
-
-          case "year-asc":
-            return a.year - b.year;
-
-          case "name-asc":
-            return a.name.localeCompare(
-              b.name
-            );
-
-          default:
-            return 0;
-        }
-      }
-    );
-  }
-
   return [...filtered].sort(
     (a, b) => {
       switch (sort) {
@@ -2653,16 +2621,13 @@ const visible = useMemo(() => {
           return a.year - b.year;
 
         case "name-asc":
+        default:
           return a.name.localeCompare(
             b.name
           );
-
-        default:
-          return 0;
       }
     }
   );
-
 }, [
   library,
   tmdbCatalog,
@@ -2676,7 +2641,6 @@ const visible = useMemo(() => {
   justAddedLimit,
   hiddenJustAddedLimit,
   hiddenSearch,
-  isMobile,
   state,
   isAdmin
 ]);
