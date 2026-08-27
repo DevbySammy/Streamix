@@ -6071,7 +6071,8 @@ function DetailsView({
   ]);
 
   useEffect(() => {
-
+let cancelled = false;
+   
     async function loadDetails() {
       try {
         setLoading(true);
