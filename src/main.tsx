@@ -683,6 +683,13 @@ const [
       nextPage
     );
 
+    setTmdbCatalogHasMore(
+      Boolean(
+        data.total_pages &&
+        nextPage < data.total_pages
+      )
+    );
+
     requestAnimationFrame(() => {
       window.scrollTo(
         0,
@@ -691,7 +698,7 @@ const [
     });
   } catch (error) {
     console.error(
-      "TMDB CATALOG PAGINATION ERROR:",
+      "Failed to load next TMDB catalog page:",
       error
     );
   } finally {
