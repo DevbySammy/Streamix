@@ -4827,7 +4827,7 @@ if (
 
    {showReminderList && (
   <Modal
-    title="All Notifications"
+    title="Reminders"
     onClose={() =>
       setShowReminderList(false)
     }
@@ -8181,10 +8181,7 @@ const [time, setTime] =
         Save Reminder
       </button>
 
-      <p className="muted">
-        Streamix notifications require
-        notification permission.
-      </p>
+
     </Modal>
   );
 }
