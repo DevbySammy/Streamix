@@ -4823,32 +4823,6 @@ if (
 
     </div>
 
-  </Modal>
-)}
-
-   {showNotifications && (
-  <Modal
-    title="Notification Settings"
-    onClose={() =>
-  setShowNotifications(false)
-}
-  >
-    <p>
-      Manage your Streamix notifications.
-    </p>
-
-<button
-  className="pink full"
-  onClick={() => {
-    setShowNotifications(false);
-    setShowReminderList(true);
-  }}
->
-  View Notifications
-</button>
-     
-  </Modal>
-)}
 
    {showReminderList && (
   <Modal
