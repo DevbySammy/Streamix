@@ -4913,9 +4913,18 @@ if (
         Edit
       </button>
 
-     <button
+    <button
   type="button"
   onClick={async () => {
+    const confirmed =
+      window.confirm(
+        "Are you sure you want to delete this notification?"
+      );
+
+    if (!confirmed) {
+      return;
+    }
+
     try {
       const sessionId =
         localStorage.getItem(
