@@ -2186,8 +2186,8 @@ footer span {
 
 .details-cast-grid {
   display: grid;
-  grid-template-columns: repeat(10, minmax(0, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  gap: 14px;
 }
 
 .details-cast-card {
