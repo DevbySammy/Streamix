@@ -225,6 +225,64 @@ header {
 .notification-bell:hover {
   background: #1a1a1d;
 }
+.notification-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid #2c2c31;
+}
+
+.notification-item:last-child {
+  border-bottom: none;
+}
+
+.notification-poster {
+  width: 48px;
+  height: 72px;
+  object-fit: cover;
+  border-radius: 6px;
+  flex: 0 0 48px;
+}
+
+.notification-item-info {
+  min-width: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.notification-item-info strong {
+  color: #fff;
+  font-size: 14px;
+}
+
+.notification-item-info span {
+  color: #999;
+  font-size: 12px;
+}
+
+.notification-item-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.notification-item-actions button {
+  min-width: 58px;
+  padding: 6px 9px;
+  background: #151519;
+  color: #ddd;
+  border: 1px solid #2c2c31;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 11px;
+}
+
+.notification-item-actions button:hover {
+  background: #1a1a1d;
+}
 
 .admin-menu {
   position: absolute;
