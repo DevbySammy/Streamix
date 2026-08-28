@@ -1833,6 +1833,9 @@ const [sort, setSort] =
  const [showProfile, setShowProfile] =
    useState(false);
 
+   const [showNotifications, setShowNotifications] =
+  useState(false);
+   
    const [watchlistMessage, setWatchlistMessage] =
   useState("");
 
@@ -3604,182 +3607,178 @@ return ( <div className="app">
 
   {/* HEADER */}
 
-  <header>
+<header>
 
-    <div className="logo">
-      <img
-        src="/streamix-logo.png"
-        alt="Streamix"
-      />
-    </div>
+  <div className="logo">
+    <img
+      src="/streamix-logo.png"
+      alt="Streamix"
+    />
+  </div>
 
-    <div className="header-right">
+  <div className="header-right">
 
-      <button
-        className="profile-pill"
-        onClick={() =>
-          setShowProfile(true)
-        }
-      >
-        <span>
-          {isViewingAs
-            ? "👑"
-            : profile?.avatar}
-        </span>
-
-        <span>
-          {isViewingAs
-            ? "Admin"
-            : profile?.name}
-        </span>
-
-        <ChevronDown
-          size={16}
-        />
-      </button>
-
-{isViewingAs && (
-  <span className="admin-viewing-status">
-    <span className="status-dot" />
-
-    <span className="viewing-label-desktop">
-      VIEWING AS
-    </span>
-
-    <span className="viewing-label-mobile">
-      AS
-    </span>
-
-    {profiles.find(
-      item =>
-        item.id === viewingAs
-    )?.name || "user"}
-  </span>
-)}
-
-{profileId === "testing" && (
-  <button
-    className="admin-badge"
-    onClick={() => {
-      const adminSession =
-        localStorage.getItem(
-          "sx-admin-session-token"
-        );
-
-      if (adminSession) {
-        localStorage.setItem(
-          "sx-session-token",
-          adminSession
-        );
-
-        localStorage.removeItem(
-          "sx-admin-session-token"
-        );
+    <button
+      className="profile-pill"
+      onClick={() =>
+        setShowProfile(true)
       }
+    >
+      <span>
+        {isViewingAs
+          ? "👑"
+          : profile?.avatar}
+      </span>
 
-      setViewingAs(null);
+      <span>
+        {isViewingAs
+          ? "Admin"
+          : profile?.name}
+      </span>
 
-      localStorage.removeItem(
-        "sx-viewing-as"
-      );
+      <ChevronDown
+        size={16}
+      />
+    </button>
 
-      localStorage.removeItem(
-        "sx-testing-active"
-      );
+    {isViewingAs && (
+      <span className="admin-viewing-status">
+        <span className="status-dot" />
 
-      setProfileId(
-        "admin"
-      );
+        <span className="viewing-label-desktop">
+          VIEWING AS
+        </span>
 
-      setTab("library");
-      setFilter("all");
-      setKind("all");
-      setMenu(false);
-    }}
-    aria-label="Back to Admin"
->
-  {isMobile ? "← ADMIN" : "← BACK TO ADMIN"}
-</button>
-)}
+        <span className="viewing-label-mobile">
+          AS
+        </span>
 
-      {isAdmin &&
-        !isViewingAs && (
-          <button
-            className="admin-badge"
-            onClick={() =>
-              setMenu(
-                current =>
-                  !current
-              )
-            }
-          >
-            SETTINGS
-          </button>
-        )}
+        {profiles.find(
+          item =>
+            item.id === viewingAs
+        )?.name || "user"}
+      </span>
+    )}
 
+    {profileId === "testing" && (
       <button
         className="admin-badge"
-        onClick={signOut}
+        onClick={() => {
+          const adminSession =
+            localStorage.getItem(
+              "sx-admin-session-token"
+            );
+
+          if (adminSession) {
+            localStorage.setItem(
+              "sx-session-token",
+              adminSession
+            );
+
+            localStorage.removeItem(
+              "sx-admin-session-token"
+            );
+          }
+
+          setViewingAs(null);
+
+          localStorage.removeItem(
+            "sx-viewing-as"
+          );
+
+          localStorage.removeItem(
+            "sx-testing-active"
+          );
+
+          setProfileId(
+            "admin"
+          );
+
+          setTab("library");
+          setFilter("all");
+          setKind("all");
+          setMenu(false);
+        }}
+        aria-label="Back to Admin"
       >
-        LOG OUT
+        {isMobile
+          ? "← ADMIN"
+          : "← BACK TO ADMIN"}
       </button>
+    )}
 
-      {menu &&
-        isAdmin && (
-          <div className="admin-menu">
+    {isAdmin &&
+      !isViewingAs && (
+        <button
+          className="admin-badge"
+          onClick={() =>
+            setMenu(
+              current =>
+                !current
+            )
+          }
+        >
+          SETTINGS
+        </button>
+      )}
 
-            <button
-              onClick={() => {
-                setShowAdd(true);
-                setMenu(false);
-              }}
-            >
-              <Plus />
-              Add media
-            </button>
+    <button
+      className="notification-bell"
+      onClick={() =>
+        setShowNotifications(true)
+      }
+      aria-label="Notification settings"
+      title="Notification settings"
+    >
+      🔔
+    </button>
 
-                    <button
-  onClick={async () => {
-    console.log("NOTIFICATION BUTTON CLICKED");
+    <button
+      className="admin-badge"
+      onClick={signOut}
+    >
+      LOG OUT
+    </button>
 
-    await subscribeToPushNotifications();
+    {menu &&
+      isAdmin && (
+        <div className="admin-menu">
 
-    console.log("NOTIFICATION FUNCTION FINISHED");
+          <button
+            onClick={() => {
+              setShowAdd(true);
+              setMenu(false);
+            }}
+          >
+            <Plus />
+            Add media
+          </button>
 
-    setMenu(false);
-  }}
->
-  🔔
-  {pushSubscribed
-    ? "Notifications enabled"
-    : "Enable notifications"}
-</button>
+          <button
+            onClick={() => {
+              setShowHero(true);
+              setMenu(false);
+            }}
+          >
+            <Settings />
+            Edit hero
+          </button>
 
-<button
-  onClick={() => {
-    setShowHero(true);
-    setMenu(false);
-  }}
->
-  <Settings />
-  Edit hero
-</button>
+          <button
+            onClick={() => {
+              setShowDeleted(true);
+              setMenu(false);
+            }}
+          >
+            <Trash2 />
+            Deleted profiles
+          </button>
 
-            <button
-              onClick={() => {
-                setShowDeleted(true);
-                setMenu(false);
-              }}
-            >
-              <Trash2 />
-              Deleted profiles
-            </button>
+        </div>
+      )}
 
-          </div>
-        )}
-
-    </div>
-  </header>
+  </div>
+</header>
 
    {/* DETAILS */}
 
