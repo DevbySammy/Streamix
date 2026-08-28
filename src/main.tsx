@@ -1835,6 +1835,9 @@ const [sort, setSort] =
 
    const [showNotifications, setShowNotifications] =
   useState(false);
+
+   const [showReminderList, setShowReminderList] =
+  useState(false);
    
    const [watchlistMessage, setWatchlistMessage] =
   useState("");
@@ -4744,17 +4747,16 @@ if (
       Manage your Streamix notifications.
     </p>
 
-    <button
-      className="pink full"
-      onClick={async () => {
-        await subscribeToPushNotifications();
-      }}
-    >
-      {pushSubscribed
-        ? "Notifications Enabled"
-        : "Enable Notifications"}
-    </button>
-
+<button
+  className="pink full"
+  onClick={() => {
+    setShowNotifications(false);
+    setShowReminderList(true);
+  }}
+>
+  Notifications Enabled →
+</button>
+     
     <p className="muted">
       Streamix notifications require
       notification permission.
@@ -4762,6 +4764,30 @@ if (
   </Modal>
 )}
 
+   {showReminderList && (
+  <Modal
+    title="Notifications"
+    onClose={() =>
+      setShowReminderList(false)
+    }
+  >
+    {reminders.length === 0 ? (
+      <p className="muted">
+        No notifications.
+      </p>
+    ) : (
+      <div>
+        {reminders.map(reminder => (
+          <div key={reminder.id}>
+            {reminder.reminderDate}{" "}
+            {reminder.reminderTime}
+          </div>
+        ))}
+      </div>
+    )}
+  </Modal>
+)}
+   
   {/* PROFILE LOGIN */}
 
   {loginProfile && (
