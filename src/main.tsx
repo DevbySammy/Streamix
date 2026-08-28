@@ -5341,16 +5341,15 @@ setShowReminderList(false);
 
   {/* REMINDER */}
 
-  {showReminder && (
-    <ReminderModal
-      title={
-       showReminder
-      }
-      onClose={() =>
-        setShowReminder(
-          null
-        )
-      }
+{showReminder && (
+  <ReminderModal
+    title={
+      showReminder
+    }
+    onClose={() => {
+      setShowReminder(null);
+      setShowReminderList(true);
+    }}
 onSave={async (
   date,
   time,
