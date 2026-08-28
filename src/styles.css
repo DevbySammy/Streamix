@@ -494,7 +494,7 @@ header {
 
 .sort-select {
   min-height: 40px;
-     width: fit-content;
+  width: fit-content;
   padding: 8px 32px 8px 11px;
   border-radius: 999px;
   border: 1px solid #28282c;
