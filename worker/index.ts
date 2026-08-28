@@ -2790,6 +2790,120 @@ if (
     success: true
   });
 }
+
+    // ==================================================
+// REMINDERS - PUT
+// ==================================================
+
+if (
+  url.pathname === "/api/reminders" &&
+  request.method === "PUT"
+) {
+  const auth =
+    await requireSession();
+
+  if (auth instanceof Response) {
+    return auth;
+  }
+
+  const body =
+    await request.json<{
+      id?: string;
+      profileId?: string;
+      reminderDate?: string;
+      reminderTime?: string;
+    }>();
+
+  const id =
+    body.id?.trim();
+
+  const profileId =
+    body.profileId?.trim();
+
+  const reminderDate =
+    body.reminderDate?.trim();
+
+  const reminderTime =
+    body.reminderTime?.trim();
+
+  if (
+    !id ||
+    !profileId ||
+    !reminderDate ||
+    !reminderTime
+  ) {
+    return json(
+      {
+        error:
+          "id, profileId, reminderDate and reminderTime are required."
+      },
+      400
+    );
+  }
+
+  if (
+    auth.profileId !== "admin" &&
+    auth.profileId !== profileId
+  ) {
+    return json(
+      {
+        error:
+          "Forbidden."
+      },
+      403
+    );
+  }
+
+  const existing =
+    await env.DB
+      .prepare(`
+        SELECT
+          id,
+          profile_id
+        FROM reminders
+        WHERE id = ?
+        AND profile_id = ?
+      `)
+      .bind(
+        id,
+        profileId
+      )
+      .first<{
+        id: string;
+        profile_id: string;
+      }>();
+
+  if (!existing) {
+    return json(
+      {
+        error:
+          "Reminder not found."
+      },
+      404
+    );
+  }
+
+  await env.DB
+    .prepare(`
+      UPDATE reminders
+      SET
+        reminder_date = ?,
+        reminder_time = ?
+      WHERE id = ?
+      AND profile_id = ?
+    `)
+    .bind(
+      reminderDate,
+      reminderTime,
+      id,
+      profileId
+    )
+    .run();
+
+  return json({
+    success: true
+  });
+}
     
     // ==================================================
     // REWATCH - GET
