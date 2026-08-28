@@ -5358,10 +5358,7 @@ onSave={async (
     return;
   }
 
-   try {
-    // Make sure this device/browser has a push subscription
-    await subscribeToPushNotifications();
-      
+   try {      
     const sessionId =
       localStorage.getItem(
         "sx-session-token"
