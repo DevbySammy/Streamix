@@ -302,6 +302,29 @@ header {
   margin: 0 0 16px;
 }
 
+@media (min-width: 821px) {
+  .hero-actions {
+    gap: 7px;
+  }
+
+  .hero-actions .hero-more-info-button,
+  .hero-actions .poster-reminder-button,
+  .hero-actions .poster-list-button {
+    height: 34px;
+    min-height: 34px;
+  }
+
+  .hero-actions .hero-more-info-button {
+    padding: 0 16px;
+  }
+
+  .hero-actions .poster-reminder-button,
+  .hero-actions .poster-list-button {
+    width: 34px;
+    padding: 0;
+  }
+}
+
 .hero-actions .hero-more-info-button,
 .hero-actions .poster-reminder-button,
 .hero-actions .poster-list-button {
