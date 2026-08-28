@@ -310,17 +310,17 @@ header {
   .hero-actions .hero-more-info-button,
   .hero-actions .poster-reminder-button,
   .hero-actions .poster-list-button {
-    height: 40px;
-    min-height: 40px;
+    height: 44px;
+    min-height: 44px;
   }
 
   .hero-actions .hero-more-info-button {
-    padding: 0 16px;
+    padding: 0 18px;
   }
 
   .hero-actions .poster-reminder-button,
   .hero-actions .poster-list-button {
-    width: 34px;
+    width: 38px;
     padding: 0;
   }
 }
