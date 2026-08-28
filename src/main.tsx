@@ -4852,7 +4852,7 @@ if (
 
    {showReminderList && (
   <Modal
-    title="Notifications"
+    title="All Notifications"
     onClose={() =>
       setShowReminderList(false)
     }
@@ -4870,7 +4870,7 @@ if (
 )}
     {reminders.length === 0 ? (
       <p className="muted">
-        No notifications.
+      You have no notifications scheduled.
       </p>
     ) : (
       <div>
