@@ -2625,7 +2625,7 @@ const result =
     l.title,
     l.poster_path
   FROM reminders r
-  LEFT JOIN library l
+  LEFT JOIN library_items l
     ON l.id = r.library_item_id
   WHERE r.profile_id = ?
     AND r.sent_at IS NULL
