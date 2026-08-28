@@ -3815,16 +3815,16 @@ return ( <div className="app">
         </button>
       )}
 
-    <button
-      className="notification-bell"
-      onClick={() =>
-        setShowNotifications(true)
-      }
-      aria-label="Notification settings"
-      title="Notification settings"
-    >
-<Bell size={18} />
-    </button>
+  <button
+  className="notification-bell"
+  onClick={() =>
+    setShowReminderList(true)
+  }
+  aria-label="Notifications"
+  title="Notifications"
+>
+  <Bell size={18} />
+</button>
 
 <button
   className="admin-badge"
@@ -4822,7 +4822,7 @@ if (
       )}
 
     </div>
-
+  </Modal>
 
    {showReminderList && (
   <Modal
