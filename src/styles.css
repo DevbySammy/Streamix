@@ -455,25 +455,6 @@ header {
   }
 }
 
-@media (max-width: 820px) {
-  .hero-actions {
-    gap: 6px;
-  }
-
-  .hero-actions .hero-more-info-button {
-    height: 34px;
-    min-height: 34px;
-    padding: 0 16px;
-  }
-
-  .hero-actions .poster-reminder-button,
-  .hero-actions .poster-list-button {
-    width: 34px;
-    height: 34px;
-    min-height: 34px;
-    padding: 0;
-  }
-}
 /* =========================================================
    GENERAL BUTTON HOVER
 ========================================================= */
