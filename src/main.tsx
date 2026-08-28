@@ -3649,11 +3649,10 @@ return ( <div className="app"> <main> <div className="login-screen"> <div classN
         profile={
           loginProfile
         }
-        onClose={() =>
-          setLoginProfile(
-            null
-          )
-        }
+   onClose={() => {
+  setShowReminder(null);
+  setShowReminderList(true);
+}}
         onSuccess={() => {
           handleLoginSuccess(
             loginProfile.id
