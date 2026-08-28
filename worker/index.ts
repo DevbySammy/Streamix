@@ -2599,6 +2599,11 @@ if (
       ? requestedProfileId
       : auth.profileId;
 
+  console.log(
+  "REMINDERS GET PROFILE:",
+  auth.profileId
+);
+  
   const result =
   await env.DB
     .prepare(`
