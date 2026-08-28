@@ -1443,17 +1443,27 @@ else {
         return;
       }
 
-      const response =
-        await fetch(
-          "/api/reminders",
-          {
-            method: "GET",
-            headers: {
-              Authorization:
-                `Bearer ${sessionId}`
-            }
-          }
-        );
+     const reminderProfileId =
+  profileId === "admin" &&
+  localStorage.getItem(
+    "sx-testing-active"
+  ) === "true"
+    ? "testing"
+    : profileId;
+
+const response =
+  await fetch(
+    `/api/reminders?profileId=${encodeURIComponent(
+      reminderProfileId
+    )}`,
+    {
+      method: "GET",
+      headers: {
+        Authorization:
+          `Bearer ${sessionId}`
+      }
+    }
+  );
 
       if (!response.ok) {
         throw new Error(
