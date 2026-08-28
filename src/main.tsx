@@ -4911,7 +4911,7 @@ onClick={() => {
     time: reminder.time,
     method: reminder.method
   });
-  setShowReminderList(true);
+setShowReminderList(false);
 }}
 >
   Edit
