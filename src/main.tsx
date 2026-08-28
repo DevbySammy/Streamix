@@ -1425,6 +1425,74 @@ else {
   checkPushStatus();
 }, [profileId]);
 
+   useEffect(() => {
+  async function loadReminders() {
+    if (!profileId) {
+      setReminders([]);
+      return;
+    }
+
+    try {
+      const sessionId =
+        localStorage.getItem(
+          "sx-session-token"
+        );
+
+      if (!sessionId) {
+        setReminders([]);
+        return;
+      }
+
+      const response =
+        await fetch(
+          "/api/reminders",
+          {
+            method: "GET",
+            headers: {
+              Authorization:
+                `Bearer ${sessionId}`
+            }
+          }
+        );
+
+      if (!response.ok) {
+        throw new Error(
+          "Failed to load reminders."
+        );
+      }
+
+      const data =
+        await response.json();
+
+      setReminders(
+        data.map(
+          (reminder: any) => ({
+            id: reminder.id,
+            profileId:
+              reminder.profile_id,
+            titleId:
+              reminder.library_item_id,
+            date:
+              reminder.reminder_date,
+            time:
+              reminder.reminder_time,
+            method: "push"
+          })
+        )
+      );
+    } catch (error) {
+      console.error(
+        "Failed to load reminders:",
+        error
+      );
+
+      setReminders([]);
+    }
+  }
+
+  loadReminders();
+}, [profileId]);
+
 async function subscribeToPushNotifications() {
   console.log(
     "PUSH DEBUG 1: subscribeToPushNotifications() STARTED"
