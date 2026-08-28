@@ -307,11 +307,29 @@ header {
     gap: 7px;
   }
 
- .hero-actions .hero-more-info-button,
+  .hero-actions .hero-more-info-button,
+  .hero-actions .poster-reminder-button,
+  .hero-actions .poster-list-button {
+    height: 40px;
+    min-height: 40px;
+  }
+
+  .hero-actions .hero-more-info-button {
+    padding: 0 16px;
+  }
+
+  .hero-actions .poster-reminder-button,
+  .hero-actions .poster-list-button {
+    width: 34px;
+    padding: 0;
+  }
+}
+
+.hero-actions .hero-more-info-button,
 .hero-actions .poster-reminder-button,
 .hero-actions .poster-list-button {
-  height: 34px;
-  min-height: 34px;
+  height: 30px;
+  min-height: 30px;
   padding: 0 12px;
   display: grid;
   place-items: center;
@@ -324,12 +342,12 @@ header {
 }
 
 .hero-actions .hero-more-info-button {
-  padding: 0 16px;
+  padding: 0 14px;
 }
 
 .hero-actions .poster-reminder-button,
 .hero-actions .poster-list-button {
-  width: 34px;
+  width: 30px;
   padding: 0;
 }
 
@@ -2681,8 +2699,3 @@ footer span {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
-
-
-
-
-
