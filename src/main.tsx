@@ -5436,20 +5436,38 @@ if (!response.ok) {
   );
 }
 
-    setReminders(
-      current => [
-        ...current,
-        {
-          id: data.id,
-          profileId,
-          titleId:
-            showReminder.id,
-          date,
-          time,
-          method
-        }
-      ]
-    );
+  if (isEditingReminder) {
+  setReminders(
+    current =>
+      current.map(
+        reminder =>
+          reminder.id ===
+          showReminder.id
+            ? {
+                ...reminder,
+                date,
+                time,
+                method
+              }
+            : reminder
+      )
+  );
+} else {
+  setReminders(
+    current => [
+      ...current,
+      {
+        id: data.id,
+        profileId,
+        titleId:
+          showReminder.id,
+        date,
+        time,
+        method
+      }
+    ]
+  );
+}
 
     setShowReminder(
       null
