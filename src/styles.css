@@ -1001,6 +1001,10 @@ card actions
   border: 0;
   background: transparent;
 }
+.modal input[type="date"] {
+  color-scheme: dark;
+  cursor: pointer;
+}
 
 
 /* =========================================================
