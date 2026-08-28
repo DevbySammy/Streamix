@@ -4823,6 +4823,7 @@ if (
 
     </div>
   </Modal>
+   )}
 
    {showReminderList && (
   <Modal
