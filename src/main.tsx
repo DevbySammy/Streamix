@@ -1464,6 +1464,10 @@ else {
       const data =
         await response.json();
 
+       console.log(
+  "REMINDERS GET RESPONSE:",
+  data
+);
       setReminders(
         data.map(
           (reminder: any) => ({
