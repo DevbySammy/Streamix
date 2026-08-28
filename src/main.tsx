@@ -5446,7 +5446,16 @@ if (!response.ok) {
           showReminder.id,
         date,
         time,
-        method
+        method,
+        title:
+          showReminder.name,
+        posterPath:
+          showReminder.poster
+            ? showReminder.poster.replace(
+                "https://image.tmdb.org/t/p/w500",
+                ""
+              )
+            : ""
       }
     ]
   );
