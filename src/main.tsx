@@ -1426,7 +1426,6 @@ else {
 }, [profileId]);
 
    useEffect(() => {
-useEffect(() => {
   async function loadReminders() {
     if (!profileId) {
       setReminders([]);
