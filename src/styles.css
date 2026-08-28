@@ -206,17 +206,17 @@ header {
 }
 
 .notification-bell {
-  width: 40px;
-  height: 40px;
-  min-height: 40px;
+  width: auto;
+  height: auto;
+  min-height: 0;
   padding: 0;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: #FBCB05;
+  background: transparent;
   color: #FBCB05;
-  border: 1px solid #FBCB05;
-  border-radius: 999px;
+  border: none;
+  border-radius: 0;
   cursor: pointer;
   font-size: 16px;
   line-height: 1;
