@@ -1826,6 +1826,12 @@ footer span {
   .profile-drag-handle {
     min-height: 44px;
   }
+ .hero-actions .hero-more-info-button,
+.hero-actions .poster-reminder-button,
+.hero-actions .poster-list-button {
+  min-height: 34px;
+  height: 34px;
+}
 
   .icon {
     width: 44px;
