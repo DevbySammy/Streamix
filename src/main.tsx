@@ -4849,6 +4849,10 @@ if (
       setShowReminderList(false)
     }
   >
+     {console.log(
+      "NOTIFICATIONS POPUP REMINDERS:",
+      reminders
+    )}
     {reminders.length === 0 ? (
       <p className="muted">
         No notifications.
