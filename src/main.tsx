@@ -4737,8 +4737,8 @@ if (
   <Modal
     title="Notification Settings"
     onClose={() =>
-      setshowNotifications(false)
-    }
+  setShowNotifications(false)
+}
   >
     <p>
       Manage your Streamix notifications.
