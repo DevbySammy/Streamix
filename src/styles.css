@@ -205,6 +205,27 @@ header {
   letter-spacing: .05em;
 }
 
+.notification-bell {
+  width: 40px;
+  height: 40px;
+  min-height: 40px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #151519;
+  color: #ddd;
+  border: 1px solid #2c2c31;
+  border-radius: 999px;
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+}
+
+.notification-bell:hover {
+  background: #1a1a1d;
+}
+
 .admin-menu {
   position: absolute;
   right: 82px;
