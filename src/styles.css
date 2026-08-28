@@ -302,29 +302,6 @@ header {
   margin: 0 0 16px;
 }
 
-@media (min-width: 821px) {
-  .hero-actions {
-    gap: 7px;
-  }
-
-  .hero-actions .hero-more-info-button,
-  .hero-actions .poster-reminder-button,
-  .hero-actions .poster-list-button {
-    height: 44px;
-    min-height: 44px;
-  }
-
-  .hero-actions .hero-more-info-button {
-    padding: 0 18px;
-  }
-
-  .hero-actions .poster-reminder-button,
-  .hero-actions .poster-list-button {
-    width: 38px;
-    padding: 0;
-  }
-}
-
 .hero-actions .hero-more-info-button,
 .hero-actions .poster-reminder-button,
 .hero-actions .poster-list-button {
@@ -342,7 +319,7 @@ header {
 }
 
 .hero-actions .hero-more-info-button {
-  padding: 0 14px;
+  padding: 0 16px;
 }
 
 .hero-actions .poster-reminder-button,
@@ -372,6 +349,29 @@ header {
 .hero-actions .poster-reminder-button:hover,
 .hero-actions .poster-list-button:hover {
   background: rgba(255, 255, 255, .12);
+}
+
+@media (min-width: 821px) {
+  .hero-actions {
+    gap: 7px;
+  }
+
+  .hero-actions .hero-more-info-button,
+  .hero-actions .poster-reminder-button,
+  .hero-actions .poster-list-button {
+    height: 44px;
+    min-height: 44px;
+  }
+
+  .hero-actions .hero-more-info-button {
+    padding: 0 18px;
+  }
+
+  .hero-actions .poster-reminder-button,
+  .hero-actions .poster-list-button {
+    width: 38px;
+    padding: 0;
+  }
 }
 
 /* =========================================================
