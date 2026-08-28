@@ -310,8 +310,8 @@ header {
   .hero-actions .hero-more-info-button,
   .hero-actions .poster-reminder-button,
   .hero-actions .poster-list-button {
-    height: 34px;
-    min-height: 34px;
+    height: 40px;
+    min-height: 40px;
   }
 
   .hero-actions .hero-more-info-button {
