@@ -4913,17 +4913,59 @@ if (
         Edit
       </button>
 
-      <button
-        type="button"
-        onClick={() =>
-          console.log(
-            "DELETE REMINDER:",
+     <button
+  type="button"
+  onClick={async () => {
+    try {
+      const sessionId =
+        localStorage.getItem(
+          "sx-session-token"
+        );
+
+      const response =
+        await fetch(
+          `/api/reminders?profileId=${encodeURIComponent(
+            reminder.profileId
+          )}&id=${encodeURIComponent(
             reminder.id
+          )}`,
+          {
+            method: "DELETE",
+            headers: {
+              ...(sessionId
+                ? {
+                    Authorization:
+                      `Bearer ${sessionId}`
+                  }
+                : {})
+            }
+          }
+        );
+
+      if (!response.ok) {
+        throw new Error(
+          "Failed to delete reminder."
+        );
+      }
+
+      setReminders(
+        current =>
+          current.filter(
+            item =>
+              item.id !==
+              reminder.id
           )
-        }
-      >
-        Delete
-      </button>
+      );
+    } catch (error) {
+      console.error(
+        "Failed to delete reminder:",
+        error
+      );
+    }
+  }}
+>
+  Delete
+</button>
     </div>
   </div>
 ))}
