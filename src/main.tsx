@@ -4903,17 +4903,17 @@ if (
     <div className="notification-item-actions">
      <button
   type="button"
-  onClick={() => {
-    setShowReminder({
-      id: reminder.id,
-      profileId: reminder.profileId,
-      titleId: reminder.titleId,
-      date: reminder.date,
-      time: reminder.time,
-      method: reminder.method
-    });
-    setShowReminderList(false);
-  }}
+onClick={() => {
+  setShowReminder({
+    id: reminder.id,
+    profileId: reminder.profileId,
+    titleId: reminder.titleId,
+    date: reminder.date,
+    time: reminder.time,
+    method: reminder.method
+  });
+  setShowReminderList(true);
+}}
 >
   Edit
 </button>
