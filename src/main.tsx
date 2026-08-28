@@ -4917,12 +4917,12 @@ if (
         type="button"
         onClick={() =>
           console.log(
-            "CANCEL REMINDER:",
+            "DELETE REMINDER:",
             reminder.id
           )
         }
       >
-        Cancel
+        Delete
       </button>
     </div>
   </div>
