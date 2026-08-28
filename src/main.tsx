@@ -4754,13 +4754,9 @@ if (
     setShowReminderList(true);
   }}
 >
-  Notifications Enabled →
+  View Notifications
 </button>
      
-    <p className="muted">
-      Streamix notifications require
-      notification permission.
-    </p>
   </Modal>
 )}
 
