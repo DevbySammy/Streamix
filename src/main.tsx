@@ -4861,8 +4861,8 @@ if (
       <div>
         {reminders.map(reminder => (
           <div key={reminder.id}>
-            {reminder.reminderDate}{" "}
-            {reminder.reminderTime}
+          {reminder.date}{" "}
+         {reminder.time}
           </div>
         ))}
       </div>
