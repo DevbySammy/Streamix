@@ -213,9 +213,9 @@ header {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: #151519;
-  color: #ddd;
-  border: 1px solid #2c2c31;
+  background: #FBCB05;
+  color: #151519;
+  border: 1px solid #FBCB05;
   border-radius: 999px;
   cursor: pointer;
   font-size: 16px;
