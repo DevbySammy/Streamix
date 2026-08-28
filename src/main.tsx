@@ -5381,42 +5381,60 @@ onSave={async (
         "sx-session-token"
       );
 
-    const response =
-      await fetch(
-        "/api/reminders",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type":
-              "application/json",
-            ...(sessionId
-              ? {
-                  Authorization:
-                    `Bearer ${sessionId}`
-                }
-              : {})
-          },
-          body: JSON.stringify({
-            profileId,
-            libraryItemId:
-              showReminder.id,
-            reminderDate:
-              date,
-            reminderTime:
-              time
-          })
-        }
-      );
+  const isEditingReminder =
+  "date" in showReminder &&
+  "time" in showReminder;
 
-    const data =
-      await response.json();
-
-    if (!response.ok) {
-      throw new Error(
-        data?.error ||
-          "Failed to save reminder."
-      );
+const response =
+  await fetch(
+    "/api/reminders",
+    {
+      method: isEditingReminder
+        ? "PUT"
+        : "POST",
+      headers: {
+        "Content-Type":
+          "application/json",
+        ...(sessionId
+          ? {
+              Authorization:
+                `Bearer ${sessionId}`
+            }
+          : {})
+      },
+      body: JSON.stringify(
+        isEditingReminder
+          ? {
+              id:
+                showReminder.id,
+              profileId,
+              reminderDate:
+                date,
+              reminderTime:
+                time
+            }
+          : {
+              profileId,
+              libraryItemId:
+                showReminder.id,
+              reminderDate:
+                date,
+              reminderTime:
+                time
+            }
+      )
     }
+  );
+
+const data =
+  await response.json();
+
+if (!response.ok) {
+  throw new Error(
+    data?.error ||
+      "Failed to save reminder."
+  );
+}
 
     setReminders(
       current => [
