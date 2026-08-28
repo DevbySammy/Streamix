@@ -1478,7 +1478,7 @@ const response =
   "REMINDERS GET RESPONSE:",
   data
 );
-     setReminders(
+setReminders(
   data
     .filter(
       (reminder: any) =>
@@ -1495,7 +1495,11 @@ const response =
           reminder.reminder_date,
         time:
           reminder.reminder_time,
-        method: "push"
+        method: "push",
+        title:
+          reminder.title,
+        posterPath:
+          reminder.poster_path
       })
     )
 );
@@ -4864,12 +4868,58 @@ if (
       </p>
     ) : (
       <div>
-        {reminders.map(reminder => (
-          <div key={reminder.id}>
-          {reminder.date}{" "}
-         {reminder.time}
-          </div>
-        ))}
+      {reminders.map(reminder => (
+  <div
+    key={reminder.id}
+    className="notification-item"
+  >
+    {reminder.posterPath && (
+      <img
+        src={reminder.posterPath}
+        alt={reminder.title}
+        className="notification-poster"
+      />
+    )}
+
+    <div className="notification-item-info">
+      <strong>
+        {reminder.title ||
+          "Unknown title"}
+      </strong>
+
+      <span>
+        {reminder.date}{" "}
+        {reminder.time}
+      </span>
+    </div>
+
+    <div className="notification-item-actions">
+      <button
+        type="button"
+        onClick={() =>
+          console.log(
+            "EDIT REMINDER:",
+            reminder.id
+          )
+        }
+      >
+        Edit
+      </button>
+
+      <button
+        type="button"
+        onClick={() =>
+          console.log(
+            "CANCEL REMINDER:",
+            reminder.id
+          )
+        }
+      >
+        Cancel
+      </button>
+    </div>
+  </div>
+))}
       </div>
     )}
   </Modal>
