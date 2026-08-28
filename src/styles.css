@@ -436,7 +436,7 @@ header {
   .hero-actions {
     gap: 7px;
   }
-
+   
   .hero-actions .hero-more-info-button,
   .hero-actions .poster-reminder-button,
   .hero-actions .poster-list-button {
@@ -451,6 +451,26 @@ header {
   .hero-actions .poster-reminder-button,
   .hero-actions .poster-list-button {
     width: 38px;
+    padding: 0;
+  }
+}
+
+@media (max-width: 820px) {
+  .hero-actions {
+    gap: 6px;
+  }
+
+  .hero-actions .hero-more-info-button {
+    height: 34px;
+    min-height: 34px;
+    padding: 0 16px;
+  }
+
+  .hero-actions .poster-reminder-button,
+  .hero-actions .poster-list-button {
+    width: 34px;
+    height: 34px;
+    min-height: 34px;
     padding: 0;
   }
 }
