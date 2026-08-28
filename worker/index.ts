@@ -2614,14 +2614,15 @@ const reminderProfileId =
 const result =
   await env.DB
     .prepare(`
-      SELECT
-        id,
-        profile_id,
-        library_item_id,
-        reminder_date,
-        reminder_time,
-        created_at
-      FROM reminders
+    SELECT
+  id,
+  profile_id,
+  library_item_id,
+  reminder_date,
+  reminder_time,
+  created_at,
+  sent_at
+FROM reminders
       WHERE profile_id = ?
       ORDER BY
         reminder_date ASC,
