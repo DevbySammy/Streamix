@@ -2613,21 +2613,26 @@ const reminderProfileId =
 
 const result =
   await env.DB
-    .prepare(`
-    SELECT
-  id,
-  profile_id,
-  library_item_id,
-  reminder_date,
-  reminder_time,
-  created_at,
-  sent_at
-FROM reminders
-      WHERE profile_id = ?
-      ORDER BY
-        reminder_date ASC,
-        reminder_time ASC
-    `)
+.prepare(`
+  SELECT
+    r.id,
+    r.profile_id,
+    r.library_item_id,
+    r.reminder_date,
+    r.reminder_time,
+    r.created_at,
+    r.sent_at,
+    l.title,
+    l.poster_path
+  FROM reminders r
+  LEFT JOIN library l
+    ON l.id = r.library_item_id
+  WHERE r.profile_id = ?
+    AND r.sent_at IS NULL
+  ORDER BY
+    r.reminder_date ASC,
+    r.reminder_time ASC
+`)
     .bind(
       reminderProfileId
     )
