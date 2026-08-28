@@ -3733,12 +3733,23 @@ return ( <div className="app">
       🔔
     </button>
 
-    <button
-      className="admin-badge"
-      onClick={signOut}
-    >
-      LOG OUT
-    </button>
+   <button
+  className="admin-badge notification-button"
+  onClick={() =>
+    setShowNotificationSettings(true)
+  }
+  aria-label="Notification settings"
+  title="Notification settings"
+>
+  🔔
+</button>
+
+<button
+  className="admin-badge"
+  onClick={signOut}
+>
+  LOG OUT
+</button>
 
     {menu &&
       isAdmin && (
@@ -4733,6 +4744,34 @@ if (
   </Modal>
 )}
 
+   {showNotificationSettings && (
+  <Modal
+    title="Notification Settings"
+    onClose={() =>
+      setShowNotificationSettings(false)
+    }
+  >
+    <p>
+      Manage your Streamix notifications.
+    </p>
+
+    <button
+      className="pink full"
+      onClick={async () => {
+        await subscribeToPushNotifications();
+      }}
+    >
+      {pushSubscribed
+        ? "Notifications Enabled"
+        : "Enable Notifications"}
+    </button>
+
+    <p className="muted">
+      Streamix notifications require
+      notification permission.
+    </p>
+  </Modal>
+)}
 
   {/* PROFILE LOGIN */}
 
