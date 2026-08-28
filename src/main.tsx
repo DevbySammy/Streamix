@@ -3733,17 +3733,6 @@ return ( <div className="app">
       🔔
     </button>
 
-   <button
-  className="admin-badge notification-button"
-  onClick={() =>
-    setshowNotifications(true)
-  }
-  aria-label="Notification settings"
-  title="Notification settings"
->
-  🔔
-</button>
-
 <button
   className="admin-badge"
   onClick={signOut}
