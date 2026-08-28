@@ -1426,6 +1426,7 @@ else {
 }, [profileId]);
 
    useEffect(() => {
+useEffect(() => {
   async function loadReminders() {
     if (!profileId) {
       setReminders([]);
@@ -1443,27 +1444,27 @@ else {
         return;
       }
 
-     const reminderProfileId =
-  profileId === "admin" &&
-  localStorage.getItem(
-    "sx-testing-active"
-  ) === "true"
-    ? "testing"
-    : profileId;
+      const reminderProfileId =
+        profileId === "admin" &&
+        localStorage.getItem(
+          "sx-testing-active"
+        ) === "true"
+          ? "testing"
+          : profileId;
 
-const response =
-  await fetch(
-    `/api/reminders?profileId=${encodeURIComponent(
-      reminderProfileId
-    )}`,
-    {
-      method: "GET",
-      headers: {
-        Authorization:
-          `Bearer ${sessionId}`
-      }
-    }
-  );
+      const response =
+        await fetch(
+          `/api/reminders?profileId=${encodeURIComponent(
+            reminderProfileId
+          )}`,
+          {
+            method: "GET",
+            headers: {
+              Authorization:
+                `Bearer ${sessionId}`
+            }
+          }
+        );
 
       if (!response.ok) {
         throw new Error(
@@ -1474,35 +1475,36 @@ const response =
       const data =
         await response.json();
 
-       console.log(
-  "REMINDERS GET RESPONSE:",
-  data
-);
-setReminders(
-  data
-    .filter(
-      (reminder: any) =>
-        !reminder.sent_at
-    )
-    .map(
-      (reminder: any) => ({
-        id: reminder.id,
-        profileId:
-          reminder.profile_id,
-        titleId:
-          reminder.library_item_id,
-        date:
-          reminder.reminder_date,
-        time:
-          reminder.reminder_time,
-        method: "push",
-        title:
-          reminder.title,
-        posterPath:
-          reminder.poster_path
-      })
-    )
-);
+      console.log(
+        "REMINDERS GET RESPONSE:",
+        data
+      );
+
+      setReminders(
+        data
+          .filter(
+            (reminder: any) =>
+              !reminder.sent_at
+          )
+          .map(
+            (reminder: any) => ({
+              id: reminder.id,
+              profileId:
+                reminder.profile_id,
+              titleId:
+                reminder.library_item_id,
+              date:
+                reminder.reminder_date,
+              time:
+                reminder.reminder_time,
+              method: "push",
+              title:
+                reminder.title,
+              posterPath:
+                reminder.poster_path
+            })
+          )
+      );
     } catch (error) {
       console.error(
         "Failed to load reminders:",
@@ -1514,6 +1516,18 @@ setReminders(
   }
 
   loadReminders();
+
+  const reminderRefresh =
+    window.setInterval(
+      loadReminders,
+      30000
+    );
+
+  return () => {
+    window.clearInterval(
+      reminderRefresh
+    );
+  };
 }, [profileId]);
 
 async function subscribeToPushNotifications() {
