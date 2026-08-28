@@ -349,7 +349,32 @@ header {
 .hero-actions .poster-reminder-button:hover,
 .hero-actions .poster-list-button:hover {
   background: rgba(255, 255, 255, .12);
-  transform: translateY(-1px);
+}
+
+/* =========================================================
+   GENERAL BUTTON HOVER
+========================================================= */
+
+.details-back-button:hover {
+  background: rgba(255, 255, 255, .12);
+  border-color: #444;
+}
+
+.switch button:hover:not(.active) {
+  background: rgba(255, 255, 255, .12);
+  color: #fff;
+}
+
+.filters button:hover:not(.selected),
+.format button:hover:not(.selected) {
+  background: rgba(255, 255, 255, .12);
+  color: #fff;
+}
+
+.actions button:hover:not(.on),
+.small-actions button:hover:not(.on) {
+  background: rgba(255, 255, 255, .12);
+  color: #fff;
 }
 
 /* =========================================================
