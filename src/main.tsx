@@ -4858,9 +4858,16 @@ if (
       setShowReminderList(false)
     }
   >
-  {console.log(
+ {console.log(
   "NOTIFICATIONS POPUP REMINDER:",
-  reminders[0]
+  {
+    id: reminders[0]?.id,
+    title: reminders[0]?.title,
+    posterPath: reminders[0]?.posterPath,
+    titleId: reminders[0]?.titleId,
+    date: reminders[0]?.date,
+    time: reminders[0]?.time
+  }
 )}
     {reminders.length === 0 ? (
       <p className="muted">
