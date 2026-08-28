@@ -1478,22 +1478,27 @@ const response =
   "REMINDERS GET RESPONSE:",
   data
 );
-      setReminders(
-        data.map(
-          (reminder: any) => ({
-            id: reminder.id,
-            profileId:
-              reminder.profile_id,
-            titleId:
-              reminder.library_item_id,
-            date:
-              reminder.reminder_date,
-            time:
-              reminder.reminder_time,
-            method: "push"
-          })
-        )
-      );
+     setReminders(
+  data
+    .filter(
+      (reminder: any) =>
+        !reminder.sent_at
+    )
+    .map(
+      (reminder: any) => ({
+        id: reminder.id,
+        profileId:
+          reminder.profile_id,
+        titleId:
+          reminder.library_item_id,
+        date:
+          reminder.reminder_date,
+        time:
+          reminder.reminder_time,
+        method: "push"
+      })
+    )
+);
     } catch (error) {
       console.error(
         "Failed to load reminders:",
