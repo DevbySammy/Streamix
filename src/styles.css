@@ -379,15 +379,15 @@ header {
 .hero-actions {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
   margin: 0 0 16px;
 }
 
 .hero-actions .hero-more-info-button,
 .hero-actions .poster-reminder-button,
 .hero-actions .poster-list-button {
-  height: 30px;
-  min-height: 30px;
+  height: 34px;
+  min-height: 34px;
   padding: 0 12px;
   display: grid;
   place-items: center;
@@ -405,7 +405,7 @@ header {
 
 .hero-actions .poster-reminder-button,
 .hero-actions .poster-list-button {
-  width: 30px;
+  width: 34px;
   padding: 0;
 }
 
@@ -454,7 +454,6 @@ header {
     padding: 0;
   }
 }
-
 /* =========================================================
    GENERAL BUTTON HOVER
 ========================================================= */
