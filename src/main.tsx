@@ -5354,19 +5354,33 @@ onSave={async (
     );
   }
 
-  if (!profileId) {
-    return;
-  }
+if (!profileId) {
+  return;
+}
 
-   try {      
+const isEditingReminder =
+  "date" in showReminder &&
+  "time" in showReminder;
+
+if (
+  !isEditingReminder &&
+  reminders.some(
+    reminder =>
+      reminder.profileId === profileId &&
+      reminder.titleId === showReminder.id
+  )
+) {
+  window.alert(
+    "You already have a notification scheduled for this title."
+  );
+  return;
+}
+
+try {
     const sessionId =
       localStorage.getItem(
         "sx-session-token"
       );
-
-  const isEditingReminder =
-  "date" in showReminder &&
-  "time" in showReminder;
 
 const response =
   await fetch(
