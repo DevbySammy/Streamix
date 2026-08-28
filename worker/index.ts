@@ -2604,11 +2604,6 @@ if (
   auth.profileId
 );
   
- const requestedProfileId =
-  url.searchParams.get(
-    "profileId"
-  );
-
 const reminderProfileId =
   requestedProfileId &&
   auth.profileId === "admin" &&
