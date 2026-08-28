@@ -214,20 +214,19 @@ header {
   align-items: center;
   justify-content: center;
   background: #FBCB05;
-  color: #151519;
+  color: #FBCB05;
+  border: 1px solid #FBCB05;
   border-radius: 999px;
   cursor: pointer;
   font-size: 16px;
   line-height: 1;
 }
+
 .notification-bell svg {
   fill: #FBCB05;
   stroke: #FBCB05;
 }
 
-.notification-bell:hover {
-  background: #1a1a1d;
-}
 .notification-item {
   display: flex;
   align-items: center;
