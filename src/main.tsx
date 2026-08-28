@@ -3824,7 +3824,7 @@ return ( <div className="app">
       aria-label="Notification settings"
       title="Notification settings"
     >
-      🔔
+<Bell size={18} />
     </button>
 
 <button
