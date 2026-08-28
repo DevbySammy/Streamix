@@ -3736,7 +3736,7 @@ return ( <div className="app">
    <button
   className="admin-badge notification-button"
   onClick={() =>
-    setShowNotificationSettings(true)
+    setshowNotifications(true)
   }
   aria-label="Notification settings"
   title="Notification settings"
@@ -4744,11 +4744,11 @@ if (
   </Modal>
 )}
 
-   {showNotificationSettings && (
+   {showNotifications && (
   <Modal
     title="Notification Settings"
     onClose={() =>
-      setShowNotificationSettings(false)
+      setshowNotifications(false)
     }
   >
     <p>
