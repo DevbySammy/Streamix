@@ -3858,7 +3858,7 @@ return ( <div className="app">
       openDetails(hero);
     }}
   >
-More Info →
+    More Info
   </button>
   <button
     type="button"
