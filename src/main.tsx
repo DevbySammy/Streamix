@@ -4874,11 +4874,11 @@ if (
     className="notification-item"
   >
     {reminder.posterPath && (
-      <img
-        src={reminder.posterPath}
-        alt={reminder.title}
-        className="notification-poster"
-      />
+   <img
+  src={`https://image.tmdb.org/t/p/w185${reminder.posterPath}`}
+  alt={reminder.title}
+  className="notification-poster"
+/>
     )}
 
     <div className="notification-item-info">
