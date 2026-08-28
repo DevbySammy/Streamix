@@ -21,7 +21,7 @@ Trash2,
 Tv,
 X
 } from "lucide-react";
-import "./styles.css";
+import "./styles.css"; 
    
 /* =========================================================
 TYPES 
@@ -413,6 +413,9 @@ APP
 
 function App() {
   const [library, setLibrary] = useState<Title[]>([]);
+
+   const [libraryLoading, setLibraryLoading] =
+  useState(true);
 
    const [
   tmdbCatalog,
@@ -893,7 +896,8 @@ useEffect(() => {
             )
           : [];
 
-      setLibrary(titles);
+setLibrary(titles);
+setLibraryLoading(false);
 
       /* =================================================
       LOAD HIDDEN JUST ADDED
@@ -3931,13 +3935,14 @@ More Info →
   </button>
 )}
         </>
+         ) : libraryLoading ? (
+        <></>
       ) : (
         <>
           <h1>
-            Your library is
-            empty
+            Your library is empty
           </h1>
-
+           
           {isAdmin && (
             <button
               className="ghost"
