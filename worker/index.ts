@@ -2604,7 +2604,19 @@ if (
   auth.profileId
 );
   
-  const result =
+ const requestedProfileId =
+  url.searchParams.get(
+    "profileId"
+  );
+
+const reminderProfileId =
+  requestedProfileId &&
+  auth.profileId === "admin" &&
+  requestedProfileId === "testing"
+    ? "testing"
+    : auth.profileId;
+
+const result =
   await env.DB
     .prepare(`
       SELECT
@@ -2620,7 +2632,9 @@ if (
         reminder_date ASC,
         reminder_time ASC
     `)
-    .bind(profileId)
+    .bind(
+      reminderProfileId
+    )
     .all();
 
   return json(
