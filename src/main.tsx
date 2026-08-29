@@ -4321,64 +4321,66 @@ LIBRARY CONTROLS
 
 <div className="grid">
 
-  {visible.map(title => (
-    <Card
-      key={title.id}
-      t={title}
-      st={state}
-      isAdmin={isAdmin}
-      hiddenJustAdded={
-        isAdmin &&
-        sort === "just-added" &&
-        justAddedView === "hidden"
-      }
-      onWatch={() =>
-        toggle(
-          "watched",
-          title.id,
-          title
-        )
-      }
-      onList={() =>
-        toggle(
-          "watchlist",
-          title.id,
-          title
-        )
-      }
-      onRewatch={() =>
-        toggle(
-          "rewatch",
-          title.id,
-          title
-        )
-      }
-      onRemove={() =>
-        sort === "just-added"
-          ? justAddedView === "hidden"
-            ? showJustAddedAgain(title.id)
-            : hideJustAddedTitle(title.id)
-          : removeTitle(title.id)
-      }
-      onReminder={() =>
-        setShowReminder(title)
-      }
-      onSchedule={() =>
-        setShowSchedule(title)
-      }
-      onDetails={() =>
-        openDetails(title)
-      }
-    />
-  ))}
-
-{!libraryLoading &&
-  library.length > 0 &&
-  !visible.length && (
+  {libraryLoading ? (
+    <></>
+  ) : visible.length > 0 ? (
+    visible.map(title => (
+      <Card
+        key={title.id}
+        t={title}
+        st={state}
+        isAdmin={isAdmin}
+        hiddenJustAdded={
+          isAdmin &&
+          sort === "just-added" &&
+          justAddedView === "hidden"
+        }
+        onWatch={() =>
+          toggle(
+            "watched",
+            title.id,
+            title
+          )
+        }
+        onList={() =>
+          toggle(
+            "watchlist",
+            title.id,
+            title
+          )
+        }
+        onRewatch={() =>
+          toggle(
+            "rewatch",
+            title.id,
+            title
+          )
+        }
+        onRemove={() =>
+          sort === "just-added"
+            ? justAddedView === "hidden"
+              ? showJustAddedAgain(title.id)
+              : hideJustAddedTitle(title.id)
+            : removeTitle(title.id)
+        }
+        onReminder={() =>
+          setShowReminder(title)
+        }
+        onSchedule={() =>
+          setShowSchedule(title)
+        }
+        onDetails={() =>
+          openDetails(title)
+        }
+      />
+    ))
+  ) : library.length > 0 ? (
     <div className="empty">
       Nothing here yet.
     </div>
-)}
+  ) : (
+    <></>
+  )}
 
 </div>
 
@@ -4437,11 +4439,11 @@ LIBRARY CONTROLS
       Show more
     </button>
   )}
-     </main>
 
-  </>
-      )}
+</main>
 
+</>
+)}
      
   {/* TODAY'S RECOMMENDATION */}
 
