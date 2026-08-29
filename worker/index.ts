@@ -1943,25 +1943,27 @@ if (
     const currentYear =
       new Date().getFullYear();
 
-    const yearsToLoad = 5;
+    const dateParameter =
+      mediaType === "movie"
+        ? "primary_release_date"
+        : "first_air_date";
+
+    const sortParameter =
+      mediaType === "movie"
+        ? "primary_release_date.desc"
+        : "first_air_date.desc";
+
+    const firstTMDBPage =
+      (page - 1) * 4 + 1;
+
+    const lastTMDBPage =
+      firstTMDBPage + 3;
 
     for (
-      let yearIndex = 0;
-      yearIndex < yearsToLoad;
-      yearIndex++
+      let tmdbPage = firstTMDBPage;
+      tmdbPage <= lastTMDBPage;
+      tmdbPage++
     ) {
-      const year =
-        currentYear -
-        yearIndex;
-
-      const dateParameter =
-        mediaType === "movie"
-          ? "primary_release_date"
-          : "first_air_date";
-
-      const tmdbPage =
-        page;
-
       const response =
         await fetch(
           "https://api.themoviedb.org/3/discover/" +
@@ -1973,14 +1975,15 @@ if (
             "&" +
             dateParameter +
             ".gte=" +
-            year +
+            currentYear +
             "-01-01" +
             "&" +
             dateParameter +
             ".lte=" +
-            year +
+            currentYear +
             "-12-31" +
-            "&sort_by=popularity.desc" +
+            "&sort_by=" +
+            sortParameter +
             "&page=" +
             tmdbPage,
           {
@@ -2014,6 +2017,16 @@ if (
         allResults.push(
           ...data.results
         );
+      }
+
+      if (
+        !data.total_pages ||
+        tmdbPage >=
+          Number(
+            data.total_pages
+          )
+      ) {
+        break;
       }
     }
 
@@ -2097,6 +2110,18 @@ if (
       );
 
     results =
+      results.filter(
+        (item, index, array) =>
+          array.findIndex(
+            existing =>
+              existing.id ===
+              item.id &&
+              existing.media_type ===
+              item.media_type
+          ) === index
+      );
+
+    results =
       results.sort(
         (a, b) => {
           const aDate =
@@ -2109,22 +2134,9 @@ if (
               ? b.first_air_date || ""
               : b.release_date || "";
 
-          const aYear =
-            Number(
-              aDate.slice(0, 4)
-            ) || 0;
-
-          const bYear =
-            Number(
-              bDate.slice(0, 4)
-            ) || 0;
-
-          if (
-            aYear !== bYear
-          ) {
-            return (
-              bYear -
-              aYear
+          if (aDate !== bDate) {
+            return bDate.localeCompare(
+              aDate
             );
           }
 
@@ -2139,20 +2151,17 @@ if (
         }
       );
 
-    const startIndex =
-      (page - 1) *
-      resultsPerRequest;
-
     results =
       results.slice(
-        startIndex,
-        startIndex +
-          resultsPerRequest
+        0,
+        resultsPerRequest
       );
 
     const hasMore =
+      results.length ===
+        resultsPerRequest &&
       page * resultsPerRequest <
-      maxResults;
+        maxResults;
 
     return json({
       page,
