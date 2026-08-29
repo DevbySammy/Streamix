@@ -2126,7 +2126,7 @@ results =
       item =>
         Number(
           item.popularity || 0
-        ) >= 2
+        ) >= 5
     );
 }
 
