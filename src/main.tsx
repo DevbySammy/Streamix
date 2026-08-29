@@ -4814,34 +4814,41 @@ LIBRARY CONTROLS
   filter === "all" &&
   visible.length > 0 &&
   (
- q.trim()
-  ? tmdbSearchHasMore
-  : sort === "just-added"
-    ? (
-        justAddedView === "hidden"
-          ? visible.length <
-            hiddenJustAdded.length
-          : visible.length <
-            justAdded.length
-      )
-  : tmdbCatalogHasMore
-  ) && (
-  onClick={event => {
-  event.currentTarget.blur();
-
-  const currentScrollY =
-    window.scrollY;
-
-  if (
     q.trim()
-  ) {
-    loadNextTMDBSearchPage();
-    return;
-  }
+      ? tmdbSearchHasMore
+      : sort === "just-added"
+        ? (
+            justAddedView === "hidden"
+              ? visible.length <
+                hiddenJustAdded.length
+              : visible.length <
+                justAdded.length
+          )
+        : tmdbCatalogHasMore
+  ) && (
+    <button
+      type="button"
+      className="show-more-button"
+      onClick={event => {
+        event.currentTarget.blur();
 
-  if (
-    sort === "just-added"
-  ) {
+        const scrollY =
+          window.scrollY;
+
+        if (q.trim()) {
+          loadNextTMDBSearchPage();
+
+          requestAnimationFrame(() => {
+            window.scrollTo(
+              0,
+              scrollY
+            );
+          });
+
+          return;
+        }
+
+        if (sort === "just-added") {
           if (
             justAddedView ===
             "hidden"
@@ -4866,17 +4873,24 @@ LIBRARY CONTROLS
             );
           }
 
+          requestAnimationFrame(() => {
+            window.scrollTo(
+              0,
+              scrollY
+            );
+          });
+
           return;
         }
 
         loadNextTMDBCatalogPage();
 
-requestAnimationFrame(() => {
-  window.scrollTo(
-    0,
-    currentScrollY
-  );
-});
+        requestAnimationFrame(() => {
+          window.scrollTo(
+            0,
+            scrollY
+          );
+        });
       }}
     >
       Show more
