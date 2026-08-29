@@ -2790,7 +2790,344 @@ useEffect(() => {
   recommendation
 ]);
 
+const [
+  tmdbSearchResults,
+  setTmdbSearchResults
+] = useState<Title[]>([]);
 
+const [
+  tmdbSearchPage,
+  setTmdbSearchPage
+] = useState(0);
+
+const [
+  tmdbSearchLoading,
+  setTmdbSearchLoading
+] = useState(false);
+
+const [
+  tmdbSearchHasMore,
+  setTmdbSearchHasMore
+] = useState(false);
+
+useEffect(() => {
+  const searchQuery = q.trim();
+
+  if (!searchQuery) {
+    setTmdbSearchResults([]);
+    setTmdbSearchPage(0);
+    setTmdbSearchHasMore(false);
+    setTmdbSearchLoading(false);
+    return;
+  }
+
+  let cancelled = false;
+
+  async function searchTMDB() {
+    setTmdbSearchLoading(true);
+
+    try {
+      const sessionId =
+        localStorage.getItem(
+          "sx-session-token"
+        );
+
+      const response =
+        await fetch(
+          `https://streamix.gaintrainstrong.workers.dev/api/tmdb/search?query=${encodeURIComponent(
+            searchQuery
+          )}&type=multi&page=1`,
+          {
+            headers: sessionId
+              ? {
+                  Authorization:
+                    `Bearer ${sessionId}`
+                }
+              : {}
+          }
+        );
+
+      if (!response.ok) {
+        throw new Error(
+          "Failed to search TMDB"
+        );
+      }
+
+      const data =
+        await response.json();
+
+      if (cancelled) {
+        return;
+      }
+
+      const titles: Title[] =
+        Array.isArray(data.results)
+          ? data.results
+              .filter(
+                (item: any) =>
+                  item.media_type === "movie" ||
+                  item.media_type === "tv"
+              )
+              .map(
+                (item: any): Title => {
+                  const kind: Kind =
+                    item.media_type === "tv"
+                      ? "tv"
+                      : "movie";
+
+                  const releaseDate =
+                    kind === "movie"
+                      ? item.release_date
+                      : item.first_air_date;
+
+                  return {
+                    id:
+                      "tmdb-" +
+                      kind +
+                      "-" +
+                      String(item.id),
+
+                    name:
+                      kind === "movie"
+                        ? item.title ||
+                          "Untitled"
+                        : item.name ||
+                          "Untitled",
+
+                    kind,
+
+                    year:
+                      releaseDate
+                        ? Number(
+                            String(
+                              releaseDate
+                            ).slice(0, 4)
+                          )
+                        : 0,
+
+                    poster:
+                      getPosterUrl(
+                        item.poster_path
+                      ),
+
+                    backdrop:
+                      getBackdropUrl(
+                        item.backdrop_path
+                      ),
+
+                    overview:
+                      item.overview || "",
+
+                    addedAt:
+                      new Date().toISOString()
+                  };
+                }
+              )
+          : [];
+
+      setTmdbSearchResults(
+        titles
+      );
+
+      setTmdbSearchPage(1);
+
+      setTmdbSearchHasMore(
+        1 <
+          Number(
+            data.total_pages || 0
+          )
+      );
+    } catch (error) {
+      if (!cancelled) {
+        console.error(
+          "Failed to search TMDB:",
+          error
+        );
+
+        setTmdbSearchResults([]);
+        setTmdbSearchPage(0);
+        setTmdbSearchHasMore(false);
+      }
+    } finally {
+      if (!cancelled) {
+        setTmdbSearchLoading(false);
+      }
+    }
+  }
+
+  searchTMDB();
+
+  return () => {
+    cancelled = true;
+  };
+}, [q]);
+
+async function loadNextTMDBSearchPage() {
+  if (
+    tmdbSearchLoading ||
+    !q.trim() ||
+    !tmdbSearchHasMore
+  ) {
+    return;
+  }
+
+  setTmdbSearchLoading(true);
+
+  try {
+    const sessionId =
+      localStorage.getItem(
+        "sx-session-token"
+      );
+
+    const nextPage =
+      tmdbSearchPage + 1;
+
+    const response =
+      await fetch(
+        `https://streamix.gaintrainstrong.workers.dev/api/tmdb/search?query=${encodeURIComponent(
+          q.trim()
+        )}&type=multi&page=${nextPage}`,
+        {
+          headers: sessionId
+            ? {
+                Authorization:
+                  `Bearer ${sessionId}`
+              }
+            : {}
+        }
+      );
+
+    if (!response.ok) {
+      throw new Error(
+        "Failed to load more TMDB search results"
+      );
+    }
+
+    const data =
+      await response.json();
+
+    const titles: Title[] =
+      Array.isArray(data.results)
+        ? data.results
+            .filter(
+              (item: any) =>
+                item.media_type === "movie" ||
+                item.media_type === "tv"
+            )
+            .map(
+              (item: any): Title => {
+                const kind: Kind =
+                  item.media_type === "tv"
+                    ? "tv"
+                    : "movie";
+
+                const releaseDate =
+                  kind === "movie"
+                    ? item.release_date
+                    : item.first_air_date;
+
+                return {
+                  id:
+                    "tmdb-" +
+                    kind +
+                    "-" +
+                    String(item.id),
+
+                  name:
+                    kind === "movie"
+                      ? item.title ||
+                        "Untitled"
+                      : item.name ||
+                        "Untitled",
+
+                  kind,
+
+                  year:
+                    releaseDate
+                      ? Number(
+                          String(
+                            releaseDate
+                          ).slice(0, 4)
+                        )
+                      : 0,
+
+                  poster:
+                    getPosterUrl(
+                      item.poster_path
+                    ),
+
+                  backdrop:
+                    getBackdropUrl(
+                      item.backdrop_path
+                    ),
+
+                  overview:
+                    item.overview || "",
+
+                  addedAt:
+                    new Date().toISOString()
+                };
+              }
+            )
+        : [];
+
+    setTmdbSearchResults(
+      current => {
+        const existingIds =
+          new Set(
+            current.map(
+              title => title.id
+            )
+          );
+
+        const newTitles =
+          titles.filter(
+            title => {
+              if (
+                existingIds.has(
+                  title.id
+                )
+              ) {
+                return false;
+              }
+
+              existingIds.add(
+                title.id
+              );
+
+              return true;
+            }
+          );
+
+        return [
+          ...current,
+          ...newTitles
+        ];
+      }
+    );
+
+    setTmdbSearchPage(
+      nextPage
+    );
+
+    setTmdbSearchHasMore(
+      nextPage <
+        Number(
+          data.total_pages || 0
+        )
+    );
+  } catch (error) {
+    console.error(
+      "Failed to load more TMDB search results:",
+      error
+    );
+  } finally {
+    setTmdbSearchLoading(
+      false
+    );
+  }
+}
+   
 /* =======================================================
 FILTERING + SORTING
 ======================================================= */
@@ -2821,14 +3158,24 @@ const visible = useMemo(() => {
       justAddedView === "hidden"
         ? hiddenJustAdded
         : justAdded;
+  } else if (q.trim()) {
+    source = tmdbSearchResults;
   } else {
     source = tmdbCatalog;
   }
 
   const filtered =
     source
-      .filter(title =>
-        title.name
+      .filter(title => {
+        if (
+          q.trim() &&
+          !usingPersonalFilter &&
+          sort !== "just-added"
+        ) {
+          return true;
+        }
+
+        return title.name
           .toLowerCase()
           .includes(
             (
@@ -2837,8 +3184,8 @@ const visible = useMemo(() => {
                 ? hiddenSearch
                 : q
             ).toLowerCase()
-          )
-      )
+          );
+      })
       .filter(title => {
         if (kind === "all") {
           return true;
@@ -2870,6 +3217,17 @@ const visible = useMemo(() => {
     );
   }
 
+  if (
+    q.trim() &&
+    !usingPersonalFilter &&
+    sort !== "just-added"
+  ) {
+    return filtered.slice(
+      0,
+      40
+    );
+  }
+
   return [...filtered].sort(
     (a, b) => {
       switch (sort) {
@@ -2895,6 +3253,7 @@ const visible = useMemo(() => {
 }, [
   library,
   tmdbCatalog,
+  tmdbSearchResults,
   justAdded,
   hiddenJustAdded,
   q,
@@ -4432,15 +4791,17 @@ LIBRARY CONTROLS
   filter === "all" &&
   visible.length > 0 &&
   (
-    sort === "just-added"
-      ? (
-          justAddedView === "hidden"
-            ? visible.length <
-              hiddenJustAdded.length
-            : visible.length <
-              justAdded.length
-        )
-      : tmdbCatalog.length < 200
+ q.trim()
+  ? tmdbSearchHasMore
+  : sort === "just-added"
+    ? (
+        justAddedView === "hidden"
+          ? visible.length <
+            hiddenJustAdded.length
+          : visible.length <
+            justAdded.length
+      )
+    : tmdbCatalog.length < 200
   ) && (
     <button
       type="button"
@@ -4448,9 +4809,16 @@ LIBRARY CONTROLS
       onClick={event => {
         event.currentTarget.blur();
 
-        if (
-          sort === "just-added"
-        ) {
+     if (
+    q.trim()
+  ) {
+    loadNextTMDBSearchPage();
+    return;
+  }
+
+  if (
+    sort === "just-added"
+  ) {
           if (
             justAddedView ===
             "hidden"
