@@ -430,7 +430,7 @@ const [
 const [
   tmdbCatalogLoading,
   setTmdbCatalogLoading
-] = useState(true);
+] = useState(false);
 
 const [
   tmdbCatalogHasMore,
