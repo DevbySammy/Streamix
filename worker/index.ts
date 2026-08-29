@@ -2076,30 +2076,66 @@ const lastTMDBPage =
           })
         );
     } else {
-      const [
-        movieResults,
-        tvResults
-      ] = await Promise.all([
-        discover("movie"),
-        discover("tv")
-      ]);
+      if (sort === "popularity") {
+        const response =
+          await fetch(
+            "https://api.themoviedb.org/3/trending/all/week" +
+              "?language=en-US",
+            {
+              headers: {
+                Authorization:
+                  "Bearer " +
+                  env.TMDB_READ_ACCESS_TOKEN,
+                accept:
+                  "application/json"
+              }
+            }
+          );
 
-      results = [
-        ...movieResults.map(
-          item => ({
-            ...item,
-            media_type:
-              "movie"
-          })
-        ),
-        ...tvResults.map(
-          item => ({
-            ...item,
-            media_type:
-              "tv"
-          })
-        )
-      ];
+        const data =
+          await response.json();
+
+        if (!response.ok) {
+          throw new Error(
+            typeof data?.status_message ===
+            "string"
+              ? data.status_message
+              : "TMDB request failed."
+          );
+        }
+
+        results =
+          Array.isArray(
+            data.results
+          )
+            ? data.results
+            : [];
+      } else {
+        const [
+          movieResults,
+          tvResults
+        ] = await Promise.all([
+          discover("movie"),
+          discover("tv")
+        ]);
+
+        results = [
+          ...movieResults.map(
+            item => ({
+              ...item,
+              media_type:
+                "movie"
+            })
+          ),
+          ...tvResults.map(
+            item => ({
+              ...item,
+              media_type:
+                "tv"
+            })
+          )
+        ];
+      }
     }
 
 results =
