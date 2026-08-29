@@ -1967,7 +1967,7 @@ if (
 
 const lastTMDBPage =
   sort === "popularity"
-    ? 4
+    ? 10
     : firstTMDBPage + 3;
 
     for (
