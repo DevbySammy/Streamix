@@ -4691,15 +4691,11 @@ LIBRARY CONTROLS
     Just Added
   </option>
 
-  <option value="name-asc">
-    Name A–Z
-  </option>
+   <option value="popularity-desc"> 
+      Most Popular 
+   </option>
 
-  <option value="name-desc">
-    Name Z–A
-  </option>
-
-  <option value="year-desc">
+    <option value="year-desc">
     Newest release
   </option>
 
@@ -4707,6 +4703,14 @@ LIBRARY CONTROLS
     Oldest release
   </option>
 </select>
+       
+  <option value="name-asc">
+    Name A–Z
+  </option>
+
+  <option value="name-desc">
+    Name Z–A
+  </option>
 
 </div>
 
