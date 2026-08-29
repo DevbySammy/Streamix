@@ -2087,27 +2087,33 @@ if (
       ];
     }
 
-    results =
-      results.filter(
-        item => {
-          const title =
-            item.media_type ===
-            "tv"
-              ? item.name || ""
-              : item.title || "";
+   results =
+  results.filter(
+    item => {
+      const title =
+        item.media_type ===
+        "tv"
+          ? item.name || ""
+          : item.title || "";
 
-          return (
-            item.original_language ===
-              "en" &&
-            /^[\x00-\x7F]*$/.test(
-              title
-            ) &&
-            typeof item.poster_path ===
-              "string" &&
-            item.poster_path.trim() !== ""
-          );
-        }
+      return (
+        item.original_language ===
+          "en" &&
+        /^[\x00-\x7F]*$/.test(
+          title
+        ) &&
+        typeof item.poster_path ===
+          "string" &&
+        item.poster_path.trim() !== "" &&
+        (
+          sort !== "popularity" ||
+          Number(
+            item.popularity || 0
+          ) >= 5
+        )
       );
+    }
+  );
 
     results =
       results.filter(
