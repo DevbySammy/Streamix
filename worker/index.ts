@@ -2109,18 +2109,27 @@ results =
     }
   );
 
-    results =
-      results.filter(
-        (item, index, array) =>
-          array.findIndex(
-            existing =>
-              existing.id ===
-              item.id &&
-              existing.media_type ===
-              item.media_type
-          ) === index
-      );
+   if (sort === "popularity") {
+  results =
+    results.filter(
+      item =>
+        Number(
+          item.popularity || 0
+        ) >= 5
+    );
+}
 
+results =
+  results.filter(
+    (item, index, array) =>
+      array.findIndex(
+        existing =>
+          existing.id ===
+          item.id &&
+          existing.media_type ===
+          item.media_type
+      ) === index
+  );
     results =
       results.sort(
         (a, b) => {
