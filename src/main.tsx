@@ -3236,28 +3236,36 @@ if (
   return filtered;
 }
 
-return [...filtered].sort(
-  (a, b) => {
-    switch (sort) {
-      case "name-desc":
-        return b.name.localeCompare(
-          a.name
-        );
-
-      case "year-desc":
-        return b.year - a.year;
-
-      case "year-asc":
-        return a.year - b.year;
-
-      case "name-asc":
-      default:
-        return a.name.localeCompare(
-          b.name
-        );
-    }
+  if (
+    filter === "all" &&
+    sort === "year-desc"
+  ) {
+    return filtered;
   }
-);
+
+  return [...filtered].sort(
+    (a, b) => {
+      switch (sort) {
+        case "name-desc":
+          return b.name.localeCompare(
+            a.name
+          );
+
+        case "year-desc":
+          return b.year - a.year;
+
+        case "year-asc":
+          return a.year - b.year;
+
+        case "name-asc":
+        default:
+          return a.name.localeCompare(
+            b.name
+          );
+      }
+    }
+  );
+   
 }, [
   library,
   tmdbCatalog,
@@ -4811,13 +4819,13 @@ LIBRARY CONTROLS
       )
   : tmdbCatalogHasMore
   ) && (
-    <button
-      type="button"
-      className="show-more-button"
-      onClick={event => {
-        event.currentTarget.blur();
+   onClick={async event => {
+  event.currentTarget.blur();
 
-     if (
+  const currentScrollY =
+    window.scrollY;
+
+  if (
     q.trim()
   ) {
     loadNextTMDBSearchPage();
@@ -4854,7 +4862,14 @@ LIBRARY CONTROLS
           return;
         }
 
-        loadNextTMDBCatalogPage();
+        await loadNextTMDBCatalogPage();
+
+        requestAnimationFrame(() => {
+          window.scrollTo(
+            0,
+            currentScrollY
+          );
+        });
       }}
     >
       Show more
