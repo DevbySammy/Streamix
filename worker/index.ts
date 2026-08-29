@@ -1960,11 +1960,15 @@ if (
       ? "primary_release_date.desc"
       : "first_air_date.desc";
 
-    const firstTMDBPage =
-      (page - 1) * 4 + 1;
+ const firstTMDBPage =
+  sort === "popularity"
+    ? 1
+    : (page - 1) * 4 + 1;
 
-    const lastTMDBPage =
-      firstTMDBPage + 3;
+const lastTMDBPage =
+  sort === "popularity"
+    ? 4
+    : firstTMDBPage + 3;
 
     for (
       let tmdbPage = firstTMDBPage;
