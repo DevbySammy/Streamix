@@ -1956,17 +1956,22 @@ if (
       tmdbPage <= endPage;
       tmdbPage++
     ) {
-      const response =
-        await fetch(
-          "https://api.themoviedb.org/3/discover/" +
-            mediaType +
-            "?include_adult=false" +
-            "&include_video=false" +
-            "&language=en-US" +
-            "&with_original_language=en" +
-            "&sort_by=popularity.desc" +
-            "&page=" +
-            tmdbPage,
+    const response =
+    await fetch(
+    "https://api.themoviedb.org/3/discover/" +
+      mediaType +
+      "?include_adult=false" +
+      "&include_video=false" +
+      "&language=en-US" +
+      "&with_original_language=en" +
+      "&sort_by=" +
+      (
+        mediaType === "movie"
+          ? "primary_release_date.desc"
+          : "first_air_date.desc"
+      ) +
+      "&page=" +
+      tmdbPage,
           {
             headers: {
               Authorization:
@@ -2087,15 +2092,23 @@ if (
           )
         );
 
-      results.sort(
-        (a, b) =>
-          Number(
-            b.popularity || 0
-          ) -
-          Number(
-            a.popularity || 0
-          )
-      );
+     results.sort(
+  (a, b) => {
+    const dateA =
+      a.media_type === "tv"
+        ? a.first_air_date || ""
+        : a.release_date || "";
+
+    const dateB =
+      b.media_type === "tv"
+        ? b.first_air_date || ""
+        : b.release_date || "";
+
+    return dateB.localeCompare(
+      dateA
+    );
+  }
+);
     }
 
     results =
