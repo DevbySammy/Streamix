@@ -1931,176 +1931,153 @@ if (
     ) || "all";
 
   const resultsPerRequest = 40;
+  const maxResults = 200;
 
-  const currentYear =
-    new Date().getFullYear();
-
-  const maxPagesPerYear = 25;
-
-  async function fetchTMDBPage(
+  async function discover(
     mediaType:
       | "movie"
-      | "tv",
-    year: number,
-    tmdbPage: number
+      | "tv"
   ) {
+    const allResults: any[] = [];
+
+    const currentYear =
+      new Date().getFullYear();
+
     const dateParameter =
       mediaType === "movie"
         ? "primary_release_date"
         : "first_air_date";
 
-    const response =
-      await fetch(
-        "https://api.themoviedb.org/3/discover/" +
-          mediaType +
-          "?include_adult=false" +
-          "&include_video=false" +
-          "&language=en-US" +
-          "&with_original_language=en" +
-          "&" +
-          dateParameter +
-          ".gte=" +
-          year +
-          "-01-01" +
-          "&" +
-          dateParameter +
-          ".lte=" +
-          year +
-          "-12-31" +
-          "&sort_by=" +
-          dateParameter +
-          ".desc,popularity.desc" +
-          "&page=" +
-          tmdbPage,
-        {
-          headers: {
-            Authorization:
-              "Bearer " +
-              env.TMDB_READ_ACCESS_TOKEN,
-            accept:
-              "application/json"
+    const sortParameter =
+      mediaType === "movie"
+        ? "primary_release_date.desc"
+        : "first_air_date.desc";
+
+    const firstTMDBPage =
+      (page - 1) * 4 + 1;
+
+    const lastTMDBPage =
+      firstTMDBPage + 3;
+
+    for (
+      let tmdbPage = firstTMDBPage;
+      tmdbPage <= lastTMDBPage;
+      tmdbPage++
+    ) {
+      const response =
+        await fetch(
+          "https://api.themoviedb.org/3/discover/" +
+            mediaType +
+            "?include_adult=false" +
+            "&include_video=false" +
+            "&language=en-US" +
+            "&with_original_language=en" +
+            "&" +
+            dateParameter +
+            ".gte=" +
+            currentYear +
+            "-01-01" +
+            "&" +
+            dateParameter +
+            ".lte=" +
+            currentYear +
+            "-12-31" +
+            "&sort_by=" +
+            sortParameter +
+            "&page=" +
+            tmdbPage,
+          {
+            headers: {
+              Authorization:
+                "Bearer " +
+                env.TMDB_READ_ACCESS_TOKEN,
+              accept:
+                "application/json"
+            }
           }
-        }
-      );
+        );
 
-    const data =
-      await response.json();
+      const data =
+        await response.json();
 
-    if (!response.ok) {
-      throw new Error(
-        typeof data?.status_message ===
-        "string"
-          ? data.status_message
-          : "TMDB request failed."
-      );
-    }
+      if (!response.ok) {
+        throw new Error(
+          typeof data?.status_message ===
+          "string"
+            ? data.status_message
+            : "TMDB request failed."
+        );
+      }
 
-    return {
-      results:
+      if (
         Array.isArray(
           data.results
         )
-          ? data.results
-          : [],
-      totalPages:
-        Number(
-          data.total_pages || 0
-        )
-    };
+      ) {
+        allResults.push(
+          ...data.results
+        );
+      }
+
+      if (
+        !data.total_pages ||
+        tmdbPage >=
+          Number(
+            data.total_pages
+          )
+      ) {
+        break;
+      }
+    }
+
+    return allResults;
   }
 
   try {
     let results: any[] = [];
 
-    const yearsToLoad = 5;
+    if (type === "movie") {
+      results =
+        await discover("movie");
 
-    const pageOffset =
-      (page - 1) *
-      2;
-
-    if (
-      type === "movie" ||
-      type === "tv"
-    ) {
-      let currentPage =
-        pageOffset + 1;
-
-      let currentYear =
-        currentYear;
-
-      let remainingResults =
-        resultsPerRequest;
-
-      while (
-        remainingResults > 0 &&
-        currentYear >=
-          currentYear - yearsToLoad + 1
-      ) {
-        if (
-          currentPage >
-          maxPagesPerYear
-        ) {
-          currentYear--;
-          currentPage = 1;
-          continue;
-        }
-
-        const data =
-          await fetchTMDBPage(
-            type,
-            currentYear,
-            currentPage
-          );
-
-        results.push(
-          ...data.results.map(
-            item => ({
-              ...item,
-              media_type:
-                type
-            })
-          )
+      results =
+        results.map(
+          item => ({
+            ...item,
+            media_type:
+              "movie"
+          })
         );
+    } else if (type === "tv") {
+      results =
+        await discover("tv");
 
-        currentPage++;
-
-        if (
-          data.results.length <
-          20
-        ) {
-          currentYear--;
-          currentPage = 1;
-        }
-
-        remainingResults -=
-          data.results.length;
-      }
+      results =
+        results.map(
+          item => ({
+            ...item,
+            media_type:
+              "tv"
+          })
+        );
     } else {
       const [
-        movieData,
-        tvData
+        movieResults,
+        tvResults
       ] = await Promise.all([
-        fetchTMDBPage(
-          "movie",
-          currentYear,
-          pageOffset + 1
-        ),
-        fetchTMDBPage(
-          "tv",
-          currentYear,
-          pageOffset + 1
-        )
+        discover("movie"),
+        discover("tv")
       ]);
 
       results = [
-        ...movieData.results.map(
+        ...movieResults.map(
           item => ({
             ...item,
             media_type:
               "movie"
           })
         ),
-        ...tvData.results.map(
+        ...tvResults.map(
           item => ({
             ...item,
             media_type:
@@ -2133,6 +2110,18 @@ if (
       );
 
     results =
+      results.filter(
+        (item, index, array) =>
+          array.findIndex(
+            existing =>
+              existing.id ===
+              item.id &&
+              existing.media_type ===
+              item.media_type
+          ) === index
+      );
+
+    results =
       results.sort(
         (a, b) => {
           const aDate =
@@ -2145,9 +2134,7 @@ if (
               ? b.first_air_date || ""
               : b.release_date || "";
 
-          if (
-            aDate !== bDate
-          ) {
+          if (aDate !== bDate) {
             return bDate.localeCompare(
               aDate
             );
@@ -2172,13 +2159,18 @@ if (
 
     const hasMore =
       results.length ===
-      resultsPerRequest;
+        resultsPerRequest &&
+      page * resultsPerRequest <
+        maxResults;
 
     return json({
       page,
       total_pages:
         hasMore
-          ? page + 1
+          ? Math.ceil(
+              maxResults /
+                resultsPerRequest
+            )
           : page,
       results
     });
