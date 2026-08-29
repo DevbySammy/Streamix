@@ -1931,190 +1931,142 @@ if (
     ) || "all";
 
   const resultsPerRequest = 40;
+  const tmdbPagesPerRequest = 2;
 
-  const catalogOffset =
-    (page - 1) *
-    resultsPerRequest;
+  const startPage =
+    ((page - 1) *
+      tmdbPagesPerRequest) +
+    1;
 
-  const catalogEnd =
-    catalogOffset +
-    resultsPerRequest;
+  const endPage =
+    startPage +
+    tmdbPagesPerRequest -
+    1;
 
-  async function discover(
-    mediaType:
-      | "movie"
-      | "tv"
+async function discover(
+  mediaType:
+    | "movie"
+    | "tv"
+) {
+  const allResults: any[] = [];
+  let totalPages = 1;
+
+  const currentYear =
+    new Date().getFullYear();
+
+  const yearsToLoad = 5;
+
+  for (
+    let yearIndex = 0;
+    yearIndex < yearsToLoad;
+    yearIndex++
   ) {
-    const allResults: any[] = [];
+    const year =
+      currentYear -
+      yearIndex;
 
-    const currentYear =
-      new Date().getFullYear();
+    const dateParameter =
+      mediaType === "movie"
+        ? "primary_release_date"
+        : "first_air_date";
 
-    const oldestYear =
-      1900;
-
-    let collected =
-      0;
-
-    for (
-      let year =
-        currentYear;
-      year >= oldestYear;
-      year--
-    ) {
-      const dateParameter =
-        mediaType === "movie"
-          ? "primary_release_date"
-          : "first_air_date";
-
-      let yearResults: any[] = [];
-
-      for (
-        let tmdbPage = 1;
-        tmdbPage <= 500;
-        tmdbPage++
-      ) {
-        const response =
-          await fetch(
-            "https://api.themoviedb.org/3/discover/" +
-              mediaType +
-              "?include_adult=false" +
-              "&include_video=false" +
-              "&language=en-US" +
-              "&with_original_language=en" +
-              "&" +
-              dateParameter +
-              ".gte=" +
-              year +
-              "-01-01" +
-              "&" +
-              dateParameter +
-              ".lte=" +
-              year +
-              "-12-31" +
-              "&sort_by=popularity.desc" +
-              "&page=" +
-              tmdbPage,
-            {
-              headers: {
-                Authorization:
-                  "Bearer " +
-                  env.TMDB_READ_ACCESS_TOKEN,
-                accept:
-                  "application/json"
-              }
-            }
-          );
-
-        const data =
-          await response.json();
-
-        if (!response.ok) {
-          throw new Error(
-            typeof data?.status_message ===
-            "string"
-              ? data.status_message
-              : "TMDB request failed."
-          );
+    const response =
+      await fetch(
+        "https://api.themoviedb.org/3/discover/" +
+          mediaType +
+          "?include_adult=false" +
+          "&include_video=false" +
+          "&language=en-US" +
+          "&with_original_language=en" +
+          "&" +
+          dateParameter +
+          ".gte=" +
+          year +
+          "-01-01" +
+          "&" +
+          dateParameter +
+          ".lte=" +
+          year +
+          "-12-31" +
+          "&sort_by=popularity.desc" +
+          "&page=1",
+        {
+          headers: {
+            Authorization:
+              "Bearer " +
+              env.TMDB_READ_ACCESS_TOKEN,
+            accept:
+              "application/json"
+          }
         }
-
-        if (
-          Array.isArray(
-            data.results
-          )
-        ) {
-          const filteredResults =
-            data.results.filter(
-              (item: any) => {
-                const title =
-                  mediaType === "tv"
-                    ? item.name || ""
-                    : item.title || "";
-
-                return (
-                  item.original_language ===
-                    "en" &&
-                  /^[\x00-\x7F]*$/.test(
-                    title
-                  )
-                );
-              }
-            );
-
-          yearResults.push(
-            ...filteredResults
-          );
-        }
-
-        if (
-          !data.total_pages ||
-          tmdbPage >=
-            Number(
-              data.total_pages
-            )
-        ) {
-          break;
-        }
-
-        const neededForYear =
-          catalogEnd -
-          collected;
-
-        if (
-          yearResults.length >=
-          neededForYear
-        ) {
-          break;
-        }
-      }
-
-      allResults.push(
-        ...yearResults
       );
 
-      collected =
-        allResults.length;
+    const data =
+      await response.json();
 
-      if (
-        collected >=
-        catalogEnd
-      ) {
-        break;
-      }
+    if (!response.ok) {
+      throw new Error(
+        typeof data?.status_message ===
+        "string"
+          ? data.status_message
+          : "TMDB request failed."
+      );
     }
 
-    return {
-      results:
-        allResults
-    };
+    if (
+      Array.isArray(
+        data.results
+      )
+    ) {
+      allResults.push(
+        ...data.results
+      );
+    }
+
+    totalPages =
+      Math.max(
+        totalPages,
+        Number(
+          data.total_pages || 1
+        )
+      );
   }
+
+  return {
+    results:
+      allResults,
+    total_pages:
+      totalPages
+  };
+}
 
   try {
     let results: any[] = [];
+    let totalPages = 1;
 
     if (type === "movie") {
       const movieData =
         await discover("movie");
 
       results =
-        movieData.results.map(
-          item => ({
-            ...item,
-            media_type:
-              "movie"
-          })
+        movieData.results;
+
+      totalPages =
+        Math.ceil(
+          movieData.total_pages /
+          tmdbPagesPerRequest
         );
     } else if (type === "tv") {
       const tvData =
         await discover("tv");
 
       results =
-        tvData.results.map(
-          item => ({
-            ...item,
-            media_type:
-              "tv"
-          })
+        tvData.results;
+
+      totalPages =
+        Math.ceil(
+          tvData.total_pages /
+          tmdbPagesPerRequest
         );
     } else {
       const [
@@ -2141,7 +2093,19 @@ if (
           })
         )
       ];
-    }
+
+      totalPages =
+        Math.max(
+          Math.ceil(
+            movieData.total_pages /
+            tmdbPagesPerRequest
+          ),
+          Math.ceil(
+            tvData.total_pages /
+            tmdbPagesPerRequest
+          )
+        );
+      }
 
     results =
       results.filter(
@@ -2163,77 +2127,9 @@ if (
       );
 
     results =
-      results.filter(
-        (item, index, array) =>
-          array.findIndex(
-            existing =>
-              existing.id ===
-                item.id &&
-              existing.media_type ===
-                item.media_type
-          ) === index
-      );
-
-    results.sort(
-      (a, b) => {
-        const dateA =
-          a.media_type === "tv"
-            ? a.first_air_date || ""
-            : a.release_date || "";
-
-        const dateB =
-          b.media_type === "tv"
-            ? b.first_air_date || ""
-            : b.release_date || "";
-
-        const yearA =
-          Number(
-            String(
-              dateA
-            ).slice(0, 4)
-          ) || 0;
-
-        const yearB =
-          Number(
-            String(
-              dateB
-            ).slice(0, 4)
-          ) || 0;
-
-        if (
-          yearA !== yearB
-        ) {
-          return (
-            yearB -
-            yearA
-          );
-        }
-
-        return (
-          Number(
-            b.popularity || 0
-          ) -
-          Number(
-            a.popularity || 0
-          )
-        );
-      }
-    );
-
-    const totalResults =
-      results.length;
-
-    const totalPages =
-      Math.ceil(
-        totalResults /
-          resultsPerRequest
-      );
-
-    results =
       results.slice(
-        catalogOffset,
-        catalogOffset +
-          resultsPerRequest
+        0,
+        resultsPerRequest
       );
 
     return json({
@@ -4804,4 +4700,3 @@ return json(
     }
   }
 };
-
