@@ -2790,3 +2790,18 @@ footer span {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+
+/* =========================================================
+   REMINDERS POPUP - MOBILE
+========================================================= */
+
+@media (max-width: 700px) {
+  .modal:has(.notification-item) {
+    height: auto;
+    max-height: 70dvh;
+    width: calc(100% - 28px);
+    margin: 0 auto 14px;
+    border-radius: 16px;
+    overflow-y: auto;
+  }
+}
