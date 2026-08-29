@@ -3259,6 +3259,11 @@ return [...filtered].sort(
         return b.name.localeCompare(
           a.name
         );
+           case "popular":
+        return (
+          Number(b.popularity || 0) -
+          Number(a.popularity || 0)
+        );
 
       case "year-desc":
         return b.year - a.year;
