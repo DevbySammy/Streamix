@@ -4380,7 +4380,7 @@ LIBRARY CONTROLS
     />
   ))}
 
-  {!visible.length && (
+{!libraryLoading && !visible.length && (
     <div className="empty">
       {library.length === 0
         ? "Your library is empty."
