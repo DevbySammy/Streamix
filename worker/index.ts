@@ -2092,7 +2092,7 @@ if (
           )
         );
 
-     results.sort(
+    results.sort(
   (a, b) => {
     const dateA =
       a.media_type === "tv"
@@ -2104,8 +2104,29 @@ if (
         ? b.first_air_date || ""
         : b.release_date || "";
 
-    return dateB.localeCompare(
-      dateA
+    const yearA =
+      Number(
+        dateA.slice(0, 4)
+      ) || 0;
+
+    const yearB =
+      Number(
+        dateB.slice(0, 4)
+      ) || 0;
+
+    if (
+      yearA !== yearB
+    ) {
+      return yearB - yearA;
+    }
+
+    return (
+      Number(
+        b.popularity || 0
+      ) -
+      Number(
+        a.popularity || 0
+      )
     );
   }
 );
