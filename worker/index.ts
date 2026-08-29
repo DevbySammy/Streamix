@@ -1975,7 +1975,7 @@ const lastTMDBPage =
       tmdbPage <= lastTMDBPage;
       tmdbPage++
     ) {
-             const response =
+                const response =
         await fetch(
           "https://api.themoviedb.org/3/discover/" +
             mediaType +
@@ -1983,21 +1983,18 @@ const lastTMDBPage =
             "&include_video=false" +
             "&language=en-US" +
             "&with_original_language=en" +
-            (
-          (
-  sort === "popularity"
-    ? ""
-    : "&" +
-      dateParameter +
-      ".gte=" +
-      currentYear +
-      "-01-01" +
-      "&" +
-      dateParameter +
-      ".lte=" +
-      currentYear +
-      "-12-31"
-) +
+            (sort === "popularity"
+              ? ""
+              : "&" +
+                dateParameter +
+                ".gte=" +
+                currentYear +
+                "-01-01" +
+                "&" +
+                dateParameter +
+                ".lte=" +
+                currentYear +
+                "-12-31") +
             "&sort_by=" +
             sortParameter +
             "&page=" +
