@@ -428,30 +428,10 @@ function App() {
    const [sort, setSort] =
   useState<SortOption>("year-desc");
    
-  const [
-    tmdbCatalog,
-    setTmdbCatalog
-  ] = useState<Title[]>(() => {
-    try {
-      const cached =
-        localStorage.getItem(
-          "sx-tmdb-catalog"
-        );
-
-      if (!cached) {
-        return [];
-      }
-
-      const parsed =
-        JSON.parse(cached);
-
-      return Array.isArray(parsed)
-        ? parsed
-        : [];
-    } catch {
-      return [];
-    }
-  });
+ const [
+  tmdbCatalog,
+  setTmdbCatalog
+] = useState<Title[]>([]);
 
   const [
     tmdbCatalogPage,
