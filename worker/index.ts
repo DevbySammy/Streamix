@@ -2137,35 +2137,46 @@ results =
           item.media_type
       ) === index
   );
-    results =
-      results.sort(
-        (a, b) => {
-          const aDate =
-            a.media_type === "tv"
-              ? a.first_air_date || ""
-              : a.release_date || "";
+  results =
+  results.sort(
+    (a, b) => {
+      if (sort === "popularity") {
+        return (
+          Number(
+            b.popularity || 0
+          ) -
+          Number(
+            a.popularity || 0
+          )
+        );
+      }
 
-          const bDate =
-            b.media_type === "tv"
-              ? b.first_air_date || ""
-              : b.release_date || "";
+      const aDate =
+        a.media_type === "tv"
+          ? a.first_air_date || ""
+          : a.release_date || "";
 
-          if (aDate !== bDate) {
-            return bDate.localeCompare(
-              aDate
-            );
-          }
+      const bDate =
+        b.media_type === "tv"
+          ? b.first_air_date || ""
+          : b.release_date || "";
 
-          return (
-            Number(
-              b.popularity || 0
-            ) -
-            Number(
-              a.popularity || 0
-            )
-          );
-        }
+      if (aDate !== bDate) {
+        return bDate.localeCompare(
+          aDate
+        );
+      }
+
+      return (
+        Number(
+          b.popularity || 0
+        ) -
+        Number(
+          a.popularity || 0
+        )
       );
+    }
+  );
 
     results =
       results.slice(
