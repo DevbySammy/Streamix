@@ -454,6 +454,9 @@ function App() {
   ] = useState(40);
 
 useEffect(() => {
+  const controller =
+    new AbortController();
+
   async function loadTMDBCatalog() {
     setTmdbCatalogLoading(true);
 
@@ -467,6 +470,8 @@ useEffect(() => {
         await fetch(
           `https://streamix.gaintrainstrong.workers.dev/api/tmdb/catalog?page=1&type=${kind}&sort=${sort === "popularity" ? "popularity" : "newest"}`,
           {
+            signal:
+              controller.signal,
             headers: sessionId
               ? {
                   Authorization:
@@ -484,6 +489,10 @@ useEffect(() => {
 
       const data =
         await response.json();
+
+      if (controller.signal.aborted) {
+        return;
+      }
 
       const titles: Title[] =
         Array.isArray(data.results)
@@ -513,7 +522,8 @@ useEffect(() => {
                       : item.name ||
                         "Untitled",
 
-                  kind: itemKind,
+                  kind:
+                    itemKind,
 
                   year:
                     releaseDate
@@ -549,6 +559,10 @@ useEffect(() => {
             )
           : [];
 
+      if (controller.signal.aborted) {
+        return;
+      }
+
       setTmdbCatalog(
         titles
       );
@@ -569,6 +583,13 @@ useEffect(() => {
 
       setTmdbCatalogLimit(40);
     } catch (error) {
+      if (
+        error instanceof DOMException &&
+        error.name === "AbortError"
+      ) {
+        return;
+      }
+
       console.error(
         "Failed to load TMDB catalog:",
         error
@@ -578,13 +599,19 @@ useEffect(() => {
       setTmdbCatalogPage(1);
       setTmdbCatalogHasMore(false);
     } finally {
-      setTmdbCatalogLoading(
-        false
-      );
+      if (!controller.signal.aborted) {
+        setTmdbCatalogLoading(
+          false
+        );
+      }
     }
   }
 
   loadTMDBCatalog();
+
+  return () => {
+    controller.abort();
+  };
 }, [kind, sort]);
 
 async function loadNextTMDBCatalogPage() {
