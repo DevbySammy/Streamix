@@ -4826,7 +4826,7 @@ LIBRARY CONTROLS
       )
   : tmdbCatalogHasMore
   ) && (
-   onClick={async event => {
+  onClick={event => {
   event.currentTarget.blur();
 
   const currentScrollY =
@@ -4869,14 +4869,14 @@ LIBRARY CONTROLS
           return;
         }
 
-        await loadNextTMDBCatalogPage();
+        loadNextTMDBCatalogPage();
 
-        requestAnimationFrame(() => {
-          window.scrollTo(
-            0,
-            currentScrollY
-          );
-        });
+requestAnimationFrame(() => {
+  window.scrollTo(
+    0,
+    currentScrollY
+  );
+});
       }}
     >
       Show more
