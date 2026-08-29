@@ -464,11 +464,8 @@ const [
 
    useEffect(() => {
   async function loadTMDBCatalog() {
-    if (
-      tmdbCatalogLoading ||
-      tmdbCatalog.length > 0
-    ) {
-      return;
+  if (tmdbCatalogLoading) {
+  return;
     }
 
     setTmdbCatalogLoading(true);
