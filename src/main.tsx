@@ -414,175 +414,64 @@ APP
 function App() {
   const [library, setLibrary] = useState<Title[]>([]);
 
-  const [
-    libraryLoading,
-    setLibraryLoading
-  ] = useState(true);
+   const [libraryLoading, setLibraryLoading] =
+  useState(true);
 
   const [
-    tmdbCatalog,
-    setTmdbCatalog
-  ] = useState<Title[]>([]);
+  tmdbCatalog,
+  setTmdbCatalog
+] = useState<Title[]>(() => {
+  try {
+    const cached =
+      localStorage.getItem(
+        "sx-tmdb-catalog"
+      );
 
-  const [
-    tmdbCatalogPage,
-    setTmdbCatalogPage
-  ] = useState(1);
-
-  const [
-    tmdbCatalogLoading,
-    setTmdbCatalogLoading
-  ] = useState(false);
-
-  const [
-    tmdbCatalogHasMore,
-    setTmdbCatalogHasMore
-  ] = useState(true);
-
-  const [
-    tmdbCatalogLimit,
-    setTmdbCatalogLimit
-  ] = useState(40);
-
-  useEffect(() => {
-    async function loadTMDBCatalog() {
-      if (tmdbCatalogLoading) {
-        return;
-      }
-
-      setTmdbCatalogLoading(true);
-
-      try {
-        const sessionId =
-          localStorage.getItem(
-            "sx-session-token"
-          );
-
-        const response =
-          await fetch(
-            "https://streamix.gaintrainstrong.workers.dev/api/tmdb/catalog?page=1&type=all",
-            {
-              headers: sessionId
-                ? {
-                    Authorization:
-                      `Bearer ${sessionId}`
-                  }
-                : {}
-            }
-          );
-
-        if (!response.ok) {
-          throw new Error(
-            "Failed to load TMDB catalog"
-          );
-        }
-
-        const data =
-          await response.json();
-
-        const titles: Title[] =
-          Array.isArray(data.results)
-            ? data.results.map(
-                (item: any): Title => {
-                  const kind: Kind =
-                    item.media_type === "tv"
-                      ? "tv"
-                      : "movie";
-
-                  const releaseDate =
-                    kind === "movie"
-                      ? item.release_date
-                      : item.first_air_date;
-
-                  return {
-                    id:
-                      "tmdb-" +
-                      kind +
-                      "-" +
-                      String(item.id),
-
-                    name:
-                      kind === "movie"
-                        ? item.title ||
-                          "Untitled"
-                        : item.name ||
-                          "Untitled",
-
-                    kind,
-
-                    year:
-                      releaseDate
-                        ? Number(
-                            String(
-                              releaseDate
-                            ).slice(0, 4)
-                          )
-                        : 0,
-
-                    poster:
-                      getPosterUrl(
-                        item.poster_path
-                      ),
-
-                    backdrop:
-                      getBackdropUrl(
-                        item.backdrop_path
-                      ),
-
-                    overview:
-                      item.overview || "",
-
-                    addedAt:
-                      new Date().toISOString()
-                  };
-                }
-              )
-            : [];
-
-        setTmdbCatalog(
-          titles
-        );
-
-        setTmdbCatalogPage(
-          1
-        );
-
-        setTmdbCatalogLimit(
-          40
-        );
-
-        setTmdbCatalogHasMore(
-          1 <
-            Number(
-              data.total_pages || 0
-            )
-        );
-      } catch (error) {
-        console.error(
-          "Failed to load TMDB catalog:",
-          error
-        );
-      } finally {
-        setTmdbCatalogLoading(
-          false
-        );
-      }
+    if (!cached) {
+      return [];
     }
 
-    loadTMDBCatalog();
-  }, []);
+    const parsed =
+      JSON.parse(cached);
 
-  async function loadNextTMDBCatalogPage() {
+    return Array.isArray(parsed)
+      ? parsed
+      : [];
+  } catch {
+    return [];
+  }
+});
+
+const [
+  tmdbCatalogPage,
+  setTmdbCatalogPage
+] = useState(1);
+
+const [
+  tmdbCatalogLoading,
+  setTmdbCatalogLoading
+] = useState(false);
+
+const [
+  tmdbCatalogHasMore,
+  setTmdbCatalogHasMore
+] = useState(true);
+
+const [
+  tmdbCatalogLimit,
+  setTmdbCatalogLimit
+] = useState(40);
+
+   useEffect(() => {
+  async function loadTMDBCatalog() {
     if (
       tmdbCatalogLoading ||
-      !tmdbCatalogHasMore
+      tmdbCatalog.length > 0
     ) {
       return;
     }
 
-    setTmdbCatalogLoading(
-      true
-    );
+    setTmdbCatalogLoading(true);
 
     try {
       const sessionId =
@@ -590,12 +479,9 @@ function App() {
           "sx-session-token"
         );
 
-      const nextPage =
-        tmdbCatalogPage + 1;
-
       const response =
         await fetch(
-          `https://streamix.gaintrainstrong.workers.dev/api/tmdb/catalog?page=${nextPage}&type=all`,
+          "https://streamix.gaintrainstrong.workers.dev/api/tmdb/catalog?page=1&type=all",
           {
             headers: sessionId
               ? {
@@ -608,7 +494,7 @@ function App() {
 
       if (!response.ok) {
         throw new Error(
-          "Failed to load next TMDB catalog page"
+          "Failed to load TMDB catalog"
         );
       }
 
@@ -674,59 +560,19 @@ function App() {
             )
           : [];
 
-      setTmdbCatalog(
-        current => {
-          const existingIds =
-            new Set(
-              current.map(
-                title => title.id
-              )
-            );
+     setTmdbCatalog(
+  titles
+);
 
-          const newTitles =
-            titles.filter(
-              title => {
-                if (
-                  existingIds.has(
-                    title.id
-                  )
-                ) {
-                  return false;
-                }
+localStorage.setItem(
+  "sx-tmdb-catalog",
+  JSON.stringify(titles)
+);
 
-                existingIds.add(
-                  title.id
-                );
-
-                return true;
-              }
-            );
-
-          return [
-            ...current,
-            ...newTitles
-          ];
-        }
-      );
-
-      setTmdbCatalogPage(
-        nextPage
-      );
-
-      setTmdbCatalogHasMore(
-        nextPage <
-          Number(
-            data.total_pages || 0
-          )
-      );
-
-      setTmdbCatalogLimit(
-        current =>
-          current + 40
-      );
+setTmdbCatalogPage(1);
     } catch (error) {
       console.error(
-        "Failed to load next TMDB catalog page:",
+        "Failed to load TMDB catalog:",
         error
       );
     } finally {
@@ -736,418 +582,352 @@ function App() {
     }
   }
 
-  const [
-    justAdded,
-    setJustAdded
-  ] = useState<Title[]>([]);
+  loadTMDBCatalog();
+}, []);
 
-  const [
-    justAddedLoading,
-    setJustAddedLoading
-  ] = useState(true);
+async function loadNextTMDBCatalogPage() {
+  if (
+    tmdbCatalogLoading ||
+    tmdbCatalogLimit >= 200
+  ) {
+    return;
+  }
 
-  const [
-    hiddenJustAdded,
-    setHiddenJustAdded
-  ] = useState<Title[]>([]);
+  setTmdbCatalogLoading(true);
 
-  const [
-    justAddedView,
-    setJustAddedView
-  ] = useState<
-    "visible" | "hidden"
-  >("visible");
-
-  {/* this one piece of code below shows 30 - 30 movies listed before you press show more */}
-  const [
-    justAddedLimit,
-    setJustAddedLimit
-  ] = useState(30);
-
-  const [
-    hiddenJustAddedLimit,
-    setHiddenJustAddedLimit
-  ] = useState(30);
-
-  const [
-    hiddenSearch,
-    setHiddenSearch
-  ] = useState("");
-
-  const [
-    isMobile,
-    setIsMobile
-  ] = useState(false);
-
-  const [
-    showScrollTop,
-    setShowScrollTop
-  ] = useState(false);
-
-  useEffect(() => {
-    const mediaQuery =
-      window.matchMedia(
-        "(max-width: 600px)"
+  try {
+    const sessionId =
+      localStorage.getItem(
+        "sx-session-token"
       );
 
-    const updateMobile =
-      () => {
-        setIsMobile(
-          mediaQuery.matches
-        );
+    const nextPage =
+      tmdbCatalogPage + 1;
 
-        setHiddenJustAddedLimit(
-          mediaQuery.matches
-            ? 20
-            : 30
-        );
-      };
-
-    updateMobile();
-
-    mediaQuery.addEventListener(
-      "change",
-      updateMobile
-    );
-
-    return () =>
-      mediaQuery.removeEventListener(
-        "change",
-        updateMobile
-      );
-  }, []);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setShowScrollTop(
-        window.scrollY > 100
-      );
-    };
-
-    window.addEventListener(
-      "scroll",
-      handleScroll,
-      { passive: true }
-    );
-
-    handleScroll();
-
-    return () => {
-      window.removeEventListener(
-        "scroll",
-        handleScroll
-      );
-    };
-  }, []);
-
-  useEffect(() => {
-    async function loadLibrary() {
-      try {
-        const response =
-          await fetch(
-            "/api/library"
-          );
-
-        if (!response.ok) {
-          throw new Error(
-            "Failed to load library"
-          );
+    const response =
+      await fetch(
+        `https://streamix.gaintrainstrong.workers.dev/api/tmdb/catalog?page=${nextPage}&type=all`,
+        {
+          headers: sessionId
+            ? {
+                Authorization:
+                  `Bearer ${sessionId}`
+              }
+            : {}
         }
+      );
 
-        const data =
-          await response.json();
+    if (!response.ok) {
+      throw new Error(
+        "Failed to load next TMDB catalog page"
+      );
+    }
 
-        const titles: Title[] =
-          Array.isArray(data)
-            ? data.map(
-                (item: any): Title => {
-                  const kind: Kind =
-                    item.media_type === "tv"
-                      ? "tv"
-                      : "movie";
+    const data =
+      await response.json();
 
-                  const releaseDate =
-                    item.release_date ||
-                    "";
+    const titles: Title[] =
+      Array.isArray(data.results)
+        ? data.results.map(
+            (item: any): Title => {
+              const kind: Kind =
+                item.media_type === "tv"
+                  ? "tv"
+                  : "movie";
 
-                  return {
-                    id:
-                      item.id ||
-                      (
-                        "tmdb-" +
-                        kind +
-                        "-" +
-                        String(
-                          item.tmdb_id
-                        )
-                      ),
+              const releaseDate =
+                kind === "movie"
+                  ? item.release_date
+                  : item.first_air_date;
 
-                    name:
-                      item.title ||
+              return {
+                id:
+                  "tmdb-" +
+                  kind +
+                  "-" +
+                  String(item.id),
+
+                name:
+                  kind === "movie"
+                    ? item.title ||
+                      "Untitled"
+                    : item.name ||
                       "Untitled",
 
-                    kind,
+                kind,
 
-                    year:
-                      releaseDate
-                        ? Number(
-                            String(
-                              releaseDate
-                            ).slice(0, 4)
-                          )
-                        : 0,
+                year:
+                  releaseDate
+                    ? Number(
+                        String(
+                          releaseDate
+                        ).slice(0, 4)
+                      )
+                    : 0,
 
-                    poster:
-                      getPosterUrl(
-                        item.poster_path
-                      ),
+                poster:
+                  getPosterUrl(
+                    item.poster_path
+                  ),
 
-                    backdrop:
-                      getBackdropUrl(
-                        item.backdrop_path
-                      ),
+                backdrop:
+                  getBackdropUrl(
+                    item.backdrop_path
+                  ),
 
-                    overview:
-                      item.overview || "",
+                overview:
+                  item.overview || "",
 
-                    addedAt:
-                      item.created_at ||
-                      ""
-                  };
-                }
-              )
-            : [];
+                addedAt:
+                  new Date().toISOString()
+              };
+            }
+          )
+        : [];
 
-        setLibrary(
-          titles
-        );
-
-        /* =================================================
-        LOAD HIDDEN JUST ADDED
-        ================================================= */
-
-        const sessionId =
-          localStorage.getItem(
-            "sx-session-token"
+    setTmdbCatalog(
+      current => {
+        const existingIds =
+          new Set(
+            current.map(
+              title => title.id
+            )
           );
 
-        const hiddenResponse =
-          await fetch(
-            "https://streamix.gaintrainstrong.workers.dev/api/tmdb/just-added/hidden",
-            {
-              headers: sessionId
-                ? {
-                    Authorization:
-                      `Bearer ${sessionId}`
-                  }
-                : {}
+        const newTitles =
+          titles.filter(
+            title => {
+              if (
+                existingIds.has(
+                  title.id
+                )
+              ) {
+                return false;
+              }
+
+              existingIds.add(
+                title.id
+              );
+
+              return true;
             }
           );
 
-        console.log(
-          "HIDDEN RESPONSE:",
-          hiddenResponse.status
+        return [
+          ...current,
+          ...newTitles
+        ];
+      }
+    );
+
+    setTmdbCatalogPage(
+      nextPage
+    );
+
+    setTmdbCatalogHasMore(
+      nextPage <
+        Number(
+          data.total_pages || 0
+        )
+    );
+
+    setTmdbCatalogLimit(
+      current =>
+        Math.min(
+          current + 40,
+          200
+        )
+    );
+  } catch (error) {
+    console.error(
+      "Failed to load next TMDB catalog page:",
+      error
+    );
+  } finally {
+    setTmdbCatalogLoading(
+      false
+    );
+  }
+}
+   
+ const [
+  justAdded,
+  setJustAdded
+] = useState<Title[]>([]);
+
+const [
+  justAddedLoading,
+  setJustAddedLoading
+] = useState(true);
+
+const [
+  hiddenJustAdded,
+  setHiddenJustAdded
+] = useState<Title[]>([]);
+
+const [
+  justAddedView,
+  setJustAddedView
+] = useState<
+  "visible" | "hidden"
+>("visible");
+
+{/* this one piece of code below shows 30 - 30 movies listed before you press show more */}
+   const [
+  justAddedLimit,
+  setJustAddedLimit
+] = useState(30);
+
+   const [
+  hiddenJustAddedLimit,
+  setHiddenJustAddedLimit
+] = useState(30);
+
+const [
+  hiddenSearch,
+  setHiddenSearch
+] = useState("");
+
+const [
+  isMobile,
+  setIsMobile
+] = useState(false);
+
+const [
+  showScrollTop,
+  setShowScrollTop
+] = useState(false);
+
+useEffect(() => {
+    const mediaQuery =
+    window.matchMedia(
+      "(max-width: 600px)"
+    );
+
+  const updateMobile =
+    () => {
+      setIsMobile(
+        mediaQuery.matches
+      );
+      setHiddenJustAddedLimit(
+        mediaQuery.matches
+          ? 20
+          : 30
+      );
+    };
+
+  updateMobile();
+
+  mediaQuery.addEventListener(
+    "change",
+    updateMobile
+  );
+
+  return () =>
+    mediaQuery.removeEventListener(
+      "change",
+      updateMobile
+    );
+}, []);
+   useEffect(() => {
+  const handleScroll = () => {
+    setShowScrollTop(
+      window.scrollY > 100
+    );
+  };
+
+  window.addEventListener(
+    "scroll",
+    handleScroll,
+    { passive: true }
+  );
+
+  handleScroll();
+
+  return () => {
+    window.removeEventListener(
+      "scroll",
+      handleScroll
+    );
+  };
+}, []);
+   
+useEffect(() => {
+  async function loadLibrary() {
+    try {
+      const response =
+        await fetch("/api/library");
+
+      if (!response.ok) {
+        throw new Error(
+          "Failed to load library"
         );
+      }
 
-        console.log(
-          "HIDDEN RESPONSE BODY:",
-          await hiddenResponse
-            .clone()
-            .text()
-        );
+      const data =
+        await response.json();
 
-        if (
-          hiddenResponse.ok
-        ) {
-          const hiddenData =
-            await hiddenResponse.json();
+      const titles: Title[] =
+        Array.isArray(data)
+          ? data.map(
+              (item: any): Title => {
+                const kind: Kind =
+                  item.media_type === "tv"
+                    ? "tv"
+                    : "movie";
 
-          if (
-            Array.isArray(
-              hiddenData.results
-            )
-          ) {
-            const hiddenTitles: Title[] =
-              hiddenData.results.map(
-                (item: any): Title => {
-                  if (
-                    item.name &&
-                    item.kind &&
-                    typeof item.year ===
-                      "number"
-                  ) {
-                    return {
-                      id:
-                        item.id,
+                const releaseDate =
+                  item.release_date || "";
 
-                      name:
-                        item.name,
-
-                      kind:
-                        item.kind,
-
-                      year:
-                        item.year,
-
-                      poster:
-                        item.poster ||
-                        "",
-
-                      backdrop:
-                        item.backdrop ||
-                        "",
-
-                      overview:
-                        item.overview ||
-                        "",
-
-                      addedAt:
-                        item.addedAt ||
-                        item.hidden_at ||
-                        ""
-                    };
-                  }
-
-                  const kind: Kind =
-                    item.media_type ===
-                    "tv"
-                      ? "tv"
-                      : "movie";
-
-                  const releaseDate =
-                    kind === "movie"
-                      ? item.release_date
-                      : item.first_air_date;
-
-                  return {
-                    id:
+                return {
+                  id:
+                    item.id ||
+                    (
                       "tmdb-" +
                       kind +
                       "-" +
                       String(
-                        item.id
-                      ),
+                        item.tmdb_id
+                      )
+                    ),
 
-                    name:
-                      kind === "movie"
-                        ? item.title ||
-                          "Untitled"
-                        : item.name ||
-                          "Untitled",
+                  name:
+                    item.title ||
+                    "Untitled",
 
-                    kind,
+                  kind,
 
-                    year:
-                      releaseDate
-                        ? Number(
-                            String(
-                              releaseDate
-                            ).slice(0, 4)
-                          )
-                        : 0,
+                  year:
+                    releaseDate
+                      ? Number(
+                          String(
+                            releaseDate
+                          ).slice(0, 4)
+                        )
+                      : 0,
 
-                    poster:
-                      getPosterUrl(
-                        item.poster_path
-                      ),
+                  poster:
+                    getPosterUrl(
+                      item.poster_path
+                    ),
 
-                    backdrop:
-                      getBackdropUrl(
-                        item.backdrop_path
-                      ),
+                  backdrop:
+                    getBackdropUrl(
+                      item.backdrop_path
+                    ),
 
-                    overview:
-                      item.overview || "",
+                  overview:
+                    item.overview || "",
 
-                    addedAt:
-                      item.hidden_at ||
-                      ""
-                  };
-                }
-              );
+                  addedAt:
+                    item.created_at || ""
+                };
+              }
+            )
+          : [];
 
-            setHiddenJustAdded(
-              Array.from(
-                new Map(
-                  hiddenTitles.map(
-                    title => [
-                      title.id,
-                      title
-                    ]
-                  )
-                ).values()
-              )
-            );
-          }
-        }
-      } catch (error) {
-        console.error(
-          "Failed to load library:",
-          error
-        );
-      } finally {
-        setLibraryLoading(
-          false
-        );
-        setJustAddedLoading(
-          false
-        );
-      }
-    }
+setLibrary(titles);
 
-    loadLibrary();
-
-    const handleAppResume = () => {
-      if (
-        document.visibilityState ===
-        "visible"
-      ) {
-        loadLibrary();
-      }
-    };
-
-    document.addEventListener(
-      "visibilitychange",
-      handleAppResume
-    );
-
-    window.addEventListener(
-      "focus",
-      handleAppResume
-    );
-
-    return () => {
-      document.removeEventListener(
-        "visibilitychange",
-        handleAppResume
-      );
-
-      window.removeEventListener(
-        "focus",
-        handleAppResume
-      );
-    };
-  }, []);
-
-  const [
-    profiles,
-    setProfiles
-  ] = useState<Profile[]>([]);
-
-  const [
-    profilesLoading,
-    setProfilesLoading
-  ] = useState(true);
-
-  const [
-    deletedProfiles,
-    setDeletedProfiles
-  ] = useState<Profile[]>([]);
-
-  const [
-    deletedProfilesLoading,
-    setDeletedProfilesLoading
-  ] = useState(false);
       /* =================================================
       LOAD HIDDEN JUST ADDED
       ================================================= */
@@ -3448,40 +3228,36 @@ const visible = useMemo(() => {
     );
   }
 
-  const sorted = [...filtered].sort(
-    (a, b) => {
-      switch (sort) {
-        case "name-desc":
-          return b.name.localeCompare(
-            a.name
-          );
+if (
+  !q.trim() &&
+  filter === "all" &&
+  sort === "year-desc"
+) {
+  return filtered;
+}
 
-        case "year-desc":
-          return b.year - a.year;
+return [...filtered].sort(
+  (a, b) => {
+    switch (sort) {
+      case "name-desc":
+        return b.name.localeCompare(
+          a.name
+        );
 
-        case "year-asc":
-          return a.year - b.year;
+      case "year-desc":
+        return b.year - a.year;
 
-        case "name-asc":
-        default:
-          return a.name.localeCompare(
-            b.name
-          );
-      }
+      case "year-asc":
+        return a.year - b.year;
+
+      case "name-asc":
+      default:
+        return a.name.localeCompare(
+          b.name
+        );
     }
-  );
-
-  if (
-    !q.trim() &&
-    filter === "all"
-  ) {
-    return sorted.slice(
-      0,
-      tmdbCatalogLimit
-    );
   }
-
-  return sorted;
+);
 }, [
   library,
   tmdbCatalog,
@@ -3497,9 +3273,9 @@ const visible = useMemo(() => {
   hiddenJustAddedLimit,
   hiddenSearch,
   state,
-  isAdmin,
-  tmdbCatalogLimit
+  isAdmin
 ]);
+   
 /* =======================================================
 AUTHENTICATION ACTIONS
 ======================================================= */
