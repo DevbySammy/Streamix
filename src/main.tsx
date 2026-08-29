@@ -72,7 +72,7 @@ message: string;
 
 type SortOption =
 | "just-added"
-| "popularity-desc";
+| "popularity";
 | "year-desc"
 | "year-asc";
 | "name-asc"
@@ -4697,7 +4697,7 @@ LIBRARY CONTROLS
     Just Added
   </option>
 
-   <option value="popularity-desc"> 
+   <option value="popularity"> 
       Most Popular 
    </option>
 
