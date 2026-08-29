@@ -4338,7 +4338,7 @@ LIBRARY CONTROLS
 
 <div className="grid">
 
- {libraryLoading || justAddedLoading ? (
+{libraryLoading ? (
   <></>
 ) : visible.length > 0 ? (
     visible.map(title => (
