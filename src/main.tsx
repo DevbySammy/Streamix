@@ -471,7 +471,13 @@ function App() {
   ] = useState(40);
 
  useEffect(() => {
-  async function loadTMDBCatalog() {
+  if (
+    sort !== "popularity"
+  ) {
+    return;
+  }
+
+  async function loadPopularTMDBCatalog() {
     setTmdbCatalogLoading(true);
 
     try {
@@ -480,22 +486,22 @@ function App() {
           "sx-session-token"
         );
 
-     const response =
-  await fetch(
-    `https://streamix.gaintrainstrong.workers.dev/api/tmdb/catalog?page=1&type=${kind}&sort=${sort === "popularity" ? "popularity" : "newest"}`,
-    {
-      headers: sessionId
-        ? {
-            Authorization:
-              `Bearer ${sessionId}`
+      const response =
+        await fetch(
+          `https://streamix.gaintrainstrong.workers.dev/api/tmdb/catalog?page=1&type=${kind}&sort=popularity`,
+          {
+            headers: sessionId
+              ? {
+                  Authorization:
+                    `Bearer ${sessionId}`
+                }
+              : {}
           }
-        : {}
-    }
-  );
+        );
 
       if (!response.ok) {
         throw new Error(
-          "Failed to load TMDB catalog"
+          "Failed to load popular TMDB catalog"
         );
       }
 
@@ -554,11 +560,11 @@ function App() {
                   overview:
                     item.overview || "",
 
-                   popularity:
+                  popularity:
                     Number(
-                   item.popularity || 0
+                      item.popularity || 0
                     ),
-                   
+
                   addedAt:
                     new Date().toISOString()
                 };
@@ -568,11 +574,6 @@ function App() {
 
       setTmdbCatalog(
         titles
-      );
-
-      localStorage.setItem(
-        "sx-tmdb-catalog",
-        JSON.stringify(titles)
       );
 
       setTmdbCatalogPage(1);
@@ -587,7 +588,7 @@ function App() {
       setTmdbCatalogLimit(40);
     } catch (error) {
       console.error(
-        "Failed to load TMDB catalog:",
+        "Failed to load popular TMDB catalog:",
         error
       );
 
@@ -601,8 +602,8 @@ function App() {
     }
   }
 
-loadTMDBCatalog();
-}, [kind]);
+  loadPopularTMDBCatalog();
+}, [sort, kind]);
 
 async function loadNextTMDBCatalogPage() {
   if (
