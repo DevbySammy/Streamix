@@ -457,6 +457,11 @@ useEffect(() => {
   const controller =
     new AbortController();
 
+   setTmdbCatalog([]);
+setTmdbCatalogPage(1);
+setTmdbCatalogHasMore(true);
+setTmdbCatalogLimit(40);
+
   async function loadTMDBCatalog() {
     setTmdbCatalogLoading(true);
 
