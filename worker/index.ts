@@ -1975,30 +1975,32 @@ const lastTMDBPage =
       tmdbPage <= lastTMDBPage;
       tmdbPage++
     ) {
-                const response =
+        const response =
         await fetch(
-          "https://api.themoviedb.org/3/discover/" +
-            mediaType +
-            "?include_adult=false" +
-            "&include_video=false" +
-            "&language=en-US" +
-            "&with_original_language=en" +
-            (sort === "popularity"
-              ? ""
-              : "&" +
-                dateParameter +
-                ".gte=" +
-                currentYear +
-                "-01-01" +
-                "&" +
-                dateParameter +
-                ".lte=" +
-                currentYear +
-                "-12-31") +
-            "&sort_by=" +
-            sortParameter +
-            "&page=" +
-            tmdbPage,
+        sort === "popularity"
+            ? "https://api.themoviedb.org/3/trending/" +
+              mediaType +
+              "/week?language=en-US"
+            : "https://api.themoviedb.org/3/discover/" +
+              mediaType +
+              "?include_adult=false" +
+              "&include_video=false" +
+              "&language=en-US" +
+              "&with_original_language=en" +
+              "&" +
+              dateParameter +
+              ".gte=" +
+              currentYear +
+              "-01-01" +
+              "&" +
+              dateParameter +
+              ".lte=" +
+              currentYear +
+              "-12-31" +
+              "&sort_by=" +
+              sortParameter +
+              "&page=" +
+              tmdbPage,
           {
             headers: {
               Authorization:
@@ -2121,16 +2123,6 @@ results =
       );
     }
   );
-
-    if (sort === "popularity") {
-  results =
-    results.filter(
-      item =>
-        Number(
-          item.popularity || 0
-        ) >= 2
-    );
-}
 
 results =
   results.filter(
