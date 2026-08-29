@@ -4340,7 +4340,9 @@ LIBRARY CONTROLS
 
 <div className="grid">
 
-{libraryLoading ? (
+{libraryLoading ||
+  (sort === "just-added" &&
+    justAddedLoading) ? (
   <></>
 ) : visible.length > 0 ? (
     visible.map(title => (
