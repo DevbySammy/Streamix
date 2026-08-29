@@ -480,18 +480,18 @@ function App() {
           "sx-session-token"
         );
 
-      const response =
-        await fetch(
-          `https://streamix.gaintrainstrong.workers.dev/api/tmdb/catalog?page=1&type=${kind}`,
-          {
-            headers: sessionId
-              ? {
-                  Authorization:
-                    `Bearer ${sessionId}`
-                }
-              : {}
+     const response =
+  await fetch(
+    `https://streamix.gaintrainstrong.workers.dev/api/tmdb/catalog?page=1&type=${kind}&sort=${sort === "popularity" ? "popularity" : "newest"}`,
+    {
+      headers: sessionId
+        ? {
+            Authorization:
+              `Bearer ${sessionId}`
           }
-        );
+        : {}
+    }
+  );
 
       if (!response.ok) {
         throw new Error(
@@ -601,8 +601,8 @@ function App() {
     }
   }
 
-  loadTMDBCatalog();
-}, [kind]);
+loadTMDBCatalog();
+}, [kind, sort]);
 
 async function loadNextTMDBCatalogPage() {
   if (
@@ -624,18 +624,18 @@ async function loadNextTMDBCatalogPage() {
     const nextPage =
       tmdbCatalogPage + 1;
 
-    const response =
-      await fetch(
-        `https://streamix.gaintrainstrong.workers.dev/api/tmdb/catalog?page=${nextPage}&type=${kind}`,
-        {
-          headers: sessionId
-            ? {
-                Authorization:
-                  `Bearer ${sessionId}`
-              }
-            : {}
-        }
-      );
+  const response =
+  await fetch(
+    `https://streamix.gaintrainstrong.workers.dev/api/tmdb/catalog?page=${nextPage}&type=${kind}&sort=${sort === "popularity" ? "popularity" : "newest"}`,
+    {
+      headers: sessionId
+        ? {
+            Authorization:
+              `Bearer ${sessionId}`
+          }
+        : {}
+    }
+  );
 
     if (!response.ok) {
       throw new Error(
