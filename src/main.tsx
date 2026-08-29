@@ -725,22 +725,27 @@ async function loadNextTMDBCatalogPage() {
   }
 }
    
-  const [
-    justAdded,
-    setJustAdded
-  ] = useState<Title[]>([]);
+ const [
+  justAdded,
+  setJustAdded
+] = useState<Title[]>([]);
 
-  const [
-    hiddenJustAdded,
-    setHiddenJustAdded
-  ] = useState<Title[]>([]);
+const [
+  justAddedLoading,
+  setJustAddedLoading
+] = useState(true);
 
-  const [
-    justAddedView,
-    setJustAddedView
-  ] = useState<
-    "visible" | "hidden"
-  >("visible");
+const [
+  hiddenJustAdded,
+  setHiddenJustAdded
+] = useState<Title[]>([]);
+
+const [
+  justAddedView,
+  setJustAddedView
+] = useState<
+  "visible" | "hidden"
+>("visible");
 
 {/* this one piece of code below shows 30 - 30 movies listed before you press show more */}
    const [
@@ -897,7 +902,6 @@ useEffect(() => {
           : [];
 
 setLibrary(titles);
-setLibraryLoading(false);
 
       /* =================================================
       LOAD HIDDEN JUST ADDED
@@ -1052,6 +1056,8 @@ setLibraryLoading(false);
           );
         }
       }
+      setLibraryLoading(false);
+
     } catch (error) {
       console.error(
         "Failed to load library:",
@@ -1175,13 +1181,18 @@ setLibraryLoading(false);
     setScheduled
   ] = useState<Scheduled[]>([]);
 
-  const [
-    heroSettings,
-    setHeroSettings
-  ] =
-    useState<HeroSettings>(
-      initialHero
-    );
+const [
+  heroSettingsLoading,
+  setHeroSettingsLoading
+] = useState(true);
+
+const [
+  heroSettings,
+  setHeroSettings
+] =
+  useState<HeroSettings>(
+    initialHero
+  );
 
   useEffect(() => {
     async function loadHeroSettings() {
@@ -1801,10 +1812,12 @@ async function subscribeToPushNotifications() {
 const [sort, setSort] =
   useState<SortOption>("year-desc");
 
- useEffect(() => {
-   if (sort !== "just-added") {
-     return;
-   }
+useEffect(() => {
+  setJustAddedLoading(true);
+
+  if (sort !== "just-added") {
+    return;
+  }
 
    async function loadJustAdded() {
      try {
@@ -1915,17 +1928,21 @@ const [sort, setSort] =
              )
            ).values()
          );
+setJustAdded(
+  dedupedTitles
+);
 
-       setJustAdded(
-         dedupedTitles
-       );
+setJustAddedLoading(false);
+        
      } catch (error) {
        console.error(
          "Failed to load Just Added:",
          error
        );
 
-       setJustAdded([]);
+      setJustAdded([]);
+
+setJustAddedLoading(false);
      }
    }
 
@@ -4321,9 +4338,9 @@ LIBRARY CONTROLS
 
 <div className="grid">
 
-  {libraryLoading ? (
-    <></>
-  ) : visible.length > 0 ? (
+ {libraryLoading || justAddedLoading ? (
+  <></>
+) : visible.length > 0 ? (
     visible.map(title => (
       <Card
         key={title.id}
