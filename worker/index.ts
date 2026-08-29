@@ -1975,7 +1975,7 @@ const lastTMDBPage =
       tmdbPage <= lastTMDBPage;
       tmdbPage++
     ) {
-         const response =
+             const response =
         await fetch(
           "https://api.themoviedb.org/3/discover/" +
             mediaType +
@@ -1985,7 +1985,8 @@ const lastTMDBPage =
             "&with_original_language=en" +
             (
               sort === "popularity"
-                ? ""
+                ? "&vote_average.gte=6" +
+                  "&vote_count.gte=100"
                 : "&" +
                   dateParameter +
                   ".gte=" +
