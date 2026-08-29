@@ -4341,8 +4341,9 @@ LIBRARY CONTROLS
 <div className="grid">
 
 {libraryLoading ||
-  (sort === "just-added" &&
-    justAddedLoading) ? (
+  (filter === "all" &&
+    sort !== "just-added" &&
+    tmdbCatalogLoading) ? (
   <></>
 ) : visible.length > 0 ? (
     visible.map(title => (
