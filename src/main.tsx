@@ -8074,7 +8074,11 @@ function Modal({
       }}
     >
       <div
-        className="modal"
+   className={
+  title === "Reminders"
+    ? "modal reminders-modal"
+    : "modal"
+}
         onMouseDown={event => {
           event.stopPropagation();
         }}
