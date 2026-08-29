@@ -2087,7 +2087,7 @@ if (
       ];
     }
 
-   results =
+results =
   results.filter(
     item => {
       const title =
@@ -2104,13 +2104,7 @@ if (
         ) &&
         typeof item.poster_path ===
           "string" &&
-        item.poster_path.trim() !== "" &&
-        (
-          sort !== "popularity" ||
-          Number(
-            item.popularity || 0
-          ) >= 5
-        )
+        item.poster_path.trim() !== ""
       );
     }
   );
