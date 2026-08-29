@@ -37,6 +37,7 @@ year: number;
 poster: string;
 backdrop: string;
 overview: string;
+popularity: number;
 addedAt?: string;
 };
 
@@ -553,6 +554,11 @@ function App() {
                   overview:
                     item.overview || "",
 
+                   popularity:
+                    Number(
+                   item.popularity || 0
+                    ),
+                   
                   addedAt:
                     new Date().toISOString()
                 };
@@ -3259,7 +3265,7 @@ return [...filtered].sort(
         return b.name.localeCompare(
           a.name
         );
-           case "popular":
+           case "popularity":
         return (
           Number(b.popularity || 0) -
           Number(a.popularity || 0)
