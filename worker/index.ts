@@ -1975,32 +1975,32 @@ const lastTMDBPage =
       tmdbPage <= lastTMDBPage;
       tmdbPage++
     ) {
-        const response =
+            const response =
         await fetch(
-        sort === "popularity"
-            ? "https://api.themoviedb.org/3/trending/" +
-              mediaType +
-              "/week?language=en-US"
-            : "https://api.themoviedb.org/3/discover/" +
-              mediaType +
-              "?include_adult=false" +
-              "&include_video=false" +
-              "&language=en-US" +
-              "&with_original_language=en" +
-              "&" +
-              dateParameter +
-              ".gte=" +
-              currentYear +
-              "-01-01" +
-              "&" +
-              dateParameter +
-              ".lte=" +
-              currentYear +
-              "-12-31" +
-              "&sort_by=" +
-              sortParameter +
-              "&page=" +
-              tmdbPage,
+          "https://api.themoviedb.org/3/discover/" +
+            mediaType +
+            "?include_adult=false" +
+            "&include_video=false" +
+            "&language=en-US" +
+            "&with_original_language=en" +
+            (
+              sort === "popularity"
+                ? ""
+                : "&" +
+                  dateParameter +
+                  ".gte=" +
+                  currentYear +
+                  "-01-01" +
+                  "&" +
+                  dateParameter +
+                  ".lte=" +
+                  currentYear +
+                  "-12-31"
+            ) +
+            "&sort_by=" +
+            sortParameter +
+            "&page=" +
+            tmdbPage,
           {
             headers: {
               Authorization:
