@@ -623,6 +623,9 @@ async function loadNextTMDBCatalogPage() {
     return;
   }
 
+  const controller =
+    new AbortController();
+
   setTmdbCatalogLoading(true);
 
   try {
@@ -634,18 +637,20 @@ async function loadNextTMDBCatalogPage() {
     const nextPage =
       tmdbCatalogPage + 1;
 
-  const response =
-  await fetch(
-    `https://streamix.gaintrainstrong.workers.dev/api/tmdb/catalog?page=${nextPage}&type=${kind}&sort=${sort === "popularity" ? "popularity" : "newest"}`,
-    {
-      headers: sessionId
-        ? {
-            Authorization:
-              `Bearer ${sessionId}`
-          }
-        : {}
-    }
-  );
+    const response =
+      await fetch(
+        `https://streamix.gaintrainstrong.workers.dev/api/tmdb/catalog?page=${nextPage}&type=${kind}&sort=${sort === "popularity" ? "popularity" : "newest"}`,
+        {
+          signal:
+            controller.signal,
+          headers: sessionId
+            ? {
+                Authorization:
+                  `Bearer ${sessionId}`
+              }
+            : {}
+        }
+      );
 
     if (!response.ok) {
       throw new Error(
@@ -655,6 +660,10 @@ async function loadNextTMDBCatalogPage() {
 
     const data =
       await response.json();
+
+    if (controller.signal.aborted) {
+      return;
+    }
 
     const titles: Title[] =
       Array.isArray(data.results)
@@ -684,7 +693,8 @@ async function loadNextTMDBCatalogPage() {
                     : item.name ||
                       "Untitled",
 
-                kind: itemKind,
+                kind:
+                  itemKind,
 
                 year:
                   releaseDate
@@ -708,12 +718,21 @@ async function loadNextTMDBCatalogPage() {
                 overview:
                   item.overview || "",
 
+                popularity:
+                  Number(
+                    item.popularity || 0
+                  ),
+
                 addedAt:
                   new Date().toISOString()
               };
             }
           )
         : [];
+
+    if (controller.signal.aborted) {
+      return;
+    }
 
     setTmdbCatalog(
       current => {
@@ -779,14 +798,23 @@ async function loadNextTMDBCatalogPage() {
         )
     );
   } catch (error) {
+    if (
+      error instanceof DOMException &&
+      error.name === "AbortError"
+    ) {
+      return;
+    }
+
     console.error(
       "Failed to load next TMDB catalog page:",
       error
     );
   } finally {
-    setTmdbCatalogLoading(
-      false
-    );
+    if (!controller.signal.aborted) {
+      setTmdbCatalogLoading(
+        false
+      );
+    }
   }
 }
    
