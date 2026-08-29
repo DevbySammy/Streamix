@@ -3228,28 +3228,36 @@ const visible = useMemo(() => {
     );
   }
 
-  return [...filtered].sort(
-    (a, b) => {
-      switch (sort) {
-        case "name-desc":
-          return b.name.localeCompare(
-            a.name
-          );
+if (
+  !q.trim() &&
+  filter === "all" &&
+  sort === "year-desc"
+) {
+  return filtered;
+}
 
-        case "year-desc":
-          return b.year - a.year;
+return [...filtered].sort(
+  (a, b) => {
+    switch (sort) {
+      case "name-desc":
+        return b.name.localeCompare(
+          a.name
+        );
 
-        case "year-asc":
-          return a.year - b.year;
+      case "year-desc":
+        return b.year - a.year;
 
-        case "name-asc":
-        default:
-          return a.name.localeCompare(
-            b.name
-          );
-      }
+      case "year-asc":
+        return a.year - b.year;
+
+      case "name-asc":
+      default:
+        return a.name.localeCompare(
+          b.name
+        );
     }
-  );
+  }
+);
 }, [
   library,
   tmdbCatalog,
@@ -4801,7 +4809,7 @@ LIBRARY CONTROLS
           : visible.length <
             justAdded.length
       )
-    : tmdbCatalog.length < 200
+  : tmdbCatalogHasMore
   ) && (
     <button
       type="button"
