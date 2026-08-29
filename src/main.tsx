@@ -4817,13 +4817,9 @@ LIBRARY CONTROLS
     q.trim()
       ? tmdbSearchHasMore
       : sort === "just-added"
-        ? (
-            justAddedView === "hidden"
-              ? visible.length <
-                hiddenJustAdded.length
-              : visible.length <
-                justAdded.length
-          )
+        ? justAddedView === "hidden"
+          ? visible.length < hiddenJustAdded.length
+          : visible.length < justAdded.length
         : tmdbCatalogHasMore
   ) && (
     <button
