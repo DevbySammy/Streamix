@@ -1996,7 +1996,7 @@ setJustAddedLoading(false);
    }
 
    loadJustAdded();
- }, [sort]);
+}, [kind, sort]);
 
  const [q, setQ] = useState("");
 
