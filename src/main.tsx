@@ -602,7 +602,7 @@ useEffect(() => {
   }
 
   loadTMDBCatalog();
-}, [kind, sort]);
+}, [kind]);
 
 async function loadNextTMDBCatalogPage() {
   if (
