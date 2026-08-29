@@ -417,10 +417,30 @@ function App() {
    const [libraryLoading, setLibraryLoading] =
   useState(true);
 
-   const [
+  const [
   tmdbCatalog,
   setTmdbCatalog
-] = useState<Title[]>([]);
+] = useState<Title[]>(() => {
+  try {
+    const cached =
+      localStorage.getItem(
+        "sx-tmdb-catalog"
+      );
+
+    if (!cached) {
+      return [];
+    }
+
+    const parsed =
+      JSON.parse(cached);
+
+    return Array.isArray(parsed)
+      ? parsed
+      : [];
+  } catch {
+    return [];
+  }
+});
 
 const [
   tmdbCatalogPage,
@@ -540,11 +560,16 @@ const [
             )
           : [];
 
-      setTmdbCatalog(
-        titles
-      );
+     setTmdbCatalog(
+  titles
+);
 
-      setTmdbCatalogPage(1);
+localStorage.setItem(
+  "sx-tmdb-catalog",
+  JSON.stringify(titles)
+);
+
+setTmdbCatalogPage(1);
     } catch (error) {
       console.error(
         "Failed to load TMDB catalog:",
@@ -4340,10 +4365,7 @@ LIBRARY CONTROLS
 
 <div className="grid">
 
-{libraryLoading ||
-  (filter === "all" &&
-    sort !== "just-added" &&
-    tmdbCatalogLoading) ? (
+{libraryLoading ? (
   <></>
 ) : visible.length > 0 ? (
     visible.map(title => (
