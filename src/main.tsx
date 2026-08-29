@@ -3243,6 +3243,13 @@ if (
     return filtered;
   }
 
+   if (
+    filter === "all" &&
+    sort === "year-desc"
+  ) {
+    return filtered;
+  }
+
   return [...filtered].sort(
     (a, b) => {
       switch (sort) {
