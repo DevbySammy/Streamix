@@ -3939,130 +3939,122 @@ return ( <div className="app">
 
     <div className="hero-content">
 
-  {hero ? (
-    <>
-      <div className="eyebrow">
-        FEATURED
-      </div>
+{hero ? (
+  <>
+    <div className="eyebrow">
+      FEATURED
+    </div>
 
-      <h1>
-            {hero.name}
-          </h1>
+    <h1>
+      {hero.name}
+    </h1>
 
-        <p>
-  {hero.year} ·{" "}
-  {hero.kind ===
-  "movie"
-    ? "Movie"
-    : "TV Show"}
-</p>
+    <p>
+      {hero.year} ·{" "}
+      {hero.kind === "movie"
+        ? "Movie"
+        : "TV Show"}
+    </p>
 
-<div className="hero-actions">
-  <button
-    type="button"
-    className="hero-more-info-button"
-    onClick={event => {
-      event.preventDefault();
-      event.stopPropagation();
-      openDetails(hero);
-    }}
-  >
-More Info →
-  </button>
-  <button
-    type="button"
-    className="poster-reminder-button"
-    onClick={event => {
-      event.preventDefault();
-      event.stopPropagation();
-      setShowReminder(hero);
-    }}
-    aria-label={
-      "Set reminder for " +
-      hero.name
-    }
-    title="Remind me"
-  >
-    <Bell size={15} />
-  </button>
+    <div className="hero-actions">
+      <button
+        type="button"
+        className="hero-more-info-button"
+        onClick={event => {
+          event.preventDefault();
+          event.stopPropagation();
+          openDetails(hero);
+        }}
+      >
+        More Info →
+      </button>
 
-  <button
-    type="button"
-    className="poster-list-button"
-    onClick={event => {
-      event.preventDefault();
-      event.stopPropagation();
-      toggle(
-        "watchlist",
-        hero.id,
-        hero
-      );
-    }}
-    aria-label={
-      state.watchlist.includes(
-        hero.id
-      )
-        ? "Remove " +
-          hero.name +
-          " from Watchlist"
-        : "Add " +
-          hero.name +
-          " to Watchlist"
-    }
-    title={
-      state.watchlist.includes(
-        hero.id
-      )
-        ? "Remove from Watchlist"
-        : "Add to Watchlist"
-    }
-  >
-    {state.watchlist.includes(
-      hero.id
-    ) ? (
-      <Check size={15} />
-    ) : (
-      <Plus size={15} />
+      <button
+        type="button"
+        className="poster-reminder-button"
+        onClick={event => {
+          event.preventDefault();
+          event.stopPropagation();
+          setShowReminder(hero);
+        }}
+        aria-label={
+          "Set reminder for " +
+          hero.name
+        }
+        title="Remind me"
+      >
+        <Bell size={15} />
+      </button>
+
+      <button
+        type="button"
+        className="poster-list-button"
+        onClick={event => {
+          event.preventDefault();
+          event.stopPropagation();
+          toggle(
+            "watchlist",
+            hero.id,
+            hero
+          );
+        }}
+        aria-label={
+          state.watchlist.includes(hero.id)
+            ? "Remove " +
+              hero.name +
+              " from Watchlist"
+            : "Add " +
+              hero.name +
+              " to Watchlist"
+        }
+        title={
+          state.watchlist.includes(hero.id)
+            ? "Remove from Watchlist"
+            : "Add to Watchlist"
+        }
+      >
+        {state.watchlist.includes(hero.id) ? (
+          <Check size={15} />
+        ) : (
+          <Plus size={15} />
+        )}
+      </button>
+    </div>
+
+    {isAdmin && (
+      <button
+        className="ghost"
+        onClick={() =>
+          setShowHero(true)
+        }
+      >
+        Edit Hero
+      </button>
     )}
-  </button>
-</div>
+  </>
+) : libraryLoading ? (
+  <></>
+) : library.length === 0 ? (
+  <>
+    <h1>
+      Your library is empty
+    </h1>
 
-{isAdmin && (
-  <button
-    className="ghost"
-    onClick={() =>
-      setShowHero(
-        true
-      )
-    }
-  >
-    Edit Hero
-  </button>
+    {isAdmin && (
+      <button
+        className="ghost"
+        onClick={() =>
+          setShowAdd(true)
+        }
+      >
+        Add your first
+        title
+      </button>
+    )}
+  </>
+) : (
+  <></>
 )}
-        </>
-         ) : libraryLoading ? (
-        <></>
-      ) : (
-        <>
-          <h1>
-            Your library is empty
-          </h1>
-           
-          {isAdmin && (
-            <button
-              className="ghost"
-              onClick={() =>
-                setShowAdd(
-                  true
-                )
-              }
-            >
-              Add your first
-              title
-            </button>
-          )}
-        </>
-      )}
 
     </div>
 
