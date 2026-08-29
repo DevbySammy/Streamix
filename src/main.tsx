@@ -602,7 +602,7 @@ function App() {
   }
 
 loadTMDBCatalog();
-}, [kind, sort]);
+}, [kind]);
 
 async function loadNextTMDBCatalogPage() {
   if (
