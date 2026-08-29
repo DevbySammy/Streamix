@@ -2109,16 +2109,6 @@ results =
     }
   );
 
-   if (sort === "popularity") {
-  results =
-    results.filter(
-      item =>
-        Number(
-          item.popularity || 0
-        ) >= 5
-    );
-}
-
 results =
   results.filter(
     (item, index, array) =>
