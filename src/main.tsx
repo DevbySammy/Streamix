@@ -72,11 +72,11 @@ message: string;
 
 type SortOption =
 | "just-added"
-| "popularity";
+| "popularity"
 | "year-desc"
-| "year-asc";
+| "year-asc"
 | "name-asc"
-| "name-desc"
+| "name-desc";
 
 type HeroSettings = {
 titleId: string | null;
