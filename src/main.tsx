@@ -470,14 +470,8 @@ function App() {
     setTmdbCatalogLimit
   ] = useState(40);
 
- useEffect(() => {
-  if (
-    sort !== "popularity"
-  ) {
-    return;
-  }
-
-  async function loadPopularTMDBCatalog() {
+useEffect(() => {
+  async function loadTMDBCatalog() {
     setTmdbCatalogLoading(true);
 
     try {
@@ -488,7 +482,7 @@ function App() {
 
       const response =
         await fetch(
-          `https://streamix.gaintrainstrong.workers.dev/api/tmdb/catalog?page=1&type=${kind}&sort=popularity`,
+          `https://streamix.gaintrainstrong.workers.dev/api/tmdb/catalog?page=1&type=${kind}&sort=${sort === "popularity" ? "popularity" : "newest"}`,
           {
             headers: sessionId
               ? {
@@ -501,7 +495,7 @@ function App() {
 
       if (!response.ok) {
         throw new Error(
-          "Failed to load popular TMDB catalog"
+          "Failed to load TMDB catalog"
         );
       }
 
@@ -576,6 +570,11 @@ function App() {
         titles
       );
 
+      localStorage.setItem(
+        "sx-tmdb-catalog",
+        JSON.stringify(titles)
+      );
+
       setTmdbCatalogPage(1);
 
       setTmdbCatalogHasMore(
@@ -588,7 +587,7 @@ function App() {
       setTmdbCatalogLimit(40);
     } catch (error) {
       console.error(
-        "Failed to load popular TMDB catalog:",
+        "Failed to load TMDB catalog:",
         error
       );
 
@@ -602,7 +601,7 @@ function App() {
     }
   }
 
-  loadPopularTMDBCatalog();
+  loadTMDBCatalog();
 }, [kind]);
 
 async function loadNextTMDBCatalogPage() {
