@@ -4708,7 +4708,6 @@ LIBRARY CONTROLS
   <option value="year-asc">
     Oldest release
   </option>
-</select>
        
   <option value="name-asc">
     Name A–Z
@@ -4717,6 +4716,7 @@ LIBRARY CONTROLS
   <option value="name-desc">
     Name Z–A
   </option>
+   </select>
 
 </div>
 
