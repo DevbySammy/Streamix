@@ -478,7 +478,7 @@ function App() {
             "sx-session-token"
           );
 
-        const response =
+             const response =
           await fetch(
             `https://streamix.gaintrainstrong.workers.dev/api/tmdb/catalog?page=1&type=${kind}`,
             {
@@ -696,7 +696,7 @@ function App() {
                 };
               }
             )
-}, [kind]);
+          : [];
 
       setTmdbCatalog(
         current => {
@@ -708,6 +708,70 @@ function App() {
               )
             );
 
+          const newTitles =
+            titles.filter(
+              title => {
+                if (
+                  existingIds.has(
+                    title.id
+                  )
+                ) {
+                  return false;
+                }
+
+                existingIds.add(
+                  title.id
+                );
+
+                return true;
+              }
+            );
+
+          const nextCatalog = [
+            ...current,
+            ...newTitles
+          ];
+
+          localStorage.setItem(
+            "sx-tmdb-catalog",
+            JSON.stringify(
+              nextCatalog
+            )
+          );
+
+          return nextCatalog;
+        }
+      );
+
+      setTmdbCatalogPage(
+        nextPage
+      );
+
+      setTmdbCatalogHasMore(
+        nextPage <
+          Number(
+            data.total_pages || 0
+          )
+      );
+
+      setTmdbCatalogLimit(
+        current =>
+          Math.min(
+            current + 40,
+            200
+          )
+      );
+    } catch (error) {
+      console.error(
+        "Failed to load next TMDB catalog page:",
+        error
+      );
+    } finally {
+      setTmdbCatalogLoading(
+        false
+      );
+    }
+  }
           const newTitles =
             titles.filter(
               title => {
