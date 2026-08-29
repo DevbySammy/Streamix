@@ -1930,6 +1930,11 @@ if (
       "type"
     ) || "all";
 
+  const sort =
+  url.searchParams.get(
+    "sort"
+  ) || "newest";
+
   const resultsPerRequest = 40;
   const maxResults = 200;
 
@@ -1948,10 +1953,12 @@ if (
         ? "primary_release_date"
         : "first_air_date";
 
-    const sortParameter =
-      mediaType === "movie"
-        ? "primary_release_date.desc"
-        : "first_air_date.desc";
+  const sortParameter =
+  sort === "popularity"
+    ? "popularity.desc"
+    : mediaType === "movie"
+      ? "primary_release_date.desc"
+      : "first_air_date.desc";
 
     const firstTMDBPage =
       (page - 1) * 4 + 1;
@@ -2108,6 +2115,16 @@ results =
       );
     }
   );
+
+    if (sort === "popularity") {
+  results =
+    results.filter(
+      item =>
+        Number(
+          item.popularity || 0
+        ) >= 2
+    );
+}
 
 results =
   results.filter(
