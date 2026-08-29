@@ -1226,15 +1226,17 @@ const [
               data.position_y ?? 50
             )
         });
-      } catch (error) {
-        console.error(
-          "Failed to load hero settings:",
-          error
-        );
-      }
-    }
+     } catch (error) {
+    console.error(
+      "Failed to load hero settings:",
+      error
+    );
+  } finally {
+    setHeroSettingsLoading(false);
+  }
+}
 
-    loadHeroSettings();
+loadHeroSettings();
   }, []);
    
  /* =======================================================
