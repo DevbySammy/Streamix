@@ -3939,13 +3939,13 @@ return ( <div className="app">
 
     <div className="hero-content">
 
-     <div className="eyebrow">
-  FEATURED
-</div>
+  {hero ? (
+    <>
+      <div className="eyebrow">
+        FEATURED
+      </div>
 
-      {hero ? (
-        <>
-          <h1>
+      <h1>
             {hero.name}
           </h1>
 
