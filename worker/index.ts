@@ -1943,88 +1943,102 @@ if (
     tmdbPagesPerRequest -
     1;
 
-  async function discover(
-    mediaType:
-      | "movie"
-      | "tv"
+async function discover(
+  mediaType:
+    | "movie"
+    | "tv"
+) {
+  const allResults: any[] = [];
+  let totalPages = 1;
+
+  const currentYear =
+    new Date().getFullYear();
+
+  const yearsToLoad = 5;
+
+  for (
+    let yearIndex = 0;
+    yearIndex < yearsToLoad;
+    yearIndex++
   ) {
-    const allResults: any[] = [];
-    let totalPages = 1;
+    const year =
+      currentYear -
+      yearIndex;
 
-    for (
-      let tmdbPage = startPage;
-      tmdbPage <= endPage;
-      tmdbPage++
-    ) {
+    const dateParameter =
+      mediaType === "movie"
+        ? "primary_release_date"
+        : "first_air_date";
+
     const response =
-    await fetch(
-    "https://api.themoviedb.org/3/discover/" +
-      mediaType +
-      "?include_adult=false" +
-      "&include_video=false" +
-      "&language=en-US" +
-      "&with_original_language=en" +
-      "&sort_by=" +
-      (
-        mediaType === "movie"
-          ? "primary_release_date.desc"
-          : "first_air_date.desc"
-      ) +
-      "&page=" +
-      tmdbPage,
-          {
-            headers: {
-              Authorization:
-                "Bearer " +
-                env.TMDB_READ_ACCESS_TOKEN,
-              accept:
-                "application/json"
-            }
+      await fetch(
+        "https://api.themoviedb.org/3/discover/" +
+          mediaType +
+          "?include_adult=false" +
+          "&include_video=false" +
+          "&language=en-US" +
+          "&with_original_language=en" +
+          "&" +
+          dateParameter +
+          ".gte=" +
+          year +
+          "-01-01" +
+          "&" +
+          dateParameter +
+          ".lte=" +
+          year +
+          "-12-31" +
+          "&sort_by=popularity.desc" +
+          "&page=1",
+        {
+          headers: {
+            Authorization:
+              "Bearer " +
+              env.TMDB_READ_ACCESS_TOKEN,
+            accept:
+              "application/json"
           }
-        );
+        }
+      );
 
-      const data =
-        await response.json();
+    const data =
+      await response.json();
 
-      if (!response.ok) {
-        throw new Error(
-          typeof data?.status_message ===
-          "string"
-            ? data.status_message
-            : "TMDB request failed."
-        );
-      }
-
-      if (
-        Array.isArray(
-          data.results
-        )
-      ) {
-        allResults.push(
-          ...data.results
-        );
-      }
-
-      totalPages =
-        Number(
-          data.total_pages || 1
-        );
-
-      if (
-        tmdbPage >=
-        totalPages
-      ) {
-        break;
-      }
+    if (!response.ok) {
+      throw new Error(
+        typeof data?.status_message ===
+        "string"
+          ? data.status_message
+          : "TMDB request failed."
+      );
     }
 
-    return {
-      results:
-        allResults,
-      total_pages:
-        totalPages
-    };
+    if (
+      Array.isArray(
+        data.results
+      )
+    ) {
+      allResults.push(
+        ...data.results
+      );
+    }
+
+    totalPages =
+      Math.max(
+        totalPages,
+        Number(
+          data.total_pages || 1
+        )
+      );
   }
+
+  return {
+    results:
+      allResults,
+    total_pages:
+      totalPages
+  };
+}
 
   try {
     let results: any[] = [];
@@ -2091,46 +2105,7 @@ if (
             tmdbPagesPerRequest
           )
         );
-
-    results.sort(
-  (a, b) => {
-    const dateA =
-      a.media_type === "tv"
-        ? a.first_air_date || ""
-        : a.release_date || "";
-
-    const dateB =
-      b.media_type === "tv"
-        ? b.first_air_date || ""
-        : b.release_date || "";
-
-    const yearA =
-      Number(
-        dateA.slice(0, 4)
-      ) || 0;
-
-    const yearB =
-      Number(
-        dateB.slice(0, 4)
-      ) || 0;
-
-    if (
-      yearA !== yearB
-    ) {
-      return yearB - yearA;
-    }
-
-    return (
-      Number(
-        b.popularity || 0
-      ) -
-      Number(
-        a.popularity || 0
-      )
-    );
-  }
-);
-    }
+      }
 
     results =
       results.filter(
