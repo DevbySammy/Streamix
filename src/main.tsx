@@ -4799,21 +4799,21 @@ LIBRARY CONTROLS
 </div>
 
 {!justAddedLoading &&
-  filter === "all" &&
   visible.length > 0 &&
   (
- q.trim()
-  ? tmdbSearchHasMore
-  : sort === "just-added"
-    ? (
-        justAddedView === "hidden"
-          ? visible.length <
-            hiddenJustAdded.length
-          : visible.length <
-            justAdded.length
-      )
-  : tmdbCatalogHasMore
+    q.trim()
+      ? tmdbSearchHasMore
+      : sort === "just-added"
+        ? (
+            justAddedView === "hidden"
+              ? visible.length <
+                hiddenJustAdded.length
+              : visible.length <
+                justAdded.length
+          )
+        : tmdbCatalogHasMore
   ) && (
+     
     <button
       type="button"
       className="show-more-button"
