@@ -4401,7 +4401,8 @@ LIBRARY CONTROLS
 
 </div>
 
-{filter === "all" &&
+{!justAddedLoading &&
+  filter === "all" &&
   visible.length > 0 &&
   (
     sort === "just-added"
