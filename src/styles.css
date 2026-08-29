@@ -2813,3 +2813,9 @@ footer span {
     overflow-y: auto;
   }
 }
+
+@media (max-width: 700px) {
+  .overlay:has(.reminders-modal) {
+    align-items: center;
+  }
+}
