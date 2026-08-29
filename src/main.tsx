@@ -424,6 +424,9 @@ function App() {
 
  const [kindClicked, setKindClicked] =
    useState(true);
+
+   const [sort, setSort] =
+  useState<SortOption>("year-desc");
    
   const [
     tmdbCatalog,
@@ -607,7 +610,7 @@ useEffect(() => {
   }
 
   loadTMDBCatalog();
-}, [kind]);
+}, [kind, sort]);
 
 async function loadNextTMDBCatalogPage() {
   if (
@@ -1863,9 +1866,6 @@ async function subscribeToPushNotifications() {
 
  const [filterClicked, setFilterClicked] =
    useState(false);
-
-const [sort, setSort] =
-  useState<SortOption>("year-desc");
 
 useEffect(() => {
   setJustAddedLoading(true);
