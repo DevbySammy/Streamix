@@ -483,14 +483,9 @@ useEffect(() => {
           "sx-session-token"
         );
 
-      const currentSort =
-        localStorage.getItem(
-          "sx-sort"
-        ) || "year-desc";
-
       const response =
         await fetch(
-          `https://streamix.gaintrainstrong.workers.dev/api/tmdb/catalog?page=1&type=${kind}&sort=${currentSort === "popularity" ? "popularity" : "newest"}`,
+          `https://streamix.gaintrainstrong.workers.dev/api/tmdb/catalog?page=1&type=${kind}&sort=${sort === "popularity" ? "popularity" : "newest"}`,
           {
             headers: sessionId
               ? {
