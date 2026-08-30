@@ -1925,305 +1925,95 @@ if (
       )
     );
 
-  const type =
+  const requestedSort =
     url.searchParams.get(
-      "type"
-    ) || "all";
+      "sort"
+    ) || "newest";
 
- const requestedSort =
-  url.searchParams.get(
-    "sort"
-  ) || "newest";
+  const sort =
+    requestedSort === "year-desc"
+      ? "newest"
+      : requestedSort === "year-asc"
+        ? "oldest"
+        : requestedSort;
 
-const sort =
-  requestedSort === "year-desc"
-    ? "newest"
-    : requestedSort === "year-asc"
-      ? "oldest"
-      : requestedSort;
-  
-  const resultsPerRequest = 40;
-  const maxResults = 200;
+  const resultsPerRequest =
+    40;
 
-  async function discover(
-    mediaType:
-      | "movie"
-      | "tv"
+  const maxResults =
+    200;
+
+  const today =
+    new Date()
+      .toISOString()
+      .slice(0, 10);
+
+  async function fetchTMDB(
+    endpoint: string
   ) {
-    const allResults: any[] = [];
-
-    const currentYear =
-      new Date().getFullYear();
-
-    const today =
-      new Date()
-        .toISOString()
-        .slice(0, 10);
-
-    const dateParameter =
-      mediaType === "movie"
-        ? "primary_release_date"
-        : "first_air_date";
-
-    const sortParameter =
-      sort === "popularity"
-        ? "popularity.desc"
-        : sort === "oldest"
-          ? mediaType === "movie"
-            ? "primary_release_date.asc"
-            : "first_air_date.asc"
-          : mediaType === "movie"
-            ? "primary_release_date.desc"
-            : "first_air_date.desc";
-
- const dateFilters =
-  sort === "newest"
-    ? "&" +
-      dateParameter +
-      ".lte=" +
-      today
-    : sort === "oldest"
-      ? "&" +
-        dateParameter +
-        ".gte=1970-01-01" +
-        "&" +
-        dateParameter +
-        ".lte=" +
-        today
-      : "";
-    
-    const firstTMDBPage =
-      sort === "popularity"
-        ? 1
-        : (page - 1) * 4 + 1;
-
-    const lastTMDBPage =
-      sort === "popularity"
-        ? 10
-        : firstTMDBPage + 3;
-
-    for (
-      let tmdbPage = firstTMDBPage;
-      tmdbPage <= lastTMDBPage;
-      tmdbPage++
-    ) {
-      const response =
-        await fetch(
-          "https://api.themoviedb.org/3/discover/" +
-            mediaType +
-            "?include_adult=false" +
-            "&include_video=false" +
-            "&language=en-US" +
-            "&with_original_language=en" +
-            dateFilters +
-            "&sort_by=" +
-            sortParameter +
-            "&page=" +
-            tmdbPage,
-          {
-            headers: {
-              Authorization:
-                "Bearer " +
-                env.TMDB_READ_ACCESS_TOKEN,
-              accept:
-                "application/json"
-            }
+    const response =
+      await fetch(
+        endpoint,
+        {
+          headers: {
+            Authorization:
+              "Bearer " +
+              env.TMDB_READ_ACCESS_TOKEN,
+            accept:
+              "application/json"
           }
-        );
+        }
+      );
 
-      const data =
-        await response.json();
+    const data =
+      await response.json();
 
-      if (!response.ok) {
-        throw new Error(
-          typeof data?.status_message ===
-          "string"
-            ? data.status_message
-            : "TMDB request failed."
-        );
-      }
-
-      if (
-        Array.isArray(
-          data.results
-        )
-      ) {
-        allResults.push(
-          ...data.results
-        );
-      }
-
-      if (
-        !data.total_pages ||
-        tmdbPage >=
-          Number(
-            data.total_pages
-          )
-      ) {
-        break;
-      }
+    if (!response.ok) {
+      throw new Error(
+        typeof data?.status_message ===
+        "string"
+          ? data.status_message
+          : "TMDB request failed."
+      );
     }
 
-    return allResults;
+    return data;
   }
 
-  try {
-    let results: any[] = [];
+  function filterResults(
+    items: any[]
+  ) {
+    return items.filter(
+      item => {
+        const title =
+          item.media_type ===
+          "tv"
+            ? item.name || ""
+            : item.title || "";
 
-    if (type === "movie") {
-      results =
-        await discover("movie");
-
-      results =
-        results.map(
-          item => ({
-            ...item,
-            media_type:
-              "movie"
-          })
+        return (
+          item.original_language ===
+            "en" &&
+          /^[\x00-\x7F]*$/.test(
+            title
+          ) &&
+          typeof item.poster_path ===
+            "string" &&
+          item.poster_path.trim() !== ""
         );
-    } else if (type === "tv") {
-      results =
-        await discover("tv");
-
-      results =
-        results.map(
-          item => ({
-            ...item,
-            media_type:
-              "tv"
-          })
-        );
-    } else {
-      if (sort === "popularity") {
-        const response =
-          await fetch(
-            "https://api.themoviedb.org/3/trending/all/week" +
-              "?language=en-US",
-            {
-              headers: {
-                Authorization:
-                  "Bearer " +
-                  env.TMDB_READ_ACCESS_TOKEN,
-                accept:
-                  "application/json"
-              }
-            }
-          );
-
-        const data =
-          await response.json();
-
-        if (!response.ok) {
-          throw new Error(
-            typeof data?.status_message ===
-            "string"
-              ? data.status_message
-              : "TMDB request failed."
-          );
-        }
-
-        results =
-          Array.isArray(
-            data.results
-          )
-            ? data.results
-            : [];
-      } else {
-        const [
-          movieResults,
-          tvResults
-        ] = await Promise.all([
-          discover("movie"),
-          discover("tv")
-        ]);
-
-        results = [
-          ...movieResults.map(
-            item => ({
-              ...item,
-              media_type:
-                "movie"
-            })
-          ),
-          ...tvResults.map(
-            item => ({
-              ...item,
-              media_type:
-                "tv"
-            })
-          )
-        ];
       }
-    }
+    );
+  }
 
-results =
-  results.filter(
-    item => {
-      const title =
-        item.media_type ===
-        "tv"
-          ? item.name || ""
-          : item.title || "";
-
-      return (
-        item.original_language ===
-          "en" &&
-        /^[\x00-\x7F]*$/.test(
-          title
-        ) &&
-        typeof item.poster_path ===
-          "string" &&
-        item.poster_path.trim() !== ""
-      );
-    }
-  );
-
-results =
-  results.filter(
-    (item, index, array) =>
-      array.findIndex(
-        existing =>
-          existing.id ===
-          item.id &&
-          existing.media_type ===
-          item.media_type
-      ) === index
-  );
-     results =
-      results.sort(
-        (a, b) => {
-          if (sort === "popularity") {
-            return (
-              Number(
-                b.popularity || 0
-              ) -
-              Number(
-                a.popularity || 0
-              )
-            );
-          }
-
-          const aDate =
-            a.media_type === "tv"
-              ? a.first_air_date || ""
-              : a.release_date || "";
-
-          const bDate =
-            b.media_type === "tv"
-              ? b.first_air_date || ""
-              : b.release_date || "";
-
-        if (aDate !== bDate) {
-  return sort === "oldest"
-    ? aDate.localeCompare(
-        bDate
-      )
-    : bDate.localeCompare(
-        aDate
-      );
-}
-
+  function sortResults(
+    items: any[]
+  ) {
+    return items.sort(
+      (a, b) => {
+        if (
+          sort ===
+          "popularity"
+        ) {
           return (
             Number(
               b.popularity || 0
@@ -2233,7 +2023,258 @@ results =
             )
           );
         }
+
+        const aDate =
+          a.media_type === "tv"
+            ? a.first_air_date || ""
+            : a.release_date || "";
+
+        const bDate =
+          b.media_type === "tv"
+            ? b.first_air_date || ""
+            : b.release_date || "";
+
+        if (
+          aDate !==
+          bDate
+        ) {
+          return sort ===
+            "oldest"
+            ? aDate.localeCompare(
+                bDate
+              )
+            : bDate.localeCompare(
+                aDate
+              );
+        }
+
+        return (
+          Number(
+            b.popularity || 0
+          ) -
+          Number(
+            a.popularity || 0
+          )
+        );
+      }
+    );
+  }
+
+  try {
+    let results: any[] =
+      [];
+
+    let totalPages =
+      Math.ceil(
+        maxResults /
+          resultsPerRequest
       );
+
+    if (
+      sort ===
+      "popularity"
+    ) {
+      const firstTMDBPage =
+        (page - 1) * 3 + 1;
+
+      const pageRequests =
+        [
+          firstTMDBPage,
+          firstTMDBPage + 1,
+          firstTMDBPage + 2
+        ];
+
+      const responses =
+        await Promise.all(
+          pageRequests.map(
+            tmdbPage =>
+              fetchTMDB(
+                "https://api.themoviedb.org/3/trending/all/week" +
+                  "?language=en-US" +
+                  "&page=" +
+                  tmdbPage
+              )
+          )
+        );
+
+      results =
+        responses.flatMap(
+          data =>
+            Array.isArray(
+              data.results
+            )
+              ? data.results
+              : []
+        );
+
+      results =
+        results.map(
+          item => ({
+            ...item,
+            media_type:
+              item.media_type ===
+              "tv"
+                ? "tv"
+                : "movie"
+          })
+        );
+
+      results =
+        filterResults(
+          results
+        );
+
+      results =
+        results.filter(
+          (
+            item,
+            index,
+            array
+          ) =>
+            array.findIndex(
+              existing =>
+                existing.id ===
+                  item.id &&
+                existing.media_type ===
+                  item.media_type
+            ) === index
+        );
+
+      results =
+        sortResults(
+          results
+        );
+
+      totalPages =
+        10;
+    } else {
+      const firstTMDBPage =
+        (page - 1) * 3 + 1;
+
+      const tmdbPages =
+        [
+          firstTMDBPage,
+          firstTMDBPage + 1,
+          firstTMDBPage + 2
+        ];
+
+      async function discover(
+        mediaType:
+          | "movie"
+          | "tv"
+      ) {
+        const dateParameter =
+          mediaType === "movie"
+            ? "primary_release_date"
+            : "first_air_date";
+
+        const sortParameter =
+          sort === "oldest"
+            ? mediaType === "movie"
+              ? "primary_release_date.asc"
+              : "first_air_date.asc"
+            : mediaType === "movie"
+              ? "primary_release_date.desc"
+              : "first_air_date.desc";
+
+        const dateFilters =
+          sort ===
+          "newest"
+            ? "&" +
+              dateParameter +
+              ".lte=" +
+              today
+            : "&" +
+              dateParameter +
+              ".gte=1970-01-01" +
+              "&" +
+              dateParameter +
+              ".lte=" +
+              today;
+
+        const responses =
+          await Promise.all(
+            tmdbPages.map(
+              tmdbPage =>
+                fetchTMDB(
+                  "https://api.themoviedb.org/3/discover/" +
+                    mediaType +
+                    "?include_adult=false" +
+                    "&include_video=false" +
+                    "&language=en-US" +
+                    "&with_original_language=en" +
+                    dateFilters +
+                    "&sort_by=" +
+                    sortParameter +
+                    "&page=" +
+                    tmdbPage
+                )
+            )
+          );
+
+        return responses.flatMap(
+          data =>
+            Array.isArray(
+              data.results
+            )
+              ? data.results.map(
+                  item => ({
+                    ...item,
+                    media_type:
+                      mediaType
+                  })
+                )
+              : []
+        );
+      }
+
+      const [
+        movieResults,
+        tvResults
+      ] =
+        await Promise.all([
+          discover(
+            "movie"
+          ),
+          discover(
+            "tv"
+          )
+        ]);
+
+      results = [
+        ...movieResults,
+        ...tvResults
+      ];
+
+      results =
+        filterResults(
+          results
+        );
+
+      results =
+        results.filter(
+          (
+            item,
+            index,
+            array
+          ) =>
+            array.findIndex(
+              existing =>
+                existing.id ===
+                  item.id &&
+                existing.media_type ===
+                  item.media_type
+            ) === index
+        );
+
+      results =
+        sortResults(
+          results
+        );
+
+      totalPages =
+        10;
+    }
 
     results =
       results.slice(
@@ -2244,17 +2285,14 @@ results =
     const hasMore =
       results.length ===
         resultsPerRequest &&
-      page * resultsPerRequest <
-        maxResults;
+      page <
+        totalPages;
 
     return json({
       page,
       total_pages:
         hasMore
-          ? Math.ceil(
-              maxResults /
-                resultsPerRequest
-            )
+          ? totalPages
           : page,
       results
     });
