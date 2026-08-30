@@ -30,15 +30,16 @@ TYPES
 type Kind = "movie" | "tv";
 
 type Title = {
-id: string;
-name: string;
-kind: Kind;
-year: number;
-poster: string;
-backdrop: string;
-overview: string;
-popularity: number;
-addedAt?: string;
+  id: string;
+  name: string;
+  kind: Kind;
+  year: number;
+  releaseDate?: string;
+  poster: string;
+  backdrop: string;
+  overview: string;
+  popularity: number;
+  addedAt?: string;
 };
 
 type Profile = {
