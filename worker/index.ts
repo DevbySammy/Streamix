@@ -1925,6 +1925,17 @@ if (
       )
     );
 
+  const requestedType =
+    url.searchParams.get(
+      "type"
+    ) || "all";
+
+  const type =
+    requestedType === "movie" ||
+    requestedType === "tv"
+      ? requestedType
+      : "all";
+
   const requestedSort =
     url.searchParams.get(
       "sort"
@@ -2074,15 +2085,29 @@ if (
       sort ===
       "popularity"
     ) {
+      const pagesPerRequest =
+        type === "all"
+          ? 2
+          : 4;
+
       const firstTMDBPage =
-        (page - 1) * 3 + 1;
+        (page - 1) *
+          pagesPerRequest +
+        1;
 
       const pageRequests =
-        [
-          firstTMDBPage,
-          firstTMDBPage + 1,
-          firstTMDBPage + 2
-        ];
+        Array.from(
+          {
+            length:
+              pagesPerRequest
+          },
+          (
+            _,
+            index
+          ) =>
+            firstTMDBPage +
+            index
+        );
 
       const responses =
         await Promise.all(
@@ -2119,6 +2144,17 @@ if (
           })
         );
 
+      if (
+        type !== "all"
+      ) {
+        results =
+          results.filter(
+            item =>
+              item.media_type ===
+              type
+          );
+      }
+
       results =
         filterResults(
           results
@@ -2146,17 +2182,39 @@ if (
         );
 
       totalPages =
-        10;
+        Math.ceil(
+          maxResults /
+            resultsPerRequest
+        );
     } else {
+      const mediaTypes =
+        type === "all"
+          ? ["movie", "tv"]
+          : [type];
+
+      const pagesPerRequest =
+        type === "all"
+          ? 2
+          : 4;
+
       const firstTMDBPage =
-        (page - 1) * 3 + 1;
+        (page - 1) *
+          pagesPerRequest +
+        1;
 
       const tmdbPages =
-        [
-          firstTMDBPage,
-          firstTMDBPage + 1,
-          firstTMDBPage + 2
-        ];
+        Array.from(
+          {
+            length:
+              pagesPerRequest
+          },
+          (
+            _,
+            index
+          ) =>
+            firstTMDBPage +
+            index
+        );
 
       async function discover(
         mediaType:
@@ -2228,23 +2286,20 @@ if (
         );
       }
 
-      const [
-        movieResults,
-        tvResults
-      ] =
-        await Promise.all([
-          discover(
-            "movie"
-          ),
-          discover(
-            "tv"
+      const mediaResults =
+        await Promise.all(
+          mediaTypes.map(
+            mediaType =>
+              discover(
+                mediaType as
+                  | "movie"
+                  | "tv"
+              )
           )
-        ]);
+        );
 
-      results = [
-        ...movieResults,
-        ...tvResults
-      ];
+      results =
+        mediaResults.flat();
 
       results =
         filterResults(
@@ -2273,7 +2328,10 @@ if (
         );
 
       totalPages =
-        10;
+        Math.ceil(
+          maxResults /
+            resultsPerRequest
+        );
     }
 
     results =
@@ -2290,6 +2348,7 @@ if (
 
     return json({
       page,
+      type,
       total_pages:
         hasMore
           ? totalPages
