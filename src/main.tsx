@@ -3299,10 +3299,69 @@ const visible = useMemo(() => {
 
 if (
   !q.trim() &&
-  filter === "all" &&
   sort === "year-desc"
 ) {
-  return filtered;
+  const today =
+    new Date()
+      .toISOString()
+      .slice(0, 10);
+
+  const currentYear =
+    new Date().getFullYear();
+
+  return filtered
+    .filter(title => {
+      if (!title.releaseDate) {
+        return false;
+      }
+
+      return (
+        title.releaseDate <= today &&
+        title.releaseDate.slice(0, 4) ===
+          String(currentYear)
+      );
+    })
+    .sort(
+      (a, b) =>
+        String(
+          b.releaseDate || ""
+        ).localeCompare(
+          String(
+            a.releaseDate || ""
+          )
+        )
+    );
+}
+
+if (
+  !q.trim() &&
+  sort === "year-asc"
+) {
+  const today =
+    new Date()
+      .toISOString()
+      .slice(0, 10);
+
+  return filtered
+    .filter(title => {
+      if (!title.releaseDate) {
+        return false;
+      }
+
+      return (
+        title.releaseDate <= today
+      );
+    })
+    .sort(
+      (a, b) =>
+        String(
+          a.releaseDate || ""
+        ).localeCompare(
+          String(
+            b.releaseDate || ""
+          )
+        )
+    );
 }
 
 return [...filtered].sort(
@@ -3312,17 +3371,16 @@ return [...filtered].sort(
         return b.name.localeCompare(
           a.name
         );
-           case "popularity":
+
+      case "popularity":
         return (
-          Number(b.popularity || 0) -
-          Number(a.popularity || 0)
+          Number(
+            b.popularity || 0
+          ) -
+          Number(
+            a.popularity || 0
+          )
         );
-
-      case "year-desc":
-        return b.year - a.year;
-
-      case "year-asc":
-        return a.year - b.year;
 
       case "name-asc":
       default:
