@@ -4734,6 +4734,169 @@ LIBRARY CONTROLS
 
     </div>
 
+    {/* FORMAT + SORT */}
+
+    <div className="format">
+
+      <button
+        className={
+          kind === "all" &&
+          kindClicked
+            ? "selected"
+            : ""
+        }
+        onClick={() => {
+          setKind("all");
+          setKindClicked(true);
+          setFilter("all");
+          setFilterClicked(false);
+          setJustAddedView("visible");
+        }}
+      >
+        All
+      </button>
+
+      <button
+        className={
+          kind === "movie"
+            ? "selected"
+            : ""
+        }
+        onClick={() => {
+          setKind("movie");
+          setKindClicked(true);
+          setFilter("all");
+          setFilterClicked(false);
+          setJustAddedView("visible");
+        }}
+      >
+        <Film size={15} />
+        Movies
+      </button>
+
+      <button
+        className={
+          kind === "tv"
+            ? "selected"
+            : ""
+        }
+        onClick={() => {
+          setKind("tv");
+          setKindClicked(true);
+          setFilter("all");
+          setFilterClicked(false);
+          setJustAddedView("visible");
+        }}
+      >
+        <Tv size={15} />
+        TV Shows
+      </button>
+
+      {(filter !== "all" ||
+        kind !== "all" ||
+        q.trim() !== "" ||
+        justAddedView !== "visible") && (
+        <button
+          type="button"
+          onClick={() => {
+            setFilter("all");
+            setFilterClicked(false);
+            setKind("all");
+            setKindClicked(false);
+            setQ("");
+            setHiddenSearch("");
+            setJustAddedView("visible");
+          }}
+        >
+          Clear Filters
+        </button>
+      )}
+
+      {isAdmin && (
+        <button
+          type="button"
+          className={
+            "view-hidden-btn" +
+            (justAddedView === "hidden"
+              ? " selected"
+              : "")
+          }
+          onClick={() => {
+            setFilter("all");
+            setFilterClicked(false);
+            setKind("all");
+            setKindClicked(false);
+
+            setJustAddedView(current =>
+              current === "visible"
+                ? "hidden"
+                : "visible"
+            );
+          }}
+        >
+          {justAddedView === "hidden"
+            ? "Back to Just Added"
+            : "View Hidden"}
+        </button>
+      )}
+
+      <select
+        className="sort-select"
+        value={sort}
+        onChange={event =>
+          setSort(
+            event.target.value as SortOption
+          )
+        }
+        aria-label="Filter library"
+      >
+        <option value="just-added">
+          Just Added
+        </option>
+
+        <option value="popularity">
+          Most Popular
+        </option>
+
+        <option value="year-desc">
+          Newest release
+        </option>
+
+        <option value="year-asc">
+          Oldest release
+        </option>
+
+        <option value="name-asc">
+          Name A–Z
+        </option>
+
+        <option value="name-desc">
+          Name Z–A
+        </option>
+      </select>
+
+    </div>
+
+    {isAdmin &&
+      justAddedView === "hidden" && (
+        <div className="hidden-search">
+
+          <Search size={18} />
+
+          <input
+            value={hiddenSearch}
+            onChange={event =>
+              setHiddenSearch(
+                event.target.value
+              )
+            }
+            placeholder="Search hidden movies and TV shows"
+            aria-label="Search hidden movies and TV shows"
+          />
+
+        </div>
+      )}
+
   </>
 )}
 
