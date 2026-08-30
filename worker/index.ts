@@ -1948,34 +1948,62 @@ if (
     const currentYear =
       new Date().getFullYear();
 
+    const today =
+      new Date()
+        .toISOString()
+        .slice(0, 10);
+
     const dateParameter =
       mediaType === "movie"
         ? "primary_release_date"
         : "first_air_date";
 
-  const sortParameter =
-  sort === "popularity"
-    ? "popularity.desc"
-    : mediaType === "movie"
-      ? "primary_release_date.desc"
-      : "first_air_date.desc";
+    const sortParameter =
+      sort === "popularity"
+        ? "popularity.desc"
+        : sort === "oldest"
+          ? mediaType === "movie"
+            ? "primary_release_date.asc"
+            : "first_air_date.asc"
+          : mediaType === "movie"
+            ? "primary_release_date.desc"
+            : "first_air_date.desc";
 
- const firstTMDBPage =
-  sort === "popularity"
-    ? 1
-    : (page - 1) * 4 + 1;
+    const dateFilters =
+      sort === "newest"
+        ? "&" +
+          dateParameter +
+          ".gte=" +
+          currentYear +
+          "-01-01" +
+          "&" +
+          dateParameter +
+          ".lte=" +
+          currentYear +
+          "-12-31"
+        : sort === "oldest"
+          ? "&" +
+            dateParameter +
+            ".lte=" +
+            today
+          : "";
 
-const lastTMDBPage =
-  sort === "popularity"
-    ? 10
-    : firstTMDBPage + 3;
+    const firstTMDBPage =
+      sort === "popularity"
+        ? 1
+        : (page - 1) * 4 + 1;
+
+    const lastTMDBPage =
+      sort === "popularity"
+        ? 10
+        : firstTMDBPage + 3;
 
     for (
       let tmdbPage = firstTMDBPage;
       tmdbPage <= lastTMDBPage;
       tmdbPage++
     ) {
-            const response =
+      const response =
         await fetch(
           "https://api.themoviedb.org/3/discover/" +
             mediaType +
@@ -1983,7 +2011,7 @@ const lastTMDBPage =
             "&include_video=false" +
             "&language=en-US" +
             "&with_original_language=en" +
-                     "" +
+            dateFilters +
             "&sort_by=" +
             sortParameter +
             "&page=" +
