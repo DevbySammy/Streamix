@@ -1930,11 +1930,18 @@ if (
       "type"
     ) || "all";
 
-  const sort =
+ const requestedSort =
   url.searchParams.get(
     "sort"
   ) || "newest";
 
+const sort =
+  requestedSort === "year-desc"
+    ? "newest"
+    : requestedSort === "year-asc"
+      ? "oldest"
+      : requestedSort;
+  
   const resultsPerRequest = 40;
   const maxResults = 200;
 
@@ -1969,24 +1976,14 @@ if (
             ? "primary_release_date.desc"
             : "first_air_date.desc";
 
-    const dateFilters =
-      sort === "newest"
-        ? "&" +
-          dateParameter +
-          ".gte=" +
-          currentYear +
-          "-01-01" +
-          "&" +
-          dateParameter +
-          ".lte=" +
-          currentYear +
-          "-12-31"
-        : sort === "oldest"
-          ? "&" +
-            dateParameter +
-            ".lte=" +
-            today
-          : "";
+   const dateFilters =
+  sort === "newest" ||
+  sort === "oldest"
+    ? "&" +
+      dateParameter +
+      ".lte=" +
+      today
+    : "";
 
     const firstTMDBPage =
       sort === "popularity"
@@ -2210,11 +2207,15 @@ results =
               ? b.first_air_date || ""
               : b.release_date || "";
 
-          if (aDate !== bDate) {
-            return bDate.localeCompare(
-              aDate
-            );
-          }
+        if (aDate !== bDate) {
+  return sort === "oldest"
+    ? aDate.localeCompare(
+        bDate
+      )
+    : bDate.localeCompare(
+        aDate
+      );
+}
 
           return (
             Number(
