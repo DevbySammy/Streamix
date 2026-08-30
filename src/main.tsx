@@ -449,19 +449,9 @@ function App() {
     setTmdbCatalogHasMore
   ] = useState(true);
 
-  const [
-    tmdbCatalogLimit,
-    setTmdbCatalogLimit
-  ] = useState(40);
-
-useEffect(() => {
+ useEffect(() => {
   const controller =
     new AbortController();
-
-   setTmdbCatalog([]);
-setTmdbCatalogPage(1);
-setTmdbCatalogHasMore(true);
-setTmdbCatalogLimit(40);
 
   async function loadTMDBCatalog() {
     setTmdbCatalogLoading(true);
@@ -514,56 +504,56 @@ setTmdbCatalogLimit(40);
                     ? item.release_date
                     : item.first_air_date;
 
-            return {
-  id:
-    "tmdb-" +
-    itemKind +
-    "-" +
-    String(item.id),
+                return {
+                  id:
+                    "tmdb-" +
+                    itemKind +
+                    "-" +
+                    String(item.id),
 
-  name:
-    itemKind === "movie"
-      ? item.title ||
-        "Untitled"
-      : item.name ||
-        "Untitled",
+                  name:
+                    itemKind === "movie"
+                      ? item.title ||
+                        "Untitled"
+                      : item.name ||
+                        "Untitled",
 
-  kind:
-    itemKind,
+                  kind:
+                    itemKind,
 
-  year:
-    releaseDate
-      ? Number(
-          String(
-            releaseDate
-          ).slice(0, 4)
-        )
-      : 0,
+                  year:
+                    releaseDate
+                      ? Number(
+                          String(
+                            releaseDate
+                          ).slice(0, 4)
+                        )
+                      : 0,
 
-  releaseDate:
-    releaseDate || "",
+                  releaseDate:
+                    releaseDate || "",
 
-  poster:
-    getPosterUrl(
-      item.poster_path
-    ),
+                  poster:
+                    getPosterUrl(
+                      item.poster_path
+                    ),
 
-  backdrop:
-    getBackdropUrl(
-      item.backdrop_path
-    ),
+                  backdrop:
+                    getBackdropUrl(
+                      item.backdrop_path
+                    ),
 
-  overview:
-    item.overview || "",
+                  overview:
+                    item.overview || "",
 
-  popularity:
-    Number(
-      item.popularity || 0
-    ),
+                  popularity:
+                    Number(
+                      item.popularity || 0
+                    ),
 
-  addedAt:
-    new Date().toISOString()
-};
+                  addedAt:
+                    new Date().toISOString()
+                };
               }
             )
           : [];
@@ -604,7 +594,6 @@ setTmdbCatalogLimit(40);
         error
       );
 
-      setTmdbCatalog([]);
       setTmdbCatalogPage(1);
       setTmdbCatalogHasMore(false);
     } finally {
