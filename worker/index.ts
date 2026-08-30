@@ -1976,15 +1976,22 @@ const sort =
             ? "primary_release_date.desc"
             : "first_air_date.desc";
 
-   const dateFilters =
-  sort === "newest" ||
-  sort === "oldest"
+ const dateFilters =
+  sort === "newest"
     ? "&" +
       dateParameter +
       ".lte=" +
       today
-    : "";
-
+    : sort === "oldest"
+      ? "&" +
+        dateParameter +
+        ".gte=1970-01-01" +
+        "&" +
+        dateParameter +
+        ".lte=" +
+        today
+      : "";
+    
     const firstTMDBPage =
       sort === "popularity"
         ? 1
