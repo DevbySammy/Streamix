@@ -473,7 +473,7 @@ setTmdbCatalogLimit(40);
 
       const response =
         await fetch(
-          `https://streamix.gaintrainstrong.workers.dev/api/tmdb/catalog?page=1&type=${kind}&sort=${sort === "popularity" ? "popularity" : "newest"}`,
+          `https://streamix.gaintrainstrong.workers.dev/api/tmdb/catalog?page=1&type=${kind}&sort=${sort}`,
           {
             signal:
               controller.signal,
@@ -644,7 +644,7 @@ async function loadNextTMDBCatalogPage() {
 
     const response =
       await fetch(
-        `https://streamix.gaintrainstrong.workers.dev/api/tmdb/catalog?page=${nextPage}&type=${kind}&sort=${sort === "popularity" ? "popularity" : "newest"}`,
+        `https://streamix.gaintrainstrong.workers.dev/api/tmdb/catalog?page=${nextPage}&type=${kind}&sort=${sort}`,
         {
           signal:
             controller.signal,
