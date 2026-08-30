@@ -449,7 +449,7 @@ function App() {
     setTmdbCatalogHasMore
   ] = useState(true);
 
- useEffect(() => {
+useEffect(() => {
   const controller =
     new AbortController();
 
@@ -464,7 +464,10 @@ function App() {
 
       const response =
         await fetch(
-          `https://streamix.gaintrainstrong.workers.dev/api/tmdb/catalog?page=1&type=${kind}&sort=${sort}`,
+          "https://streamix.gaintrainstrong.workers.dev/api/tmdb/catalog?page=1&type=" +
+            kind +
+            "&sort=" +
+            sort,
           {
             signal:
               controller.signal,
@@ -580,7 +583,9 @@ function App() {
           )
       );
 
-      setTmdbCatalogLimit(40);
+      setTmdbCatalogLimit(
+        40
+      );
     } catch (error) {
       if (
         error instanceof DOMException &&
@@ -677,56 +682,56 @@ async function loadNextTMDBCatalogPage() {
                   ? item.release_date
                   : item.first_air_date;
 
-             return {
-  id:
-    "tmdb-" +
-    itemKind +
-    "-" +
-    String(item.id),
+              return {
+                id:
+                  "tmdb-" +
+                  itemKind +
+                  "-" +
+                  String(item.id),
 
-  name:
-    itemKind === "movie"
-      ? item.title ||
-        "Untitled"
-      : item.name ||
-        "Untitled",
+                name:
+                  itemKind === "movie"
+                    ? item.title ||
+                      "Untitled"
+                    : item.name ||
+                      "Untitled",
 
-  kind:
-    itemKind,
+                kind:
+                  itemKind,
 
-  year:
-    releaseDate
-      ? Number(
-          String(
-            releaseDate
-          ).slice(0, 4)
-        )
-      : 0,
+                year:
+                  releaseDate
+                    ? Number(
+                        String(
+                          releaseDate
+                        ).slice(0, 4)
+                      )
+                    : 0,
 
-  releaseDate:
-    releaseDate || "",
+                releaseDate:
+                  releaseDate || "",
 
-  poster:
-    getPosterUrl(
-      item.poster_path
-    ),
+                poster:
+                  getPosterUrl(
+                    item.poster_path
+                  ),
 
-  backdrop:
-    getBackdropUrl(
-      item.backdrop_path
-    ),
+                backdrop:
+                  getBackdropUrl(
+                    item.backdrop_path
+                  ),
 
-  overview:
-    item.overview || "",
+                overview:
+                  item.overview || "",
 
-  popularity:
-    Number(
-      item.popularity || 0
-    ),
+                popularity:
+                  Number(
+                    item.popularity || 0
+                  ),
 
-  addedAt:
-    new Date().toISOString()
-         };
+                addedAt:
+                  new Date().toISOString()
+              };
             }
           )
         : [];
@@ -3222,7 +3227,7 @@ const visible = useMemo(() => {
     source = tmdbCatalog;
   }
 
-  const filtered =
+  let filtered =
     source
       .filter(title => {
         if (
@@ -3286,99 +3291,128 @@ const visible = useMemo(() => {
     );
   }
 
-if (
-  !q.trim() &&
-  sort === "year-desc"
-) {
-  const today =
-    new Date()
-      .toISOString()
-      .slice(0, 10);
+  if (
+    !q.trim() &&
+    !usingPersonalFilter
+  ) {
+    const today =
+      new Date()
+        .toISOString()
+        .slice(0, 10);
 
-  const currentYear =
-    new Date().getFullYear();
-
-  return filtered
-    .filter(title => {
-      if (!title.releaseDate) {
-        return false;
-      }
-
-      return (
-        title.releaseDate <= today &&
-        title.releaseDate.slice(0, 4) ===
-          String(currentYear)
-      );
-    })
-    .sort(
-      (a, b) =>
-        String(
-          b.releaseDate || ""
-        ).localeCompare(
-          String(
-            a.releaseDate || ""
-          )
-        )
-    );
-}
-
-if (
-  !q.trim() &&
-  sort === "year-asc"
-) {
-  const today =
-    new Date()
-      .toISOString()
-      .slice(0, 10);
-
-  return filtered
-    .filter(title => {
-      if (!title.releaseDate) {
-        return false;
-      }
-
-      return (
-        title.releaseDate <= today
-      );
-    })
-    .sort(
-      (a, b) =>
-        String(
-          a.releaseDate || ""
-        ).localeCompare(
-          String(
-            b.releaseDate || ""
-          )
-        )
-    );
-}
-
-return [...filtered].sort(
-  (a, b) => {
-    switch (sort) {
-      case "name-desc":
-        return b.name.localeCompare(
-          a.name
+    if (
+      sort === "year-desc"
+    ) {
+      filtered =
+        filtered.filter(
+          title =>
+            !!title.releaseDate &&
+            title.releaseDate <= today
         );
 
-      case "popularity":
-        return (
-          Number(
-            b.popularity || 0
-          ) -
-          Number(
-            a.popularity || 0
-          )
+      filtered =
+        filtered.sort(
+          (a, b) =>
+            String(
+              b.releaseDate || ""
+            ).localeCompare(
+              String(
+                a.releaseDate || ""
+              )
+            )
+        );
+    }
+
+    if (
+      sort === "year-asc"
+    ) {
+      filtered =
+        filtered.filter(
+          title =>
+            !!title.releaseDate &&
+            title.releaseDate >=
+              "1970-01-01" &&
+            title.releaseDate <= today
         );
 
-      case "name-asc":
-      default:
-        return a.name.localeCompare(
-          b.name
+      filtered =
+        filtered.sort(
+          (a, b) =>
+            String(
+              a.releaseDate || ""
+            ).localeCompare(
+              String(
+                b.releaseDate || ""
+              )
+            )
+        );
+    }
+
+    if (
+      sort === "popularity"
+    ) {
+      filtered =
+        filtered.sort(
+          (a, b) =>
+            Number(
+              b.popularity || 0
+            ) -
+            Number(
+              a.popularity || 0
+            )
         );
     }
   }
-);
+
+  if (
+    !usingPersonalFilter &&
+    !q.trim()
+  ) {
+    const sorted =
+      [...filtered].sort(
+        (a, b) => {
+          switch (sort) {
+            case "name-desc":
+              return b.name.localeCompare(
+                a.name
+              );
+
+            case "name-asc":
+              return a.name.localeCompare(
+                b.name
+              );
+
+            case "year-desc":
+            case "year-asc":
+            case "popularity":
+            case "just-added":
+              return 0;
+
+            default:
+              return a.name.localeCompare(
+                b.name
+              );
+          }
+        }
+      );
+
+    if (
+      sort === "year-desc" ||
+      sort === "year-asc" ||
+      sort === "popularity"
+    ) {
+      return filtered;
+    }
+
+    return sorted;
+  }
+
+  return [...filtered].sort(
+    (a, b) =>
+      a.name.localeCompare(
+        b.name
+      )
+  );
 }, [
   library,
   tmdbCatalog,
@@ -4700,144 +4734,6 @@ LIBRARY CONTROLS
 
     </div>
 
-    {/* FORMAT + SORT */}
-
-    <div className="format">
-
-      <button
-        className={
-          kind === "all" &&
-          kindClicked
-            ? "selected"
-            : ""
-        }
-        onClick={() => {
-          setKind("all");
-          setKindClicked(true);
-          setFilter("all");
-          setFilterClicked(false);
-        }}
-      >
-        All
-      </button>
-
-      <button
-        className={
-          kind === "movie"
-            ? "selected"
-            : ""
-        }
-        onClick={() => {
-          setKind("movie");
-          setKindClicked(true);
-          setFilter("all");
-          setFilterClicked(false);
-        }}
-      >
-        <Film size={15} />
-        Movies
-      </button>
-
-      <button
-        className={
-          kind === "tv"
-            ? "selected"
-            : ""
-        }
-        onClick={() => {
-          setKind("tv");
-          setKindClicked(true);
-          setFilter("all");
-          setFilterClicked(false);
-        }}
-      >
-        <Tv size={15} />
-        TV Shows
-      </button>
-
-      {isAdmin &&
-        <button
-          type="button"
-          className={
-            "view-hidden-btn" +
-            (justAddedView === "hidden"
-              ? " selected"
-              : "")
-          }
-          onClick={() => {
-            setFilter("all");
-            setFilterClicked(false);
-            setKind("all");
-            setKindClicked(false);
-
-            setJustAddedView(current =>
-              current === "visible"
-                ? "hidden"
-                : "visible"
-            );
-          }}
-        >
-          {justAddedView === "hidden"
-            ? "Back to Just Added"
-            : "View Hidden"}
-        </button>
-      }
-
-<select
-  className="sort-select"
-  value={sort}
-  onChange={event =>
-    setSort(
-      event.target.value as SortOption
-    )
-  }
-  aria-label="Filter library"
->
-  <option value="just-added">
-    Just Added
-  </option>
-
-   <option value="popularity"> 
-      Most Popular 
-   </option>
-
-    <option value="year-desc">
-    Newest release
-  </option>
-
-  <option value="year-asc">
-    Oldest release
-  </option>
-       
-  <option value="name-asc">
-    Name A–Z
-  </option>
-
-  <option value="name-desc">
-    Name Z–A
-  </option>
-   </select>
-
-</div>
-
-    {isAdmin &&
-      justAddedView === "hidden" && (
-        <div className="hidden-search">
-          <Search size={18} />
-
-          <input
-            value={hiddenSearch}
-            onChange={event =>
-              setHiddenSearch(
-                event.target.value
-              )
-            }
-            placeholder="Search hidden movies and TV shows"
-            aria-label="Search hidden movies and TV shows"
-          />
-        </div>
-      )}
-
   </>
 )}
 
@@ -4916,30 +4812,26 @@ LIBRARY CONTROLS
       : sort === "just-added"
         ? (
             justAddedView === "hidden"
-              ? visible.length <
+              ? hiddenJustAddedLimit <
                 hiddenJustAdded.length
-              : visible.length <
+              : justAddedLimit <
                 justAdded.length
           )
-        : tmdbCatalogHasMore
+        : tmdbCatalogHasMore &&
+          tmdbCatalogLimit < 200
   ) && (
-     
     <button
       type="button"
       className="show-more-button"
       onClick={event => {
         event.currentTarget.blur();
 
-     if (
-    q.trim()
-  ) {
-    loadNextTMDBSearchPage();
-    return;
-  }
+        if (q.trim()) {
+          loadNextTMDBSearchPage();
+          return;
+        }
 
-  if (
-    sort === "just-added"
-  ) {
+        if (sort === "just-added") {
           if (
             justAddedView ===
             "hidden"
