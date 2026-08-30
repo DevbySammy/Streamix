@@ -3226,6 +3226,9 @@ const visible = useMemo(() => {
     source = tmdbCatalog;
   }
 
+  const currentYear =
+    new Date().getFullYear();
+
   const filtered =
     source
       .filter(title => {
@@ -3254,6 +3257,26 @@ const visible = useMemo(() => {
         }
 
         return title.kind === kind;
+      })
+      .filter(title => {
+        if (
+          !usingPersonalFilter &&
+          !q.trim() &&
+          sort === "year-desc"
+        ) {
+          return title.year === currentYear;
+        }
+
+        if (
+          !usingPersonalFilter &&
+          !q.trim() &&
+          sort === "year-asc"
+        ) {
+          return title.year > 0 &&
+            title.year <= currentYear;
+        }
+
+        return true;
       })
       .filter(
         (title, index, array) =>
@@ -3290,41 +3313,34 @@ const visible = useMemo(() => {
     );
   }
 
-if (
-  !q.trim() &&
-  filter === "all" &&
-  sort === "year-desc"
-) {
-  return filtered;
-}
+  return [...filtered].sort(
+    (a, b) => {
+      switch (sort) {
+        case "name-desc":
+          return b.name.localeCompare(
+            a.name
+          );
 
-return [...filtered].sort(
-  (a, b) => {
-    switch (sort) {
-      case "name-desc":
-        return b.name.localeCompare(
-          a.name
-        );
-           case "popularity":
-        return (
-          Number(b.popularity || 0) -
-          Number(a.popularity || 0)
-        );
+        case "popularity":
+          return (
+            Number(b.popularity || 0) -
+            Number(a.popularity || 0)
+          );
 
-      case "year-desc":
-        return b.year - a.year;
+        case "year-desc":
+          return b.year - a.year;
 
-      case "year-asc":
-        return a.year - b.year;
+        case "year-asc":
+          return a.year - b.year;
 
-      case "name-asc":
-      default:
-        return a.name.localeCompare(
-          b.name
-        );
+        case "name-asc":
+        default:
+          return a.name.localeCompare(
+            b.name
+          );
+      }
     }
-  }
-);
+  );
 }, [
   library,
   tmdbCatalog,
