@@ -841,16 +841,16 @@ const [
   "visible" | "hidden"
 >("visible");
 
-{/* this one piece of code below shows 30 - 30 movies listed before you press show more */}
+{/* this one piece of code below shows 40 - 40 movies listed before you press show more */}
    const [
   justAddedLimit,
   setJustAddedLimit
-] = useState(30);
+] = useState(40);
 
    const [
   hiddenJustAddedLimit,
   setHiddenJustAddedLimit
-] = useState(30);
+] = useState(40);
 
 const [
   hiddenSearch,
@@ -881,7 +881,7 @@ useEffect(() => {
       setHiddenJustAddedLimit(
         mediaQuery.matches
           ? 20
-          : 30
+          : 40
       );
     };
 
@@ -4950,7 +4950,7 @@ LIBRARY CONTROLS
                   current +
                     (isMobile
                       ? 20
-                      : 30),
+                      : 40),
                   hiddenJustAdded.length
                 )
             );
@@ -4958,7 +4958,7 @@ LIBRARY CONTROLS
             setJustAddedLimit(
               current =>
                 Math.min(
-                  current + 30,
+                  current + 40,
                   justAdded.length
                 )
             );
