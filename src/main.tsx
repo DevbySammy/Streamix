@@ -73,12 +73,13 @@ message: string;
 };
 
 type SortOption =
-| "just-added"
-| "popularity"
-| "year-desc"
-| "year-asc"
-| "name-asc"
-| "name-desc";
+  | "default"
+  | "just-added"
+  | "popularity"
+  | "year-desc"
+  | "year-asc"
+  | "name-asc"
+  | "name-desc";
 
 type HeroSettings = {
 titleId: string | null;
@@ -3300,8 +3301,10 @@ const visible = useMemo(() => {
         .toISOString()
         .slice(0, 10);
 
-    if (
-      sort === "year-desc"
+ if (
+  sort === "default" ||
+  sort === "year-desc"
+    
     ) {
       filtered =
         filtered.filter(
@@ -4845,40 +4848,44 @@ LIBRARY CONTROLS
     </button>
   )}
 
-  <select
-    className="sort-select"
-    value={sort}
-    onChange={event =>
-      setSort(
-        event.target.value as SortOption
-      )
-    }
-    aria-label="Filter library"
-  >
-    <option value="just-added">
-      Just Added
-    </option>
+ <select
+  className="sort-select"
+  value={sort}
+  onChange={event =>
+    setSort(
+      event.target.value as SortOption
+    )
+  }
+  aria-label="Sort library"
+>
+  <option value="default">
+    Sort by
+  </option>
 
-    <option value="popularity">
-      Most Popular
-    </option>
+  <option value="just-added">
+    Just Added
+  </option>
 
-    <option value="year-desc">
-      Newest release
-    </option>
+  <option value="popularity">
+    Most Popular
+  </option>
 
-    <option value="year-asc">
-      Oldest release
-    </option>
+  <option value="year-desc">
+    Newest release
+  </option>
 
-    <option value="name-asc">
-      Name A–Z
-    </option>
+  <option value="year-asc">
+    Oldest release
+  </option>
 
-    <option value="name-desc">
-      Name Z–A
-    </option>
-  </select>
+  <option value="name-asc">
+    Name A–Z
+  </option>
+
+  <option value="name-desc">
+    Name Z–A
+  </option>
+</select>
 
 </div>
 
