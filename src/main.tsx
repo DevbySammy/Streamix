@@ -688,53 +688,56 @@ async function loadNextTMDBCatalogPage() {
                   ? item.release_date
                   : item.first_air_date;
 
-              return {
-                id:
-                  "tmdb-" +
-                  itemKind +
-                  "-" +
-                  String(item.id),
+             return {
+  id:
+    "tmdb-" +
+    itemKind +
+    "-" +
+    String(item.id),
 
-                name:
-                  itemKind === "movie"
-                    ? item.title ||
-                      "Untitled"
-                    : item.name ||
-                      "Untitled",
+  name:
+    itemKind === "movie"
+      ? item.title ||
+        "Untitled"
+      : item.name ||
+        "Untitled",
 
-                kind:
-                  itemKind,
+  kind:
+    itemKind,
 
-                year:
-                  releaseDate
-                    ? Number(
-                        String(
-                          releaseDate
-                        ).slice(0, 4)
-                      )
-                    : 0,
+  year:
+    releaseDate
+      ? Number(
+          String(
+            releaseDate
+          ).slice(0, 4)
+        )
+      : 0,
 
-                poster:
-                  getPosterUrl(
-                    item.poster_path
-                  ),
+  releaseDate:
+    releaseDate || "",
 
-                backdrop:
-                  getBackdropUrl(
-                    item.backdrop_path
-                  ),
+  poster:
+    getPosterUrl(
+      item.poster_path
+    ),
 
-                overview:
-                  item.overview || "",
+  backdrop:
+    getBackdropUrl(
+      item.backdrop_path
+    ),
 
-                popularity:
-                  Number(
-                    item.popularity || 0
-                  ),
+  overview:
+    item.overview || "",
 
-                addedAt:
-                  new Date().toISOString()
-              };
+  popularity:
+    Number(
+      item.popularity || 0
+    ),
+
+  addedAt:
+    new Date().toISOString()
+         };
             }
           )
         : [];
