@@ -2095,65 +2095,63 @@ if (
           pagesPerRequest +
         1;
 
-      const pageRequests =
-        Array.from(
-          {
-            length:
-              pagesPerRequest
-          },
-          (
-            _,
-            index
-          ) =>
-            firstTMDBPage +
-            index
-        );
+      const tmdbTypes =
+        type === "all"
+          ? ["movie", "tv"]
+          : [type];
 
-      const responses =
+      const mediaResults =
         await Promise.all(
-          pageRequests.map(
-            tmdbPage =>
-              fetchTMDB(
-                "https://api.themoviedb.org/3/trending/all/week" +
-                  "?language=en-US" +
-                  "&page=" +
-                  tmdbPage
-              )
+          tmdbTypes.map(
+            async mediaType => {
+              const pageRequests =
+                Array.from(
+                  {
+                    length:
+                      pagesPerRequest
+                  },
+                  (
+                    _,
+                    index
+                  ) =>
+                    firstTMDBPage +
+                    index
+                );
+
+              const responses =
+                await Promise.all(
+                  pageRequests.map(
+                    tmdbPage =>
+                      fetchTMDB(
+                        "https://api.themoviedb.org/3/" +
+                          mediaType +
+                          "/popular" +
+                          "?language=en-US" +
+                          "&page=" +
+                          tmdbPage
+                      )
+                  );
+
+              return responses.flatMap(
+                data =>
+                  Array.isArray(
+                    data.results
+                  )
+                    ? data.results.map(
+                        item => ({
+                          ...item,
+                          media_type:
+                            mediaType
+                        })
+                      )
+                    : []
+              );
+            }
           )
         );
 
       results =
-        responses.flatMap(
-          data =>
-            Array.isArray(
-              data.results
-            )
-              ? data.results
-              : []
-        );
-
-      results =
-        results.map(
-          item => ({
-            ...item,
-            media_type:
-              item.media_type ===
-              "tv"
-                ? "tv"
-                : "movie"
-          })
-        );
-
-      if (
-        type !== "all"
-      ) {
-        results =
-          results.filter(
-            item =>
-              item.media_type ===
-              type
-          );
-      }
+        mediaResults.flat();
 
       results =
         filterResults(
