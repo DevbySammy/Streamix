@@ -4775,9 +4775,6 @@ LIBRARY CONTROLS
     setJustAddedView("visible");
   }}
 >
-  <Film size={15} />
-  Movies
-</button>
     <Film size={15} />
     Movies
   </button>
