@@ -4990,7 +4990,8 @@ LIBRARY CONTROLS
               : justAddedLimit <
                 justAdded.length
           )
-        : tmdbCatalogLimit < 200
+ : tmdbCatalogHasMore &&
+  tmdbCatalogLimit < 200
   ) && (
     <button
       type="button"
