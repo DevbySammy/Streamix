@@ -4977,7 +4977,6 @@ LIBRARY CONTROLS
 
 </div>
 
-{!justAddedLoading &&
 {visible.length > 0 &&
   (
     q.trim()
@@ -4996,6 +4995,7 @@ LIBRARY CONTROLS
         : tmdbCatalogHasMore &&
           tmdbCatalogLimit < 200
   ) && (
+     
     <button
       type="button"
       className="show-more-button"
