@@ -2118,20 +2118,20 @@ if (
                     index
                 );
 
-              const responses =
-                await Promise.all(
-                  pageRequests.map(
-                    tmdbPage =>
-                      fetchTMDB(
-                        "https://api.themoviedb.org/3/" +
-                          mediaType +
-                          "/popular" +
-                          "?language=en-US" +
-                          "&page=" +
-                          tmdbPage
-                      )
-                  );
-
+            const responses =
+  await Promise.all(
+    pageRequests.map(
+      tmdbPage =>
+        fetchTMDB(
+          "https://api.themoviedb.org/3/" +
+            mediaType +
+            "/popular" +
+            "?language=en-US" +
+            "&page=" +
+            tmdbPage
+        )
+    )
+  );
               return responses.flatMap(
                 data =>
                   Array.isArray(
