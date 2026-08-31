@@ -427,8 +427,8 @@ function App() {
  const [kindClicked, setKindClicked] =
    useState(true);
 
- const [sort, setSort] =
-  useState<SortOption>("popularity");
+const [sort, setSort] =
+  useState<SortOption>("default");
    
  const [
   tmdbCatalog,
@@ -468,8 +468,10 @@ useEffect(() => {
         await fetch(
           "https://streamix.gaintrainstrong.workers.dev/api/tmdb/catalog?page=1&type=" +
             kind +
-            "&sort=" +
-            sort,
+      "&sort=" +
+(sort === "default"
+  ? "popularity"
+  : sort),
           {
             signal:
               controller.signal,
@@ -644,7 +646,7 @@ async function loadNextTMDBCatalogPage() {
 
     const response =
       await fetch(
-        `https://streamix.gaintrainstrong.workers.dev/api/tmdb/catalog?page=${nextPage}&type=${kind}&sort=${sort}`,
+        `https://streamix.gaintrainstrong.workers.dev/api/tmdb/catalog?page=${nextPage}&type=${kind}&sort=${sort === "default" ? "popularity" : sort}`,
         {
           signal:
             controller.signal,
@@ -3303,7 +3305,6 @@ const visible = useMemo(() => {
         .slice(0, 10);
 
 if (
-  sort === "default" ||
   sort === "year-desc"
 ) {
   filtered =
@@ -3398,13 +3399,14 @@ if (
         }
       );
 
-    if (
-      sort === "year-desc" ||
-      sort === "year-asc" ||
-      sort === "popularity"
-    ) {
-      return filtered;
-    }
+  if (
+  sort === "default" ||
+  sort === "year-desc" ||
+  sort === "year-asc" ||
+  sort === "popularity"
+) {
+  return filtered;
+}
 
     return sorted;
   }
@@ -4748,7 +4750,7 @@ LIBRARY CONTROLS
     }
     onClick={() => {
       setKind("all");
-      setKindClicked(false);
+      setKindClicked(true);
       setFilter("all");
       setFilterClicked(false);
       setSort("default");
