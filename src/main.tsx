@@ -3405,7 +3405,10 @@ if (
   sort === "year-asc" ||
   sort === "popularity"
 ) {
-  return filtered;
+ return filtered.slice(
+  0,
+  tmdbCatalogLimit
+);
 }
 
     return sorted;
@@ -3433,6 +3436,7 @@ if (
   hiddenSearch,
   state,
   isAdmin
+  tmdbCatalogLimit
 ]);
    
 /* =======================================================
