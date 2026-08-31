@@ -3405,10 +3405,7 @@ if (
   sort === "year-asc" ||
   sort === "popularity"
 ) {
- return filtered.slice(
-  0,
-  tmdbCatalogLimit
-);
+  return filtered;
 }
 
     return sorted;
@@ -3435,8 +3432,7 @@ if (
   hiddenJustAddedLimit,
   hiddenSearch,
   state,
-  isAdmin,
-  tmdbCatalogLimit
+  isAdmin
 ]);
    
 /* =======================================================
