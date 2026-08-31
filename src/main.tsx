@@ -427,8 +427,8 @@ function App() {
  const [kindClicked, setKindClicked] =
    useState(true);
 
-   const [sort, setSort] =
-  useState<SortOption>("year-desc");
+ const [sort, setSort] =
+  useState<SortOption>("popularity");
    
  const [
   tmdbCatalog,
@@ -454,10 +454,11 @@ useEffect(() => {
   const controller =
     new AbortController();
 
-  async function loadTMDBCatalog() {
-    setTmdbCatalogLoading(true);
+ async function loadTMDBCatalog() {
+  setTmdbCatalogLoading(true);
+  setTmdbCatalog([]);
 
-    try {
+  try {
       const sessionId =
         localStorage.getItem(
           "sx-session-token"
@@ -4799,28 +4800,19 @@ LIBRARY CONTROLS
     TV Shows
   </button>
 
-  {(filter !== "all" ||
-    kind !== "all" ||
-    q.trim() !== "" ||
-    justAddedView !== "visible") && (
-    <button
-      type="button"
-      className="clear-filters-button"
-      onClick={() => {
-        setFilter("all");
-        setFilterClicked(false);
-        setKind("all");
-        setKindClicked(false);
-        setQ("");
-        setHiddenSearch("");
-        setJustAddedView("visible");
-      }}
-      aria-label="Clear filters"
-      title="Clear filters"
-    >
-      ×
-    </button>
-  )}
+ {sort !== "popularity" && (
+  <button
+    type="button"
+    className="clear-filters-button"
+    onClick={() => {
+      setSort("popularity");
+    }}
+    aria-label="Clear sort"
+    title="Clear sort"
+  >
+    ×
+  </button>
+)}
 
   {isAdmin && (
     <button
