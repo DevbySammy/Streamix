@@ -4990,10 +4990,8 @@ LIBRARY CONTROLS
               : justAddedLimit <
                 justAdded.length
           )
-        : tmdbCatalogHasMore &&
-          tmdbCatalogLimit < 200
+        : tmdbCatalogLimit < 200
   ) && (
-     
     <button
       type="button"
       className="show-more-button"
@@ -5039,7 +5037,6 @@ LIBRARY CONTROLS
       Show more
     </button>
   )}
-
 </main>
 
 </>
