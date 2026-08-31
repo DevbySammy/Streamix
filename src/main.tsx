@@ -3435,7 +3435,7 @@ if (
   hiddenJustAddedLimit,
   hiddenSearch,
   state,
-  isAdmin
+  isAdmin,
   tmdbCatalogLimit
 ]);
    
