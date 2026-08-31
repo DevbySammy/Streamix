@@ -4978,20 +4978,23 @@ LIBRARY CONTROLS
 </div>
 
 {!justAddedLoading &&
-  visible.length > 0 &&
+{visible.length > 0 &&
   (
     q.trim()
       ? tmdbSearchHasMore
       : sort === "just-added"
         ? (
-            justAddedView === "hidden"
-              ? hiddenJustAddedLimit <
-                hiddenJustAdded.length
-              : justAddedLimit <
-                justAdded.length
+            !justAddedLoading &&
+            (
+              justAddedView === "hidden"
+                ? hiddenJustAddedLimit <
+                  hiddenJustAdded.length
+                : justAddedLimit <
+                  justAdded.length
+            )
           )
- : tmdbCatalogHasMore &&
-  tmdbCatalogLimit < 200
+        : tmdbCatalogHasMore &&
+          tmdbCatalogLimit < 200
   ) && (
     <button
       type="button"
