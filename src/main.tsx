@@ -459,6 +459,11 @@ useEffect(() => {
     new AbortController();
 
 async function loadTMDBCatalog() {
+  if (sort === "just-added") {
+    setTmdbCatalogLoading(false);
+    return;
+  }
+
   setTmdbCatalogLoading(true);
 
   try {
@@ -2045,7 +2050,7 @@ useEffect(() => {
   }
 
   loadJustAdded();
-}, [kind, sort]);
+}, [sort]);
 
  const [q, setQ] = useState("");
 
