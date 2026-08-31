@@ -1907,139 +1907,140 @@ async function subscribeToPushNotifications() {
    useState(false);
 
 useEffect(() => {
-  setJustAddedLoading(true);
-
   if (sort !== "just-added") {
+    setJustAddedLoading(false);
     return;
   }
 
-   async function loadJustAdded() {
-     try {
-       const sessionId =
-         localStorage.getItem(
-           "sx-session-token"
-         );
+  setJustAddedLoading(true);
 
-       const response = await fetch(
-         "https://streamix.gaintrainstrong.workers.dev/api/tmdb/just-added",
-         {
-           headers: sessionId
-             ? {
-                 Authorization:
-                   `Bearer ${sessionId}`
-               }
-             : {}
-         }
-       );
+  async function loadJustAdded() {
+    try {
+      const sessionId =
+        localStorage.getItem(
+          "sx-session-token"
+        );
 
-       const data =
-         await response.json();
+      const response = await fetch(
+        "https://streamix.gaintrainstrong.workers.dev/api/tmdb/just-added",
+        {
+          headers: sessionId
+            ? {
+                Authorization:
+                  `Bearer ${sessionId}`
+              }
+            : {}
+        }
+      );
 
-       if (!response.ok) {
-         throw new Error(
-           data?.error ||
-             "Unable to load Just Added."
-         );
-       }
+      const data =
+        await response.json();
 
-       const results =
-         Array.isArray(data.results)
-           ? data.results
-           : [];
+      if (!response.ok) {
+        throw new Error(
+          data?.error ||
+            "Unable to load Just Added."
+        );
+      }
 
-       const titles: Title[] =
-         results
-           .filter(
-             (item: any) =>
-               typeof item.poster_path === "string" &&
-               item.poster_path.trim() !== ""
-           )
-           .map(
-             (item: any): Title => {
-               const kind: Kind =
-                 item.media_type === "tv"
-                   ? "tv"
-                   : "movie";
+      const results =
+        Array.isArray(data.results)
+          ? data.results
+          : [];
 
-               const releaseDate =
-                 kind === "movie"
-                   ? item.release_date
-                   : item.first_air_date;
+      const titles: Title[] =
+        results
+          .filter(
+            (item: any) =>
+              typeof item.poster_path === "string" &&
+              item.poster_path.trim() !== ""
+          )
+          .map(
+            (item: any): Title => {
+              const kind: Kind =
+                item.media_type === "tv"
+                  ? "tv"
+                  : "movie";
 
-               const year =
-                 releaseDate &&
-                 typeof releaseDate ===
-                   "string"
-                   ? Number(
-                       releaseDate.slice(0, 4)
-                     )
-                   : 0;
+              const releaseDate =
+                kind === "movie"
+                  ? item.release_date
+                  : item.first_air_date;
 
-               const name =
-                 kind === "movie"
-                   ? item.title ||
-                     "Untitled"
-                   : item.name ||
-                     "Untitled";
+              const year =
+                releaseDate &&
+                typeof releaseDate ===
+                  "string"
+                  ? Number(
+                      releaseDate.slice(0, 4)
+                    )
+                  : 0;
 
-               return {
-                 id:
-                   "tmdb-" +
-                   kind +
-                   "-" +
-                   String(item.id),
-                 name,
-                 kind,
-                 year,
-                 poster:
-                   getPosterUrl(
-                     item.poster_path
-                   ),
-                 backdrop:
-                   getBackdropUrl(
-                     item.backdrop_path
-                   ),
-                 overview:
-                   typeof item.overview ===
-                   "string"
-                     ? item.overview
-                     : "",
-                 addedAt:
-                   releaseDate || ""
-               };
-             }
-           );
+              const name =
+                kind === "movie"
+                  ? item.title ||
+                    "Untitled"
+                  : item.name ||
+                    "Untitled";
 
-       const dedupedTitles =
-         Array.from(
-           new Map(
-             titles.map(
-               title => [
-                 title.id,
-                 title
-               ]
-             )
-           ).values()
-         );
-setJustAdded(
-  dedupedTitles
-);
+              return {
+                id:
+                  "tmdb-" +
+                  kind +
+                  "-" +
+                  String(item.id),
+                name,
+                kind,
+                year,
+                poster:
+                  getPosterUrl(
+                    item.poster_path
+                  ),
+                backdrop:
+                  getBackdropUrl(
+                    item.backdrop_path
+                  ),
+                overview:
+                  typeof item.overview ===
+                  "string"
+                    ? item.overview
+                    : "",
+                addedAt:
+                  releaseDate || ""
+              };
+            }
+          );
 
-setJustAddedLoading(false);
-        
-     } catch (error) {
-       console.error(
-         "Failed to load Just Added:",
-         error
-       );
+      const dedupedTitles =
+        Array.from(
+          new Map(
+            titles.map(
+              title => [
+                title.id,
+                title
+              ]
+            )
+          ).values()
+        );
+
+      setJustAdded(
+        dedupedTitles
+      );
+
+      setJustAddedLoading(false);
+    } catch (error) {
+      console.error(
+        "Failed to load Just Added:",
+        error
+      );
 
       setJustAdded([]);
 
-setJustAddedLoading(false);
-     }
-   }
+      setJustAddedLoading(false);
+    }
+  }
 
-   loadJustAdded();
+  loadJustAdded();
 }, [kind, sort]);
 
  const [q, setQ] = useState("");
@@ -4992,6 +4993,7 @@ LIBRARY CONTROLS
         : tmdbCatalogHasMore &&
           tmdbCatalogLimit < 200
   ) && (
+     
     <button
       type="button"
       className="show-more-button"
