@@ -454,9 +454,8 @@ useEffect(() => {
   const controller =
     new AbortController();
 
- async function loadTMDBCatalog() {
+async function loadTMDBCatalog() {
   setTmdbCatalogLoading(true);
-  setTmdbCatalog([]);
 
   try {
       const sessionId =
@@ -4802,20 +4801,6 @@ LIBRARY CONTROLS
     TV Shows
   </button>
 
- {sort !== "popularity" && (
-  <button
-    type="button"
-    className="clear-filters-button"
-    onClick={() => {
-      setSort("popularity");
-    }}
-    aria-label="Clear sort"
-    title="Clear sort"
-  >
-    ×
-  </button>
-)}
-
   {isAdmin && (
     <button
       type="button"
@@ -4885,8 +4870,23 @@ LIBRARY CONTROLS
       Name Z–A
     </option>
   </select>
-</div>
 
+     {sort !== "default" && (
+  <button
+    type="button"
+    className="clear-filters-button"
+    onClick={() => {
+      setSort("default");
+    }}
+    aria-label="Clear sort"
+    title="Clear sort"
+  >
+    ×
+  </button>
+)}
+   </div>
+     
+     
 {isAdmin &&
   justAddedView === "hidden" && (
     <div className="hidden-search">
