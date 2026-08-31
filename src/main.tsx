@@ -3304,27 +3304,27 @@ const visible = useMemo(() => {
         .toISOString()
         .slice(0, 10);
 
-if (
-  sort === "year-desc"
-) {
-  filtered =
-    filtered.filter(
-      title =>
-        !!title.releaseDate &&
-        title.releaseDate <= today
-    );
+    if (
+      sort === "year-desc"
+    ) {
+      filtered =
+        filtered.filter(
+          title =>
+            !!title.releaseDate &&
+            title.releaseDate <= today
+        );
 
-  return filtered.sort(
-    (a, b) =>
-      String(
-        b.releaseDate || ""
-      ).localeCompare(
-        String(
-          a.releaseDate || ""
-        )
-      )
-  );
-}
+      filtered = filtered.sort(
+        (a, b) =>
+          String(
+            b.releaseDate || ""
+          ).localeCompare(
+            String(
+              a.releaseDate || ""
+            )
+          )
+      );
+    }
 
     if (
       sort === "year-asc"
@@ -3399,14 +3399,17 @@ if (
         }
       );
 
-  if (
-  sort === "default" ||
-  sort === "year-desc" ||
-  sort === "year-asc" ||
-  sort === "popularity"
-) {
-  return filtered;
-}
+    if (
+      sort === "default" ||
+      sort === "year-desc" ||
+      sort === "year-asc" ||
+      sort === "popularity"
+    ) {
+      return filtered.slice(
+        0,
+        tmdbCatalogLimit
+      );
+    }
 
     return sorted;
   }
@@ -3432,7 +3435,8 @@ if (
   hiddenJustAddedLimit,
   hiddenSearch,
   state,
-  isAdmin
+  isAdmin,
+  tmdbCatalogLimit
 ]);
    
 /* =======================================================
