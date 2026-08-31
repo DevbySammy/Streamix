@@ -4790,6 +4790,8 @@ LIBRARY CONTROLS
       setKindClicked(true);
       setFilter("all");
       setFilterClicked(false);
+      setQ("");
+      setHiddenSearch("");
       setJustAddedView("visible");
     }}
   >
@@ -4906,6 +4908,7 @@ LIBRARY CONTROLS
         placeholder="Search hidden movies and TV shows"
         aria-label="Search hidden movies and TV shows"
       />
+
     </div>
   )}
 
