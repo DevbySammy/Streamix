@@ -4735,46 +4735,46 @@ LIBRARY CONTROLS
 
     </div>
 
-   {/* FORMAT + SORT */}
+{/* FORMAT + SORT */}
 
 <div className="format">
+  <button
+    className={
+      kind === "all" &&
+      kindClicked
+        ? "selected"
+        : ""
+    }
+    onClick={() => {
+      setKind("all");
+      setKindClicked(false);
+      setFilter("all");
+      setFilterClicked(false);
+      setSort("default");
+      setQ("");
+      setHiddenSearch("");
+      setJustAddedView("visible");
+    }}
+  >
+    All
+  </button>
 
-<button
-  className={
-    kind === "all" &&
-    kindClicked
-      ? "selected"
-      : ""
-  }
-  onClick={() => {
-    setKind("all");
-    setKindClicked(false);
-    setFilter("all");
-    setFilterClicked(false);
-    setSort("default");
-    setQ("");
-    setHiddenSearch("");
-    setJustAddedView("visible");
-  }}
->
-  All
-</button>
-<button
-  className={
-    kind === "movie"
-      ? "selected"
-      : ""
-  }
-  onClick={() => {
-    setKind("movie");
-    setKindClicked(true);
-    setFilter("all");
-    setFilterClicked(false);
-    setQ("");
-    setHiddenSearch("");
-    setJustAddedView("visible");
-  }}
->
+  <button
+    className={
+      kind === "movie"
+        ? "selected"
+        : ""
+    }
+    onClick={() => {
+      setKind("movie");
+      setKindClicked(true);
+      setFilter("all");
+      setFilterClicked(false);
+      setQ("");
+      setHiddenSearch("");
+      setJustAddedView("visible");
+    }}
+  >
     <Film size={15} />
     Movies
   </button>
@@ -4848,54 +4848,52 @@ LIBRARY CONTROLS
     </button>
   )}
 
- <select
-  className="sort-select"
-  value={sort}
-  onChange={event =>
-    setSort(
-      event.target.value as SortOption
-    )
-  }
-  aria-label="Sort library"
->
-<option
-  value="default"
-  disabled
->
-  Sort by
-</option>
+  <select
+    className="sort-select"
+    value={sort}
+    onChange={event =>
+      setSort(
+        event.target.value as SortOption
+      )
+    }
+    aria-label="Sort library"
+  >
+    <option
+      value="default"
+      disabled
+    >
+      Sort by
+    </option>
 
-  <option value="just-added">
-    Just Added
-  </option>
+    <option value="just-added">
+      Just Added
+    </option>
 
-  <option value="popularity">
-    Most Popular
-  </option>
+    <option value="popularity">
+      Most Popular
+    </option>
 
-  <option value="year-desc">
-    Newest release
-  </option>
+    <option value="year-desc">
+      Newest release
+    </option>
 
-  <option value="year-asc">
-    Oldest release
-  </option>
+    <option value="year-asc">
+      Oldest release
+    </option>
 
-  <option value="name-asc">
-    Name A–Z
-  </option>
+    <option value="name-asc">
+      Name A–Z
+    </option>
 
-  <option value="name-desc">
-    Name Z–A
-  </option>
-</select>
-
+    <option value="name-desc">
+      Name Z–A
+    </option>
+  </select>
 </div>
 
 {isAdmin &&
   justAddedView === "hidden" && (
     <div className="hidden-search">
-
       <Search size={18} />
 
       <input
@@ -4908,11 +4906,10 @@ LIBRARY CONTROLS
         placeholder="Search hidden movies and TV shows"
         aria-label="Search hidden movies and TV shows"
       />
-
     </div>
   )}
 
-  </>
+</>
 )}
 
 {/* LIBRARY */}
