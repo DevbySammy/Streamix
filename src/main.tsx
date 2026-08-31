@@ -445,10 +445,15 @@ const [sort, setSort] =
     setTmdbCatalogLoading
   ] = useState(false);
 
-  const [
+   const [
     tmdbCatalogHasMore,
     setTmdbCatalogHasMore
   ] = useState(true);
+
+  const [
+    tmdbCatalogLimit,
+    setTmdbCatalogLimit
+  ] = useState(40);
 
 useEffect(() => {
   const controller =
