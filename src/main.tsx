@@ -3301,30 +3301,28 @@ const visible = useMemo(() => {
         .toISOString()
         .slice(0, 10);
 
- if (
+if (
   sort === "default" ||
   sort === "year-desc"
-    
-    ) {
-      filtered =
-        filtered.filter(
-          title =>
-            !!title.releaseDate &&
-            title.releaseDate <= today
-        );
+) {
+  filtered =
+    filtered.filter(
+      title =>
+        !!title.releaseDate &&
+        title.releaseDate <= today
+    );
 
-      filtered =
-        filtered.sort(
-          (a, b) =>
-            String(
-              b.releaseDate || ""
-            ).localeCompare(
-              String(
-                a.releaseDate || ""
-              )
-            )
-        );
-    }
+  return filtered.sort(
+    (a, b) =>
+      String(
+        b.releaseDate || ""
+      ).localeCompare(
+        String(
+          a.releaseDate || ""
+        )
+      )
+  );
+}
 
     if (
       sort === "year-asc"
@@ -4741,40 +4739,45 @@ LIBRARY CONTROLS
 
 <div className="format">
 
-  <button
-    className={
-      kind === "all" &&
-      kindClicked
-        ? "selected"
-        : ""
-    }
-    onClick={() => {
-      setKind("all");
-      setKindClicked(true);
-      setFilter("all");
-      setFilterClicked(false);
-      setQ("");
-      setHiddenSearch("");
-      setJustAddedView("visible");
-    }}
-  >
-    All
-  </button>
-
-  <button
-    className={
-      kind === "movie"
-        ? "selected"
-        : ""
-    }
-    onClick={() => {
-      setKind("movie");
-      setKindClicked(true);
-      setFilter("all");
-      setFilterClicked(false);
-      setJustAddedView("visible");
-    }}
-  >
+<button
+  className={
+    kind === "all" &&
+    kindClicked
+      ? "selected"
+      : ""
+  }
+  onClick={() => {
+    setKind("all");
+    setKindClicked(false);
+    setFilter("all");
+    setFilterClicked(false);
+    setSort("default");
+    setQ("");
+    setHiddenSearch("");
+    setJustAddedView("visible");
+  }}
+>
+  All
+</button>
+<button
+  className={
+    kind === "movie"
+      ? "selected"
+      : ""
+  }
+  onClick={() => {
+    setKind("movie");
+    setKindClicked(true);
+    setFilter("all");
+    setFilterClicked(false);
+    setQ("");
+    setHiddenSearch("");
+    setJustAddedView("visible");
+  }}
+>
+  <Film size={15} />
+  Movies
+</button>
     <Film size={15} />
     Movies
   </button>
@@ -4858,9 +4861,12 @@ LIBRARY CONTROLS
   }
   aria-label="Sort library"
 >
-  <option value="default">
-    Sort by
-  </option>
+<option
+  value="default"
+  disabled
+>
+  Sort by
+</option>
 
   <option value="just-added">
     Just Added
