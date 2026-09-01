@@ -430,32 +430,37 @@ function App() {
 const [sort, setSort] =
   useState<SortOption>("default");
    
- const [
+const [
   tmdbCatalog,
   setTmdbCatalog
 ] = useState<Title[]>([]);
 
-  const [
-    tmdbCatalogPage,
-    setTmdbCatalogPage
-  ] = useState(1);
+const [
+  tmdbCatalogPage,
+  setTmdbCatalogPage
+] = useState(1);
 
-  const [
-    tmdbCatalogLoading,
-    setTmdbCatalogLoading
-  ] = useState(false);
+const [
+  tmdbCatalogLoading,
+  setTmdbCatalogLoading
+] = useState(false);
 
-   const [
-    tmdbCatalogHasMore,
-    setTmdbCatalogHasMore
-  ] = useState(true);
+const [
+  tmdbCatalogHasMore,
+  setTmdbCatalogHasMore
+] = useState(true);
 
-  const [
-    tmdbCatalogLimit,
-    setTmdbCatalogLimit
-  ] = useState(40);
+const [
+  tmdbCatalogLimit,
+  setTmdbCatalogLimit
+] = useState(40);
 
-   const tmdbCatalogCache =
+const [
+  tmdbCatalogKey,
+  setTmdbCatalogKey
+] = useState("");
+
+const tmdbCatalogCache =
   useRef<Record<string, Title[]>>({});
    
 useEffect(() => {
@@ -481,16 +486,21 @@ useEffect(() => {
         cacheKey
       ];
 
-    if (cachedCatalog) {
-      setTmdbCatalog(
-        cachedCatalog
-      );
-      setTmdbCatalogPage(1);
-      setTmdbCatalogHasMore(true);
-      setTmdbCatalogLimit(40);
-      setTmdbCatalogLoading(false);
-      return;
-    }
+  if (cachedCatalog) {
+  setTmdbCatalog(
+    cachedCatalog
+  );
+
+  setTmdbCatalogKey(
+    cacheKey
+  );
+
+  setTmdbCatalogPage(1);
+  setTmdbCatalogHasMore(true);
+  setTmdbCatalogLimit(40);
+  setTmdbCatalogLoading(false);
+  return;
+}
 
     setTmdbCatalogLoading(true);
 
@@ -603,19 +613,23 @@ useEffect(() => {
         return;
       }
 
-      tmdbCatalogCache.current[
-        cacheKey
-      ] = titles;
+    tmdbCatalogCache.current[
+  cacheKey
+] = titles;
 
-      setTmdbCatalog(
-        titles
-      );
+setTmdbCatalog(
+  titles
+);
 
-      localStorage.setItem(
-        "sx-tmdb-catalog-" +
-          cacheKey,
-        JSON.stringify(titles)
-      );
+setTmdbCatalogKey(
+  cacheKey
+);
+
+localStorage.setItem(
+  "sx-tmdb-catalog-" +
+    cacheKey,
+  JSON.stringify(titles)
+);
 
       setTmdbCatalogPage(1);
 
@@ -3264,9 +3278,19 @@ const visible = useMemo(() => {
   } else if (q.trim()) {
     source = tmdbSearchResults;
   } else {
-    source = tmdbCatalog;
-  }
+    const catalogSort =
+      sort === "default"
+        ? "popularity"
+        : sort;
 
+    const catalogKey =
+      `${kind}-${catalogSort}`;
+
+    source =
+      tmdbCatalogKey === catalogKey
+        ? tmdbCatalog
+        : [];
+  }
   let filtered =
     source
       .filter(title => {
