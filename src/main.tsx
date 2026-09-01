@@ -4777,15 +4777,14 @@ LIBRARY CONTROLS
         ? "selected"
         : ""
     }
-    onClick={() => {
-      setKind("movie");
-      setKindClicked(true);
-      setFilter("all");
-      setFilterClicked(false);
-      setQ("");
-      setHiddenSearch("");
-      setJustAddedView("visible");
-    }}
+  onClick={() => {
+  setKind("movie");
+  setKindClicked(true);
+  setFilter("all");
+  setFilterClicked(false);
+  setQ("");
+  setHiddenSearch("");
+}}
   >
     <Film size={15} />
     Movies
@@ -4804,7 +4803,6 @@ LIBRARY CONTROLS
       setFilterClicked(false);
       setQ("");
       setHiddenSearch("");
-      setJustAddedView("visible");
     }}
   >
     <Tv size={15} />
