@@ -1,7 +1,8 @@
 import React, {
-useEffect,
-useMemo,
-useState
+  useEffect,
+  useMemo,
+  useRef,
+  useState
 } from "react";
 import { createRoot } from "react-dom/client";
 import {
@@ -454,19 +455,46 @@ const [sort, setSort] =
     setTmdbCatalogLimit
   ] = useState(40);
 
+   const tmdbCatalogCache =
+  useRef<Record<string, Title[]>>({});
+   
 useEffect(() => {
   const controller =
     new AbortController();
 
-async function loadTMDBCatalog() {
-  if (sort === "just-added") {
-    setTmdbCatalogLoading(false);
-    return;
-  }
+  async function loadTMDBCatalog() {
+    if (sort === "just-added") {
+      setTmdbCatalogLoading(false);
+      return;
+    }
 
-  setTmdbCatalogLoading(true);
+    const catalogSort =
+      sort === "default"
+        ? "popularity"
+        : sort;
 
-  try {
+    const cacheKey =
+      `${kind}-${catalogSort}`;
+
+    const cachedCatalog =
+      tmdbCatalogCache.current[
+        cacheKey
+      ];
+
+    if (cachedCatalog) {
+      setTmdbCatalog(
+        cachedCatalog
+      );
+      setTmdbCatalogPage(1);
+      setTmdbCatalogHasMore(true);
+      setTmdbCatalogLimit(40);
+      setTmdbCatalogLoading(false);
+      return;
+    }
+
+    setTmdbCatalogLoading(true);
+
+    try {
       const sessionId =
         localStorage.getItem(
           "sx-session-token"
@@ -476,10 +504,8 @@ async function loadTMDBCatalog() {
         await fetch(
           "https://streamix.gaintrainstrong.workers.dev/api/tmdb/catalog?page=1&type=" +
             kind +
-      "&sort=" +
-(sort === "default"
-  ? "popularity"
-  : sort),
+            "&sort=" +
+            catalogSort,
           {
             signal:
               controller.signal,
@@ -577,12 +603,17 @@ async function loadTMDBCatalog() {
         return;
       }
 
+      tmdbCatalogCache.current[
+        cacheKey
+      ] = titles;
+
       setTmdbCatalog(
         titles
       );
 
       localStorage.setItem(
-        "sx-tmdb-catalog",
+        "sx-tmdb-catalog-" +
+          cacheKey,
         JSON.stringify(titles)
       );
 
