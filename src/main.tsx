@@ -4793,7 +4793,6 @@ LIBRARY CONTROLS
       setKindClicked(true);
       setFilter("all");
       setFilterClicked(false);
-      setSort("default");
       setQ("");
       setHiddenSearch("");
       setJustAddedView("visible");
