@@ -4949,9 +4949,7 @@ LIBRARY CONTROLS
 
 <div className="grid">
 
-{libraryLoading ||
-  tmdbCatalogLoading ||
-  justAddedLoading ? (
+{libraryLoading ? (
   <></>
 ) : visible.length > 0 ? (
     visible.map(title => (
