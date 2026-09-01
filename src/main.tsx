@@ -1947,14 +1947,10 @@ async function subscribeToPushNotifications() {
    useState(false);
 
 useEffect(() => {
-  if (sort !== "just-added") {
-    setJustAddedLoading(false);
-    return;
-  }
-
   setJustAddedLoading(true);
 
   async function loadJustAdded() {
+    
     try {
       const sessionId =
         localStorage.getItem(
@@ -2081,7 +2077,7 @@ useEffect(() => {
   }
 
   loadJustAdded();
-}, [sort]);
+}, []);
 
  const [q, setQ] = useState("");
 
@@ -4953,7 +4949,9 @@ LIBRARY CONTROLS
 
 <div className="grid">
 
-{libraryLoading ? (
+{libraryLoading ||
+  tmdbCatalogLoading ||
+  justAddedLoading ? (
   <></>
 ) : visible.length > 0 ? (
     visible.map(title => (
