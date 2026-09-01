@@ -2192,8 +2192,8 @@ if (
 
       const pagesPerRequest =
         type === "all"
-          ? 2
-          : 4;
+          ? 1
+          : 2;
 
       const firstTMDBPage =
         (page - 1) *
