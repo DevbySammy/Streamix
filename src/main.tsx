@@ -1013,6 +1013,7 @@ useEffect(() => {
           : [];
 
 setLibrary(titles);
+setLibraryLoading(false);
 
       /* =================================================
       LOAD HIDDEN JUST ADDED
@@ -1167,7 +1168,6 @@ setLibrary(titles);
           );
         }
       }
-      setLibraryLoading(false);
 
     } catch (error) {
       console.error(
