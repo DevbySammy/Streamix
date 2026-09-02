@@ -7062,15 +7062,21 @@ const isRewatch =
           }}
           aria-label={"View details for " + t.name}
         >
-          <img
-            src={t.poster}
-            alt={t.name}
-            onError={event => {
-              event.currentTarget.src =
-                "https://placehold.co/500x750/171717/ffffff?text=" +
-                encodeURIComponent(t.name);
-            }}
-          />
+        <img
+  src={t.poster.replace(
+    "/w500/",
+    "/w342/"
+  )}
+  alt={t.name}
+  loading="lazy"
+  decoding="async"
+  onError={event => {
+    event.currentTarget.src =
+      "https://placehold.co/500x750/171717/ffffff?text=" +
+      encodeURIComponent(t.name);
+         }}
+         />
+                
         </button>
 
         <span className="kind">
