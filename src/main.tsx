@@ -473,19 +473,6 @@ useEffect(() => {
       return;
     }
 
-    /*
-      Name sorting is handled locally by visible().
-      Do not make another catalog request just to
-      sort titles that are already loaded.
-    */
-    if (
-      sort === "name-asc" ||
-      sort === "name-desc"
-    ) {
-      setTmdbCatalogLoading(false);
-      return;
-    }
-
     const catalogSort =
       sort === "default"
         ? "popularity"
@@ -499,63 +486,21 @@ useEffect(() => {
         cacheKey
       ];
 
-    /*
-      Use the in-memory catalog immediately.
-    */
-    if (cachedCatalog) {
-      setTmdbCatalog(
-        cachedCatalog
-      );
-      setTmdbCatalogPage(1);
-      setTmdbCatalogHasMore(true);
-      setTmdbCatalogLimit(40);
-      setTmdbCatalogLoading(false);
-      return;
-    }
+  if (cachedCatalog) {
+  setTmdbCatalog(
+    cachedCatalog
+  );
 
-    /*
-      Use the saved catalog immediately on
-      page reload, if one exists.
-    */
-    try {
-      const storedCatalog =
-        localStorage.getItem(
-          "sx-tmdb-catalog-" +
-            cacheKey
-        );
+  setTmdbCatalogKey(
+    cacheKey
+  );
 
-      if (storedCatalog) {
-        const parsedCatalog =
-          JSON.parse(
-            storedCatalog
-          );
-
-        if (
-          Array.isArray(
-            parsedCatalog
-          ) &&
-          parsedCatalog.length > 0
-        ) {
-          tmdbCatalogCache.current[
-            cacheKey
-          ] = parsedCatalog;
-
-          setTmdbCatalog(
-            parsedCatalog
-          );
-          setTmdbCatalogPage(1);
-          setTmdbCatalogHasMore(true);
-          setTmdbCatalogLimit(40);
-          setTmdbCatalogLoading(false);
-          return;
-        }
-      }
-    } catch (error) {
-      console.error(
-        "Failed to load cached TMDB catalog:",
-        error
-      );
-    }
+  setTmdbCatalogPage(1);
+  setTmdbCatalogHasMore(true);
+  setTmdbCatalogLimit(40);
+  setTmdbCatalogLoading(false);
+  return;
+}
 
     setTmdbCatalogLoading(true);
 
@@ -592,9 +537,7 @@ useEffect(() => {
       const data =
         await response.json();
 
-      if (
-        controller.signal.aborted
-      ) {
+      if (controller.signal.aborted) {
         return;
       }
 
@@ -666,25 +609,27 @@ useEffect(() => {
             )
           : [];
 
-      if (
-        controller.signal.aborted
-      ) {
+      if (controller.signal.aborted) {
         return;
       }
 
-      tmdbCatalogCache.current[
-        cacheKey
-      ] = titles;
+    tmdbCatalogCache.current[
+  cacheKey
+] = titles;
 
-      setTmdbCatalog(
-        titles
-      );
+setTmdbCatalog(
+  titles
+);
 
-      localStorage.setItem(
-        "sx-tmdb-catalog-" +
-          cacheKey,
-        JSON.stringify(titles)
-      );
+setTmdbCatalogKey(
+  cacheKey
+);
+
+localStorage.setItem(
+  "sx-tmdb-catalog-" +
+    cacheKey,
+  JSON.stringify(titles)
+);
 
       setTmdbCatalogPage(1);
 
@@ -714,9 +659,7 @@ useEffect(() => {
       setTmdbCatalogPage(1);
       setTmdbCatalogHasMore(false);
     } finally {
-      if (
-        !controller.signal.aborted
-      ) {
+      if (!controller.signal.aborted) {
         setTmdbCatalogLoading(
           false
         );
