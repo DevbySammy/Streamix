@@ -7028,83 +7028,79 @@ function Card({
             : "TV"}
         </span>
 
-       {!isAdmin && (
-  <div className="poster-actions">
+        {!isAdmin && (
+          <div className="poster-actions">
 
-    <button
-      type="button"
-      className="poster-reminder-button"
-      onClick={event => {
-        event.preventDefault();
-        event.stopPropagation();
-        onReminder();
-      }}
-      aria-label={
-        "Set reminder for " +
-        t.name
-      }
-      title="Remind me"
-    >
-      <Bell size={15} />
-    </button>
+            <button
+              type="button"
+              className="poster-reminder-button"
+              onClick={event => {
+                event.preventDefault();
+                event.stopPropagation();
+                onReminder();
+              }}
+              aria-label={
+                "Set reminder for " +
+                t.name
+              }
+              title="Remind me"
+            >
+              <Bell size={15} />
+            </button>
 
-    <div className="poster-watchlist-row">
+            <button
+              type="button"
+              className="poster-list-button"
+              onClick={event => {
+                event.preventDefault();
+                event.stopPropagation();
 
-      <button
-        type="button"
-        className="poster-list-button"
-        onClick={event => {
-          event.preventDefault();
-          event.stopPropagation();
+                if (isOnWatchlist) {
+                  onList();
+                  setWatchlistMessage(
+                    "Removed from watchlist"
+                  );
+                } else {
+                  onList();
+                  setWatchlistMessage(
+                    "Added to watchlist"
+                  );
+                }
 
-          if (isOnWatchlist) {
-            onList();
-            setWatchlistMessage(
-              "Removed from watchlist"
-            );
-          } else {
-            onList();
-            setWatchlistMessage(
-              "Added to watchlist"
-            );
-          }
+                setTimeout(() => {
+                  setWatchlistMessage("");
+                }, 2000);
+              }}
+              aria-label={
+                isOnWatchlist
+                  ? "Remove " +
+                    t.name +
+                    " from Watchlist"
+                  : "Add " +
+                    t.name +
+                    " to Watchlist"
+              }
+              title={
+                isOnWatchlist
+                  ? "Remove from Watchlist"
+                  : "Add to Watchlist"
+              }
+            >
+              {isOnWatchlist ? (
+                <Check size={15} />
+              ) : (
+                <Plus size={15} />
+              )}
+            </button>
 
-          setTimeout(() => {
-            setWatchlistMessage("");
-          }, 2000);
-        }}
-        aria-label={
-          isOnWatchlist
-            ? "Remove " +
-              t.name +
-              " from Watchlist"
-            : "Add " +
-              t.name +
-              " to Watchlist"
-        }
-        title={
-          isOnWatchlist
-            ? "Remove from Watchlist"
-            : "Add to Watchlist"
-        }
-      >
-        {isOnWatchlist ? (
-          <Check size={15} />
-        ) : (
-          <Plus size={15} />
+          </div>
         )}
-      </button>
 
-      {watchlistMessage && (
-        <div className="watchlist-message">
-          {watchlistMessage}
-        </div>
-      )}
-
-    </div>
-
-  </div>
-)}
+        {watchlistMessage && (
+          <div className="watchlist-message">
+            {watchlistMessage}
+          </div>
+        )}
 
         {isAdmin && (
           <button
