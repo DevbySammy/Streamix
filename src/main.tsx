@@ -9,6 +9,7 @@ import {
 Bell,
 Check,
 Plus,
+Menu,
 ChevronDown,
 GripVertical,
 Clock,
@@ -2329,6 +2330,9 @@ useEffect(() => {
 
  const [menu, setMenu] =
    useState(false);
+
+  const [mobileMenu, setMobileMenu] =
+  useState(false);
    
 /* =======================================================
 PROFILE DRAGGING
@@ -4279,10 +4283,9 @@ MAIN APP
 
 return ( <div className="app">
  
-  {/* HEADER */}
+{/* HEADER */}
 
 <header>
-
   <div className="logo">
     <img
       src="/streamix-logo.png"
@@ -4292,164 +4295,311 @@ return ( <div className="app">
 
   <div className="header-right">
 
-    <button
-      className="profile-pill"
-      onClick={() =>
-        setShowProfile(true)
-      }
-    >
-      <span>
-        {isViewingAs
-          ? "👑"
-          : profile?.avatar}
-      </span>
+    {/* DESKTOP HEADER CONTROLS */}
 
-      <span>
-        {isViewingAs
-          ? "Admin"
-          : profile?.name}
-      </span>
+    <div className="header-desktop-controls">
 
-      <ChevronDown
-        size={16}
-      />
-    </button>
-
-    {isViewingAs && (
-      <span className="admin-viewing-status">
-        <span className="status-dot" />
-
-        <span className="viewing-label-desktop">
-          VIEWING AS
-        </span>
-
-        <span className="viewing-label-mobile">
-          AS
-        </span>
-
-        {profiles.find(
-          item =>
-            item.id === viewingAs
-        )?.name || "user"}
-      </span>
-    )}
-
-    {profileId === "testing" && (
       <button
-        className="admin-badge"
-        onClick={() => {
-          const adminSession =
-            localStorage.getItem(
-              "sx-admin-session-token"
-            );
+        className="profile-pill"
+        onClick={() =>
+          setShowProfile(true)
+        }
+      >
+        <span>
+          {isViewingAs
+            ? "👑"
+            : profile?.avatar}
+        </span>
 
-          if (adminSession) {
-            localStorage.setItem(
-              "sx-session-token",
-              adminSession
+        <span>
+          {isViewingAs
+            ? "Admin"
+            : profile?.name}
+        </span>
+
+        <ChevronDown
+          size={16}
+        />
+      </button>
+
+      {isViewingAs && (
+        <span className="admin-viewing-status">
+          <span className="status-dot" />
+
+          <span className="viewing-label-desktop">
+            VIEWING AS
+          </span>
+
+          <span className="viewing-label-mobile">
+            AS
+          </span>
+
+          {profiles.find(
+            item =>
+              item.id === viewingAs
+          )?.name || "user"}
+        </span>
+      )}
+
+      {profileId === "testing" && (
+        <button
+          className="admin-badge"
+          onClick={() => {
+            const adminSession =
+              localStorage.getItem(
+                "sx-admin-session-token"
+              );
+
+            if (adminSession) {
+              localStorage.setItem(
+                "sx-session-token",
+                adminSession
+              );
+
+              localStorage.removeItem(
+                "sx-admin-session-token"
+              );
+            }
+
+            setViewingAs(null);
+
+            localStorage.removeItem(
+              "sx-viewing-as"
             );
 
             localStorage.removeItem(
-              "sx-admin-session-token"
+              "sx-testing-active"
             );
-          }
 
-          setViewingAs(null);
+            setProfileId(
+              "admin"
+            );
 
-          localStorage.removeItem(
-            "sx-viewing-as"
-          );
-
-          localStorage.removeItem(
-            "sx-testing-active"
-          );
-
-          setProfileId(
-            "admin"
-          );
-
-          setTab("library");
-          setFilter("all");
-          setKind("all");
-          setMenu(false);
-        }}
-        aria-label="Back to Admin"
-      >
-        {isMobile
-          ? "← ADMIN"
-          : "← BACK TO ADMIN"}
-      </button>
-    )}
-
-    {isAdmin &&
-      !isViewingAs && (
-        <button
-          className="admin-badge"
-          onClick={() =>
-            setMenu(
-              current =>
-                !current
-            )
-          }
+            setTab("library");
+            setFilter("all");
+            setKind("all");
+            setMenu(false);
+          }}
+          aria-label="Back to Admin"
         >
-          SETTINGS
+          {isMobile
+            ? "← ADMIN"
+            : "← BACK TO ADMIN"}
         </button>
       )}
 
-  <button
-  className="notification-bell"
-  onClick={() =>
-    setShowReminderList(true)
-  }
-  aria-label="Notifications"
-  title="Notifications"
->
-  <Bell size={18} />
-</button>
-
-<button
-  className="admin-badge"
-  onClick={signOut}
->
-  LOG OUT
-</button>
-
-    {menu &&
-      isAdmin && (
-        <div className="admin-menu">
-
+      {isAdmin &&
+        !isViewingAs && (
           <button
-            onClick={() => {
-              setShowAdd(true);
-              setMenu(false);
-            }}
+            className="admin-badge"
+            onClick={() =>
+              setMenu(
+                current =>
+                  !current
+              )
+            }
           >
-            <Plus />
-            Add media
+            SETTINGS
           </button>
+        )}
 
-          <button
-            onClick={() => {
-              setShowHero(true);
-              setMenu(false);
-            }}
-          >
-            <Settings />
-            Edit hero
-          </button>
+      {menu &&
+        isAdmin && (
+          <div className="admin-menu">
+            <button
+              onClick={() => {
+                setShowAdd(true);
+                setMenu(false);
+              }}
+            >
+              <Plus />
+              Add media
+            </button>
 
-          <button
-            onClick={() => {
-              setShowDeleted(true);
-              setMenu(false);
-            }}
-          >
-            <Trash2 />
-            Deleted profiles
-          </button>
+            <button
+              onClick={() => {
+                setShowHero(true);
+                setMenu(false);
+              }}
+            >
+              <Settings />
+              Edit hero
+            </button>
 
-        </div>
+            <button
+              onClick={() => {
+                setShowDeleted(true);
+                setMenu(false);
+              }}
+            >
+              <Trash2 />
+              Deleted profiles
+            </button>
+          </div>
+        )}
+
+      <button
+        className="admin-badge"
+        onClick={signOut}
+      >
+        LOG OUT
+      </button>
+
+    </div>
+
+    {/* NOTIFICATIONS — ALWAYS OUTSIDE MOBILE MENU */}
+
+    <button
+      className="notification-bell"
+      onClick={() =>
+        setShowReminderList(true)
+      }
+      aria-label="Notifications"
+      title="Notifications"
+    >
+      <Bell size={18} />
+    </button>
+
+    {/* MOBILE HAMBURGER */}
+
+    <button
+      type="button"
+      className="mobile-menu-button"
+      onClick={() =>
+        setMobileMenu(
+          current => !current
+        )
+      }
+      aria-label="Open menu"
+      aria-expanded={mobileMenu}
+    >
+      {mobileMenu ? (
+        <X size={22} />
+      ) : (
+        <Menu size={22} />
       )}
+    </button>
+
+    {/* MOBILE MENU */}
+
+    {mobileMenu && (
+      <div className="mobile-header-menu">
+
+        <button
+          type="button"
+          onClick={() => {
+            setShowProfile(true);
+            setMobileMenu(false);
+          }}
+        >
+          <span>
+            {isViewingAs
+              ? "👑"
+              : profile?.avatar}
+          </span>
+
+          <span>
+            {isViewingAs
+              ? "Admin"
+              : profile?.name}
+          </span>
+        </button>
+
+        {profileId === "testing" && (
+          <button
+            type="button"
+            onClick={() => {
+              const adminSession =
+                localStorage.getItem(
+                  "sx-admin-session-token"
+                );
+
+              if (adminSession) {
+                localStorage.setItem(
+                  "sx-session-token",
+                  adminSession
+                );
+
+                localStorage.removeItem(
+                  "sx-admin-session-token"
+                );
+              }
+
+              setViewingAs(null);
+
+              localStorage.removeItem(
+                "sx-viewing-as"
+              );
+
+              localStorage.removeItem(
+                "sx-testing-active"
+              );
+
+              setProfileId(
+                "admin"
+              );
+
+              setTab("library");
+              setFilter("all");
+              setKind("all");
+              setMenu(false);
+              setMobileMenu(false);
+            }}
+          >
+            ← ADMIN
+          </button>
+        )}
+
+        {isAdmin &&
+          !isViewingAs && (
+            <>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowAdd(true);
+                  setMobileMenu(false);
+                }}
+              >
+                <Plus />
+                Add media
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setShowHero(true);
+                  setMobileMenu(false);
+                }}
+              >
+                <Settings />
+                Edit hero
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setShowDeleted(true);
+                  setMobileMenu(false);
+                }}
+              >
+                <Trash2 />
+                Deleted profiles
+              </button>
+            </>
+          )}
+
+        <button
+          type="button"
+          onClick={() => {
+            setMobileMenu(false);
+            signOut();
+          }}
+        >
+          LOG OUT
+        </button>
+
+      </div>
+    )}
 
   </div>
 </header>
