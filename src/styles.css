@@ -349,10 +349,7 @@ header {
   background-position:
     var(--hero-position-x, 50%)
     var(--hero-position-y, 50%);
-  transform:
-    scale(
-      calc(var(--hero-zoom, 100) / 100)
-    );
+  transform: scale(var(--hero-zoom, 1));
   transform-origin: center center;
   z-index: 0;
 }
