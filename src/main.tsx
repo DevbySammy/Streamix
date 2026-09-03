@@ -87,7 +87,6 @@ type HeroSettings = {
   titleId: string | null;
   positionX: number;
   positionY: number;
-  imageZoom: number;
 };
 
  /* =========================================================
@@ -147,8 +146,8 @@ const initialHero: HeroSettings = {
   titleId: null,
   positionX: 50,
   positionY: 50,
-  imageZoom: 100
 };
+
 /* =========================================================
 HELPERS
 ========================================================= */
@@ -4481,29 +4480,30 @@ return ( <div className="app">
 
 <section
   className="hero"
+  style={
+    hero &&
+    hero.backdrop
+      ? {
+          backgroundImage:
+            "linear-gradient(90deg, rgba(0,0,0,.92), rgba(0,0,0,.15)), url(" +
+            hero.backdrop +
+            ")",
+          backgroundPosition:
+            String(
+              heroSettings.positionX
+            ) +
+            "% " +
+            String(
+              heroSettings.positionY
+            ) +
+            "%"
+        }
+      : {
+          backgroundImage:
+            "none"
+        }
+  }
 >
-  <div
-    className="hero-backdrop"
-   style={
-  hero &&
-  hero.backdrop
-    ? ({
-        backgroundImage:
-          "linear-gradient(90deg, rgba(0,0,0,.92), rgba(0,0,0,.15)), url(" +
-          hero.backdrop +
-          ")",
-        "--hero-position-x":
-          String(heroSettings.positionX) + "%",
-        "--hero-position-y":
-          String(heroSettings.positionY) + "%",
-        "--hero-zoom":
-          String(
-            (heroSettings.imageZoom || 100) / 100
-          )
-      } as React.CSSProperties)
-    : undefined
-}
-  />
 
     <div className="hero-content">
 
@@ -9055,11 +9055,6 @@ const [positionX, setPositionX] =
 useState(
 settings.positionX
 );
-
-const [imageZoom, setImageZoom] =
-  useState(
-    settings.imageZoom
-  );
   
 const [positionY, setPositionY] =
 useState(
@@ -9142,28 +9137,6 @@ return ( <Modal
         </div>
       )}
 
-    <label>
-  Image zoom
-
-  <input
-    type="range"
-    min="100"
-    max="200"
-    value={imageZoom}
-    onChange={event =>
-      setImageZoom(
-        Number(
-          event.target.value
-        )
-      )
-    }
-  />
-
-  <span className="muted">
-    {imageZoom}%
-  </span>
-</label>
-
       <label>
         Image vertical crop
 
@@ -9194,7 +9167,6 @@ return ( <Modal
   titleId,
   positionX,
   positionY,
-  imageZoom
 })
         }
       >
