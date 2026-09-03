@@ -4607,7 +4607,7 @@ return ( <div className="app">
     </div>
 
        {heroWatchlistMessage && (
-      <div className="watchlist-message">
+      <div className="hero-watchlist-message">
         {heroWatchlistMessage}
       </div>
     )}
