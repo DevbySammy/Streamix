@@ -6987,6 +6987,9 @@ function Card({
   */}
 const [watchedClicked, setWatchedClicked] =
   useState(false);
+
+const [watchlistAddedClicked, setWatchlistAddedClicked] =
+  useState(false);
    
    const isOnWatchlist =
   st.watchlist.includes(t.id);
@@ -7056,35 +7059,48 @@ const isRewatch =
               <Bell size={15} />
             </button>
 
-            <button
-              type="button"
-              className="poster-list-button"
-              onClick={event => {
-                event.preventDefault();
-                event.stopPropagation();
-                onList();
-              }}
-              aria-label={
-                isOnWatchlist
-                  ? "Remove " +
-                    t.name +
-                    " from Watchlist"
-                  : "Add " +
-                    t.name +
-                    " to Watchlist"
-              }
-              title={
-                isOnWatchlist
-                  ? "Remove from Watchlist"
-                  : "Add to Watchlist"
-              }
-            >
-              {isOnWatchlist ? (
-                <Check size={15} />
-              ) : (
-                <Plus size={15} />
-              )}
-            </button>
+           <button
+  type="button"
+  className="poster-list-button"
+  onClick={event => {
+    event.preventDefault();
+    event.stopPropagation();
+
+    if (!isOnWatchlist) {
+      onList();
+      setWatchlistAddedClicked(true);
+
+      setTimeout(() => {
+        setWatchlistAddedClicked(false);
+      }, 2000);
+    } else {
+      onList();
+      setWatchlistAddedClicked(false);
+    }
+  }}
+  aria-label={
+    isOnWatchlist
+      ? "Remove " +
+        t.name +
+        " from Watchlist"
+      : "Add " +
+        t.name +
+        " to Watchlist"
+  }
+  title={
+    isOnWatchlist
+      ? "Remove from Watchlist"
+      : "Add to Watchlist"
+  }
+>
+  {watchlistAddedClicked ? (
+    "Added to watchlist"
+  ) : isOnWatchlist ? (
+    <Check size={15} />
+  ) : (
+    <Plus size={15} />
+  )}
+</button>
 
           </div>
         )}
