@@ -720,40 +720,26 @@ overflow: visible;
   gap: 4px;
 }
 
-.poster-reminder-button,
-.poster-list-button {
+.poster-watched-button,
+.poster-rewatch-button {
   width: 30px;
   height: 30px;
   min-height: 30px;
   padding: 0;
   display: grid;
   place-items: center;
-border: 0.5px solid #999;
+  border: 0.5px solid #999;
   border-radius: 6px;
   cursor: pointer;
-  background: rgba(0, 0, 0, .72);
-}
-
-.poster-reminder-button,
-.poster-list-button {
   background: #000;
-}
-
-.poster-reminder-button svg {
-  fill: #FBCB05;
-  stroke: #FBCB05;
-}
-
-.poster-list-button {
   color: #fff;
-}
-.poster-list-button svg {
-  stroke-width: 2.5;
+  font-size: 15px;
+  line-height: 1;
 }
 
 @media (min-width: 601px) {
-  .poster-reminder-button:hover,
-  .poster-list-button:hover {
+  .poster-watched-button:hover,
+  .poster-rewatch-button:hover {
     background: #171719;
   }
 }
