@@ -668,7 +668,7 @@ background: #171719;
 .poster-wrap {
   position: relative;
   aspect-ratio: 2 / 3;
-  overflow: hidden;
+  overflow: visible;
   background: #202023;
 }
 
@@ -756,14 +756,10 @@ border: 0.5px solid #999;
   }
 }
 
-.poster-watchlist-row {
-  position: static;
-  width: auto;
-  height: auto;
-}
-
 .watchlist-message {
-  position: fixed;
+  position: absolute;
+  top: 57px;
+  left: 100%;
   z-index: 9999;
   padding: 8px 12px;
   border-radius: 6px;
