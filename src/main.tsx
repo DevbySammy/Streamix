@@ -2110,6 +2110,9 @@ useEffect(() => {
 
  const [showReminder, setShowReminder] =
    useState<Title | null>(null);
+  
+  const [heroWatchlistMessage, setHeroWatchlistMessage] =
+  useState("");
 
   const [showDetails, setShowDetails] =
   useState<Title | null>(() => {
@@ -4554,15 +4557,29 @@ return ( <div className="app">
       <button
         type="button"
         className="poster-list-button"
-        onClick={event => {
-          event.preventDefault();
-          event.stopPropagation();
-          toggle(
-            "watchlist",
-            hero.id,
-            hero
-          );
-        }}
+      onClick={event => {
+  event.preventDefault();
+  event.stopPropagation();
+
+  const isOnWatchlist =
+    state.watchlist.includes(hero.id);
+
+  toggle(
+    "watchlist",
+    hero.id,
+    hero
+  );
+
+  setHeroWatchlistMessage(
+    isOnWatchlist
+      ? "Removed from watchlist"
+      : "Added to watchlist"
+  );
+
+  setTimeout(() => {
+    setHeroWatchlistMessage("");
+  }, 2000);
+}}
         aria-label={
           state.watchlist.includes(hero.id)
             ? "Remove " +
@@ -4588,6 +4605,12 @@ return ( <div className="app">
 />
       </button>
     </div>
+
+       {heroWatchlistMessage && (
+      <div className="watchlist-message">
+        {heroWatchlistMessage}
+      </div>
+    )}
 
     {isAdmin && (
       <button
