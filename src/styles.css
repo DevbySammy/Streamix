@@ -905,11 +905,12 @@ card actions
     display: none;
   }
 
-  .actions button .action-icon {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    line-height: 1;
+.actions button .action-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  transform: scale(1.3);
   }
 }
 
