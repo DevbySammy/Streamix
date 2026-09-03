@@ -4491,10 +4491,10 @@ return ( <div className="app">
             `${heroSettings.positionX}%`,
           "--hero-position-y":
             `${heroSettings.positionY}%`,
-          "--hero-zoom":
-            String(
-              heroSettings.imageZoom || 100
-            )
+       "--hero-zoom":
+  String(
+    (heroSettings.imageZoom || 100) / 100
+  )
         } as React.CSSProperties)
       : undefined
   }
