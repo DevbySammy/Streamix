@@ -4498,6 +4498,7 @@ return ( <div className="app">
             ) +
             "%",
           backgroundSize:
+            "auto " +
             String(imageZoom) +
             "%"
         }
@@ -4507,6 +4508,7 @@ return ( <div className="app">
         }
   }
 >
+
     <div className="hero-content">
 
 {hero ? (
