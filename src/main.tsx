@@ -4604,14 +4604,14 @@ return ( <div className="app">
   }
 />
       </button>
-    </div>
 
         {heroWatchlistMessage && (
       <div className="hero-watchlist-message">
         {heroWatchlistMessage}
       </div>
     )}
-
+    </div>
+    
     {isAdmin && (
       <button
         className="ghost"
