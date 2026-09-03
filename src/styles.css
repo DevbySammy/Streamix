@@ -551,7 +551,7 @@ background: #171719;
   padding: 8px 13px;
   border-radius: 999px;
   background: #171719;
-  border: 0.75px solid #28282c;
+  border: 1px solid #28282c;
   color: #aaa;
   cursor: pointer;
 }
@@ -726,7 +726,7 @@ background: #171719;
   padding: 0;
   display: grid;
   place-items: center;
-border: 1px solid #28282c;
+border: 0.75px solid #999;
   border-radius: 6px;
   cursor: pointer;
   background: rgba(0, 0, 0, .72);
