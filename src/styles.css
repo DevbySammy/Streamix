@@ -429,12 +429,13 @@ header {
 .hero-actions .hero-more-info-button:hover,
 .hero-actions .poster-reminder-button:hover,
 .hero-actions .poster-list-button:hover {
-  background: rgba(255, 255, 255, .12);
+background: #171719;
+color: #aaa;
 }
 
 @media (min-width: 821px) {
   .hero-actions {
-    gap: 7px;
+    gap: 10px;
   }
    
   .hero-actions .hero-more-info-button,
