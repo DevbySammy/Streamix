@@ -9137,28 +9137,27 @@ return ( <Modal
         </div>
       )}
 
-      <label>
-        Image horizontal crop
+    <label>
+  Image zoom
 
-        <input
-          type="range"
-          min="0"
-          max="100"
-          value={positionX}
-          onChange={event =>
-            setPositionX(
-              Number(
-                event.target
-                  .value
-              )
-            )
-          }
-        />
+  <input
+    type="range"
+    min="100"
+    max="200"
+    value={imageZoom}
+    onChange={event =>
+      setImageZoom(
+        Number(
+          event.target.value
+        )
+      )
+    }
+  />
 
-        <span className="muted">
-          {positionX}%
-        </span>
-      </label>
+  <span className="muted">
+    {imageZoom}%
+  </span>
+</label>
 
       <label>
         Image vertical crop
