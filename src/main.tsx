@@ -468,39 +468,30 @@ useEffect(() => {
     new AbortController();
 
   async function loadTMDBCatalog() {
-    if (sort === "just-added") {
-      setTmdbCatalogLoading(false);
-      return;
-    }
-
-    const catalogSort =
-      sort === "default"
-        ? "popularity"
-        : sort;
-
     const cacheKey =
-      `${kind}-${catalogSort}`;
+      `${kind}-catalog`;
 
     const cachedCatalog =
       tmdbCatalogCache.current[
         cacheKey
       ];
 
-  if (cachedCatalog) {
-  setTmdbCatalog(
-    cachedCatalog
-  );
+    if (cachedCatalog) {
+      setTmdbCatalog(
+        cachedCatalog
+      );
 
-  setTmdbCatalogKey(
-    cacheKey
-  );
+      setTmdbCatalogKey(
+        cacheKey
+      );
 
-  setTmdbCatalogPage(1);
-  setTmdbCatalogHasMore(true);
-  setTmdbCatalogLimit(40);
-  setTmdbCatalogLoading(false);
-  return;
-}
+      setTmdbCatalogPage(1);
+      setTmdbCatalogHasMore(true);
+      setTmdbCatalogLimit(40);
+      setTmdbCatalogLoading(false);
+
+      return;
+    }
 
     setTmdbCatalogLoading(true);
 
@@ -514,8 +505,7 @@ useEffect(() => {
         await fetch(
           "https://streamix.gaintrainstrong.workers.dev/api/tmdb/catalog?page=1&type=" +
             kind +
-            "&sort=" +
-            catalogSort,
+            "&sort=popularity",
           {
             signal:
               controller.signal,
@@ -613,23 +603,23 @@ useEffect(() => {
         return;
       }
 
-    tmdbCatalogCache.current[
-  cacheKey
-] = titles;
+      tmdbCatalogCache.current[
+        cacheKey
+      ] = titles;
 
-setTmdbCatalog(
-  titles
-);
+      setTmdbCatalog(
+        titles
+      );
 
-setTmdbCatalogKey(
-  cacheKey
-);
+      setTmdbCatalogKey(
+        cacheKey
+      );
 
-localStorage.setItem(
-  "sx-tmdb-catalog-" +
-    cacheKey,
-  JSON.stringify(titles)
-);
+      localStorage.setItem(
+        "sx-tmdb-catalog-" +
+          cacheKey,
+        JSON.stringify(titles)
+      );
 
       setTmdbCatalogPage(1);
 
@@ -672,7 +662,7 @@ localStorage.setItem(
   return () => {
     controller.abort();
   };
-}, [kind, sort]);
+}, [kind]);
 
 async function loadNextTMDBCatalogPage() {
   if (
@@ -3278,16 +3268,9 @@ const visible = useMemo(() => {
   } else if (q.trim()) {
     source = tmdbSearchResults;
   } else {
-    const catalogSort =
-      sort === "default"
-        ? "popularity"
-        : sort;
-
-  const catalogKey =
-  `${kind}-${catalogSort}`;
-
-source = tmdbCatalog;
+    source = tmdbCatalog;
   }
+
   let filtered =
     source
       .filter(title => {
@@ -3361,58 +3344,52 @@ source = tmdbCatalog;
         .toISOString()
         .slice(0, 10);
 
-if (
-  sort === "year-desc"
-) {
-  filtered =
-    filtered.filter(
-      title =>
-        !!title.releaseDate &&
-        title.releaseDate <= today
-    );
+    const sorted = [
+      ...filtered
+    ];
 
-  return filtered.sort(
-    (a, b) =>
-      String(
-        b.releaseDate || ""
-      ).localeCompare(
-        String(
-          a.releaseDate || ""
-        )
-      )
-  );
-}
-
-    if (
-      sort === "year-asc"
-    ) {
-      filtered =
-        filtered.filter(
-          title =>
-            !!title.releaseDate &&
-            title.releaseDate >=
-              "1970-01-01" &&
-            title.releaseDate <= today
-        );
-
-      filtered =
-        filtered.sort(
-          (a, b) =>
-            String(
-              a.releaseDate || ""
-            ).localeCompare(
+    switch (sort) {
+      case "year-desc":
+        return sorted
+          .filter(
+            title =>
+              !!title.releaseDate &&
+              title.releaseDate <= today
+          )
+          .sort(
+            (a, b) =>
               String(
                 b.releaseDate || ""
+              ).localeCompare(
+                String(
+                  a.releaseDate || ""
+                )
               )
-            )
-        );
-    }
+          );
 
-    if (
-      sort === "popularity"
-    ) {
-      filtered =
-        filtered.sort(
+      case "year-asc":
+        return sorted
+          .filter(
+            title =>
+              !!title.releaseDate &&
+              title.releaseDate >=
+                "1970-01-01" &&
+              title.releaseDate <=
+                today
+          )
+          .sort(
+            (a, b) =>
+              String(
+                a.releaseDate || ""
+              ).localeCompare(
+                String(
+                  b.releaseDate || ""
+                )
+              )
+          );
+
+      case "popularity":
+        return sorted.sort(
           (a, b) =>
             Number(
               b.popularity || 0
@@ -3421,54 +3398,30 @@ if (
               a.popularity || 0
             )
         );
+
+      case "name-desc":
+        return sorted.sort(
+          (a, b) =>
+            b.name.localeCompare(
+              a.name
+            )
+        );
+
+      case "name-asc":
+      case "default":
+      default:
+        return sorted.sort(
+          (a, b) =>
+            a.name.localeCompare(
+              b.name
+            )
+        );
     }
   }
 
-  if (
-    !usingPersonalFilter &&
-    !q.trim()
-  ) {
-    const sorted =
-      [...filtered].sort(
-        (a, b) => {
-          switch (sort) {
-            case "name-desc":
-              return b.name.localeCompare(
-                a.name
-              );
-
-            case "name-asc":
-              return a.name.localeCompare(
-                b.name
-              );
-
-            case "year-desc":
-            case "year-asc":
-            case "popularity":
-            case "just-added":
-              return 0;
-
-            default:
-              return a.name.localeCompare(
-                b.name
-              );
-          }
-        }
-      );
-
-  if (
-  sort === "default" ||
-  sort === "year-desc" ||
-  sort === "year-asc" ||
-  sort === "popularity"
-) {
-  return filtered;
-}
-
-    return sorted;
-  }
-
-  return [...filtered].sort(
+  return [
+    ...filtered
+  ].sort(
     (a, b) =>
       a.name.localeCompare(
         b.name
@@ -3484,12 +3437,12 @@ if (
   kind,
   filter,
   sort,
-  justAddedView,
-  justAddedLimit,
-  hiddenJustAddedLimit,
-  hiddenSearch,
   state,
-  isAdmin
+  isAdmin,
+  justAddedView,
+  hiddenSearch,
+  justAddedLimit,
+  hiddenJustAddedLimit
 ]);
    
 /* =======================================================
