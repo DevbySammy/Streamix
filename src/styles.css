@@ -423,13 +423,15 @@ background: #171719;
 }
 
 .hero-actions .poster-list-button svg {
+  fill: none;
+  stroke: currentColor;
   stroke-width: 2.5;
 }
 
 .hero-actions .hero-more-info-button:hover,
 .hero-actions .poster-reminder-button:hover,
 .hero-actions .poster-list-button:hover {
-  background: #171719;
+  background: #303033;
 }
 
 @media (min-width: 821px) {
