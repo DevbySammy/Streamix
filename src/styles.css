@@ -333,19 +333,6 @@ header {
   overflow: hidden;
 }
 
-.hero-backdrop {
-  position: absolute;
-  inset: 0;
-  background-repeat: no-repeat;
-  background-size: cover;
-  background-position:
-    var(--hero-position-x, 50%)
-    var(--hero-position-y, 50%);
-  transform: scale(var(--hero-zoom, 1));
-  transform-origin: center center;
-  z-index: 0;
-}
-
 .hero-content {
   width: 100%;
   max-width: 1280px;
