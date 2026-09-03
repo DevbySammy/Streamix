@@ -758,13 +758,14 @@ border: 0.5px solid #999;
 
 .watchlist-message {
   position: absolute;
-  left: 50%;
-  bottom: 14px;
-  transform: translateX(-50%);
+  left: calc(100% + 8px);
+  top: 50%;
+  transform: translateY(-50%);
   z-index: 30;
   padding: 8px 12px;
   border-radius: 6px;
-  background: rgba(0, 0, 0, .9);
+  background: #171719;
+  border: 0.75px solid #aaa;
   color: #fff;
   font-size: 12px;
   font-weight: 600;
