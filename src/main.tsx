@@ -7059,24 +7059,24 @@ const isRewatch =
               <Bell size={15} />
             </button>
 
-         <button
+  <button
   type="button"
   className="poster-list-button"
   onClick={event => {
     event.preventDefault();
     event.stopPropagation();
 
-    if (!isOnWatchlist) {
+    if (isOnWatchlist) {
       onList();
-      setWatchlistAddedClicked(true);
-
-      setTimeout(() => {
-        setWatchlistAddedClicked(false);
-      }, 2000);
+      setWatchlistMessage("Removed from watchlist");
     } else {
       onList();
-      setWatchlistAddedClicked(false);
+      setWatchlistMessage("Added to watchlist");
     }
+
+    setTimeout(() => {
+      setWatchlistMessage("");
+    }, 2000);
   }}
   aria-label={
     isOnWatchlist
@@ -7093,17 +7093,17 @@ const isRewatch =
       : "Add to Watchlist"
   }
 >
-  {watchlistAddedClicked ? (
-    "Added to watchlist"
-  ) : isOnWatchlist ? (
+  {isOnWatchlist ? (
     <Check size={15} />
   ) : (
     <Plus size={15} />
   )}
 </button>
-
-          </div>
-        )}
+            {watchlistMessage && (
+  <div className="watchlist-message">
+    {watchlistMessage}
+  </div>
+)}
 
         {isAdmin && (
           <button
