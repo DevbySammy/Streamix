@@ -4533,7 +4533,7 @@ return ( <div className="app">
         More Info →
       </button>
 
-     <div className="poster-actions">
+   <div className="poster-actions">
   <button
     type="button"
     className="poster-reminder-button"
@@ -4550,45 +4550,53 @@ return ( <div className="app">
   >
     <Bell size={15} />
   </button>
-</div>
 
-      <button
-        type="button"
-        className="poster-list-button"
-        onClick={event => {
-          event.preventDefault();
-          event.stopPropagation();
-          toggle(
-            "watchlist",
-            hero.id,
-            hero
-          );
-        }}
-        aria-label={
-          state.watchlist.includes(hero.id)
-            ? "Remove " +
-              hero.name +
-              " from Watchlist"
-            : "Add " +
-              hero.name +
-              " to Watchlist"
-        }
-        title={
-          state.watchlist.includes(hero.id)
-            ? "Remove from Watchlist"
-            : "Add to Watchlist"
-        }
-      >
-  <Heart
-  size={15}
-  fill={
-    state.watchlist.includes(hero.id)
-      ? "currentColor"
-      : "none"
-  }
-/>
-      </button>
-    </div>
+  <button
+    type="button"
+    className="poster-list-button"
+    onClick={event => {
+      event.preventDefault();
+      event.stopPropagation();
+      if (isOnWatchlist) {
+        onList();
+        setWatchlistMessage(
+          "Removed from watchlist"
+        );
+      } else {
+        onList();
+        setWatchlistMessage(
+          "Added to watchlist"
+        );
+      }
+      setTimeout(() => {
+        setWatchlistMessage("");
+      }, 2000);
+    }}
+    aria-label={
+      isOnWatchlist
+        ? "Remove " +
+          t.name +
+          " from Watchlist"
+        : "Add " +
+          t.name +
+          " to Watchlist"
+    }
+    title={
+      isOnWatchlist
+        ? "Remove from Watchlist"
+        : "Add to Watchlist"
+    }
+  >
+    <Heart
+      size={15}
+      fill={
+        isOnWatchlist
+          ? "currentColor"
+          : "none"
+      }
+    />
+  </button>
+</div>
 
     {isAdmin && (
       <button
