@@ -14,7 +14,7 @@ Clock,
 Eye,
 EyeOff,
 Film,
-Heart, 
+Plus, 
 ArrowUp,
 Search,
 Settings,
@@ -4520,75 +4520,70 @@ return ( <div className="app">
         : "TV Show"}
     </p>
 
- <div className="hero-actions">
-  <button
-    type="button"
-    className="hero-more-info-button"
-    onClick={event => {
-      event.preventDefault();
-      event.stopPropagation();
-      openDetails(hero);
-    }}
-  >
-    More Info →
-  </button>
+    <div className="hero-actions">
+      <button
+        type="button"
+        className="hero-more-info-button"
+        onClick={event => {
+          event.preventDefault();
+          event.stopPropagation();
+          openDetails(hero);
+        }}
+      >
+        More Info →
+      </button>
 
-  <div className="poster-actions">
-    <button
-      type="button"
-      className="poster-reminder-button"
-      onClick={event => {
-        event.preventDefault();
-        event.stopPropagation();
-        onReminder();
-      }}
-      aria-label={
-        "Set reminder for " +
-        hero.name
-      }
-      title="Remind me"
-    >
-      <Bell size={15} />
-    </button>
-
-    <button
-      type="button"
-      className="poster-list-button"
-      onClick={event => {
-        event.preventDefault();
-        event.stopPropagation();
-        toggle(
-          "watchlist",
-          hero.id,
-          hero
-        );
-      }}
-      aria-label={
-        state.watchlist.includes(hero.id)
-          ? "Remove " +
-            hero.name +
-            " from Watchlist"
-          : "Add " +
-            hero.name +
-            " to Watchlist"
-      }
-      title={
-        state.watchlist.includes(hero.id)
-          ? "Remove from Watchlist"
-          : "Add to Watchlist"
-      }
-    >
-      <Heart
-        size={15}
-        fill={
-          state.watchlist.includes(hero.id)
-            ? "currentColor"
-            : "none"
+      <button
+        type="button"
+        className="poster-reminder-button"
+        onClick={event => {
+          event.preventDefault();
+          event.stopPropagation();
+          setShowReminder(hero);
+        }}
+        aria-label={
+          "Set reminder for " +
+          hero.name
         }
-      />
-    </button>
-  </div>
-</div>
+        title="Remind me"
+      >
+        <Bell size={15} />
+      </button>
+
+      <button
+        type="button"
+        className="poster-list-button"
+        onClick={event => {
+          event.preventDefault();
+          event.stopPropagation();
+          toggle(
+            "watchlist",
+            hero.id,
+            hero
+          );
+        }}
+        aria-label={
+          state.watchlist.includes(hero.id)
+            ? "Remove " +
+              hero.name +
+              " from Watchlist"
+            : "Add " +
+              hero.name +
+              " to Watchlist"
+        }
+        title={
+          state.watchlist.includes(hero.id)
+            ? "Remove from Watchlist"
+            : "Add to Watchlist"
+        }
+      >
+        {state.watchlist.includes(hero.id) ? (
+          <Check size={15} />
+        ) : (
+          <Plus size={15} />
+        )}
+      </button>
+    </div>
 
     {isAdmin && (
       <button
@@ -7026,46 +7021,71 @@ function Card({
         </span>
 
         {!isAdmin && (
-       <div className="poster-actions">
-  <button
-    type="button"
-    className="poster-watched-button"
-    onClick={event => {
-      event.preventDefault();
-      event.stopPropagation();
-      onWatch();
-      setWatchedClicked(true);
-    }}
-    aria-label={
-      isWatched
-        ? "Watched " + t.name
-        : "Mark " + t.name + " as watched"
-    }
-    title={
-      isWatched
-        ? "Watched"
-        : "Mark as watched"
-    }
-  >
-    ✓
-  </button>
+          <div className="poster-actions">
 
-  <button
-    type="button"
-    className="poster-rewatch-button"
-    onClick={event => {
-      event.preventDefault();
-      event.stopPropagation();
-      onRewatch();
-    }}
-    aria-label={
-      "Re-watch " + t.name
-    }
-    title="Re-watch"
-  >
-    ↻
-  </button>
-</div>
+            <button
+              type="button"
+              className="poster-reminder-button"
+              onClick={event => {
+                event.preventDefault();
+                event.stopPropagation();
+                onReminder();
+              }}
+              aria-label={
+                "Set reminder for " +
+                t.name
+              }
+              title="Remind me"
+            >
+              <Bell size={15} />
+            </button>
+
+            <button
+              type="button"
+              className="poster-list-button"
+              onClick={event => {
+                event.preventDefault();
+                event.stopPropagation();
+
+                if (isOnWatchlist) {
+                  onList();
+                  setWatchlistMessage(
+                    "Removed from watchlist"
+                  );
+                } else {
+                  onList();
+                  setWatchlistMessage(
+                    "Added to watchlist"
+                  );
+                }
+
+                setTimeout(() => {
+                  setWatchlistMessage("");
+                }, 2000);
+              }}
+              aria-label={
+                isOnWatchlist
+                  ? "Remove " +
+                    t.name +
+                    " from Watchlist"
+                  : "Add " +
+                    t.name +
+                    " to Watchlist"
+              }
+              title={
+                isOnWatchlist
+                  ? "Remove from Watchlist"
+                  : "Add to Watchlist"
+              }
+            >
+              {isOnWatchlist ? (
+                <Check size={15} />
+              ) : (
+                <Plus size={15} />
+              )}
+            </button>
+
+          </div>
         )}
 
         {watchlistMessage && (
@@ -7120,70 +7140,47 @@ function Card({
         {!isAdmin && (
           <>
 
-          <div className="actions">
+            <div className="actions">
 
-  <button
-    type="button"
-    className={
-      isOnWatchlist
-        ? "on"
-        : ""
-    }
-    onClick={onList}
-  >
-    <span className="action-icon">
-      <Heart
-        size={15}
-        fill={
-          isOnWatchlist
-            ? "currentColor"
-            : "none"
-        }
-      />
-    </span>
+              <button
+                type="button"
+                className={
+                  isWatched
+                    ? "on"
+                    : ""
+                }
+                onClick={onWatch}
+              >
+                <span className="action-icon">
+                  ✓
+                </span>
 
-    <span className="action-label">
-      Watchlist
-    </span>
-  </button>
+                <span className="action-label">
+                  {isWatched
+                    ? "Watched"
+                    : "Watched"}
+                </span>
+              </button>
 
-  <button
-    type="button"
-    className={
-      isWatched
-        ? "on"
-        : ""
-    }
-    onClick={onWatch}
-  >
-    <span className="action-icon">
-      ✓
-    </span>
+              <button
+                type="button"
+                className={
+                  isRewatch
+                    ? "rewatch-action on"
+                    : "rewatch-action"
+                }
+                onClick={onRewatch}
+              >
+                <span className="action-icon">
+                  ↻
+                </span>
 
-    <span className="action-label">
-      Watched
-    </span>
-  </button>
+                <span className="action-label">
+                  Re-watch
+                </span>
+              </button>
 
-  <button
-    type="button"
-    className={
-      isRewatch
-        ? "rewatch-action on"
-        : "rewatch-action"
-    }
-    onClick={onRewatch}
-  >
-    <span className="action-icon">
-      ↻
-    </span>
-
-    <span className="action-label">
-      Re-watch
-    </span>
-  </button>
-
-</div>
+            </div>
 
           </>
         )}
