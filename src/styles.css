@@ -765,8 +765,7 @@ border: 0.5px solid #999;
 .watchlist-message {
   position: absolute;
   left: calc(100% + 8px);
-  top: 50%;
-  transform: translateY(-50%);
+  top: 57px;
   z-index: 9999;
   padding: 8px 12px;
   border-radius: 6px;
