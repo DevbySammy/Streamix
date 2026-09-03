@@ -551,7 +551,7 @@ background: #171719;
   padding: 8px 13px;
   border-radius: 999px;
   background: #171719;
-  border: 1px solid #28282c;
+  border: 0.75px solid #28282c;
   color: #aaa;
   cursor: pointer;
 }
