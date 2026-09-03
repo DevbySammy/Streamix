@@ -3283,13 +3283,10 @@ const visible = useMemo(() => {
         ? "popularity"
         : sort;
 
-    const catalogKey =
-      `${kind}-${catalogSort}`;
+  const catalogKey =
+  `${kind}-${catalogSort}`;
 
-    source =
-      tmdbCatalogKey === catalogKey
-        ? tmdbCatalog
-        : [];
+source = tmdbCatalog;
   }
   let filtered =
     source
