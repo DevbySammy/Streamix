@@ -4484,26 +4484,25 @@ return ( <div className="app">
 >
   <div
     className="hero-backdrop"
-    style={
-      hero &&
-      hero.backdrop
-        ? ({
-            backgroundImage:
-              "linear-gradient(90deg, rgba(0,0,0,.92), rgba(0,0,0,.15)), url(" +
-              hero.backdrop +
-              ")",
-            backgroundPosition:
-              String(heroSettings.positionX) +
-              "% " +
-              String(heroSettings.positionY) +
-              "%",
-            "--hero-zoom":
-              String(
-                (heroSettings.imageZoom || 100) / 100
-              )
-          } as React.CSSProperties)
-        : undefined
-    }
+   style={
+  hero &&
+  hero.backdrop
+    ? ({
+        backgroundImage:
+          "linear-gradient(90deg, rgba(0,0,0,.92), rgba(0,0,0,.15)), url(" +
+          hero.backdrop +
+          ")",
+        "--hero-position-x":
+          String(heroSettings.positionX) + "%",
+        "--hero-position-y":
+          String(heroSettings.positionY) + "%",
+        "--hero-zoom":
+          String(
+            (heroSettings.imageZoom || 100) / 100
+          )
+      } as React.CSSProperties)
+    : undefined
+}
   />
 
     <div className="hero-content">
