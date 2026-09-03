@@ -4788,8 +4788,8 @@ LIBRARY CONTROLS
       setJustAddedView("visible");
     }}
   >
-    <Film size={15} />
-    Movies
+<Film size={15} />
+<span className="mobile-hide-label">Movies</span>
   </button>
 
   <button
@@ -4809,7 +4809,7 @@ LIBRARY CONTROLS
     }}
   >
     <Tv size={15} />
-    TV Shows
+<span className="mobile-hide-label">TV Shows</span>
   </button>
 
   {isAdmin && (
