@@ -4577,11 +4577,14 @@ return ( <div className="app">
             : "Add to Watchlist"
         }
       >
-        {state.watchlist.includes(hero.id) ? (
-          <Check size={15} />
-        ) : (
-          <Plus size={15} />
-        )}
+      <Heart
+  size={15}
+  fill={
+    state.watchlist.includes(hero.id)
+      ? "currentColor"
+      : "none"
+  }
+/>
       </button>
     </div>
 
@@ -7078,11 +7081,14 @@ function Card({
                   : "Add to Watchlist"
               }
             >
-              {isOnWatchlist ? (
-                <Check size={15} />
-              ) : (
-                <Plus size={15} />
-              )}
+            <Heart
+          size={15}
+          fill={
+          isOnWatchlist
+          ? "currentColor"
+          : "none"
+            }
+          />
             </button>
 
           </div>
