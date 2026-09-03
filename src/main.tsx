@@ -4533,22 +4533,24 @@ return ( <div className="app">
         More Info →
       </button>
 
-      <button
-        type="button"
-        className="poster-reminder-button"
-        onClick={event => {
-          event.preventDefault();
-          event.stopPropagation();
-          setShowReminder(hero);
-        }}
-        aria-label={
-          "Set reminder for " +
-          hero.name
-        }
-        title="Remind me"
-      >
-        <Bell size={15} />
-      </button>
+     <div className="poster-actions">
+  <button
+    type="button"
+    className="poster-reminder-button"
+    onClick={event => {
+      event.preventDefault();
+      event.stopPropagation();
+      onReminder();
+    }}
+    aria-label={
+      "Set reminder for " +
+      t.name
+    }
+    title="Remind me"
+  >
+    <Bell size={15} />
+  </button>
+</div>
 
       <button
         type="button"
@@ -7024,74 +7026,46 @@ function Card({
         </span>
 
         {!isAdmin && (
-          <div className="poster-actions">
+       <div className="poster-actions">
+  <button
+    type="button"
+    className="poster-watched-button"
+    onClick={event => {
+      event.preventDefault();
+      event.stopPropagation();
+      onWatch();
+      setWatchedClicked(true);
+    }}
+    aria-label={
+      isWatched
+        ? "Watched " + t.name
+        : "Mark " + t.name + " as watched"
+    }
+    title={
+      isWatched
+        ? "Watched"
+        : "Mark as watched"
+    }
+  >
+    ✓
+  </button>
 
-            <button
-              type="button"
-              className="poster-reminder-button"
-              onClick={event => {
-                event.preventDefault();
-                event.stopPropagation();
-                onReminder();
-              }}
-              aria-label={
-                "Set reminder for " +
-                t.name
-              }
-              title="Remind me"
-            >
-              <Bell size={15} />
-            </button>
-
-            <button
-              type="button"
-              className="poster-list-button"
-              onClick={event => {
-                event.preventDefault();
-                event.stopPropagation();
-
-                if (isOnWatchlist) {
-                  onList();
-                  setWatchlistMessage(
-                    "Removed from watchlist"
-                  );
-                } else {
-                  onList();
-                  setWatchlistMessage(
-                    "Added to watchlist"
-                  );
-                }
-
-                setTimeout(() => {
-                  setWatchlistMessage("");
-                }, 2000);
-              }}
-              aria-label={
-                isOnWatchlist
-                  ? "Remove " +
-                    t.name +
-                    " from Watchlist"
-                  : "Add " +
-                    t.name +
-                    " to Watchlist"
-              }
-              title={
-                isOnWatchlist
-                  ? "Remove from Watchlist"
-                  : "Add to Watchlist"
-              }
-            >
-             <Heart
-            size={15}
-            fill={
-            isOnWatchlist
-            ? "currentColor"
-            : "none"
-            }
-            />
-          </button>
-
-          </div>
+  <button
+    type="button"
+    className="poster-rewatch-button"
+    onClick={event => {
+      event.preventDefault();
+      event.stopPropagation();
+      onRewatch();
+    }}
+    aria-label={
+      "Re-watch " + t.name
+    }
+    title="Re-watch"
+  >
+    ↻
+  </button>
+</div>
         )}
 
         {watchlistMessage && (
