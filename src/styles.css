@@ -874,6 +874,28 @@ card actions
   }
 }
 
+@media (max-width: 600px) {
+  .actions {
+    gap: 5px;
+  }
+
+  .actions button {
+    padding: 7px 6px;
+    gap: 0;
+  }
+
+  .actions button .action-label {
+    display: none;
+  }
+
+  .actions button .action-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+  }
+}
+
 /* =========================================================
    BUTTONS
 ========================================================= */
