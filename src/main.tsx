@@ -4929,7 +4929,7 @@ LIBRARY CONTROLS
 ) : visible.length > 0 ? (
     visible.map(title => (
       <Card
-        key={title.id}
+      key={`${kind}-${title.id}`}
         t={title}
         st={state}
         isAdmin={isAdmin}
