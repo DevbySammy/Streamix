@@ -7065,6 +7065,7 @@ const isRewatch =
     "/w342/"
   )}
   alt={t.name}
+  loading="lazy"
   decoding="async"
   onError={event => {
     event.currentTarget.src =
