@@ -2894,10 +2894,7 @@ footer span {
 }
 
 .header-desktop-controls {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  position: relative;
+  display: contents;
 }
 
 @media (max-width: 600px) {
