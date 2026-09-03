@@ -429,8 +429,7 @@ background: #171719;
 .hero-actions .hero-more-info-button:hover,
 .hero-actions .poster-reminder-button:hover,
 .hero-actions .poster-list-button:hover {
-background: #171719;
-color: #aaa;
+  background: rgba(255, 255, 255, .12);
 }
 
 @media (min-width: 821px) {
