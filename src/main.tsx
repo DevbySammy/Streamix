@@ -7049,95 +7049,95 @@ function Card({
             </button>
 
             <button
-    type="button"
-    className="poster-list-button"
-    onClick={event => {
-      event.preventDefault();
-      event.stopPropagation();
+              type="button"
+              className="poster-list-button"
+              onClick={event => {
+                event.preventDefault();
+                event.stopPropagation();
 
-      if (isOnWatchlist) {
-        onList();
-        setWatchlistMessage(
-          "Removed from watchlist"
-        );
-      } else {
-        onList();
-        setWatchlistMessage(
-          "Added to watchlist"
-        );
-      }
+                if (isOnWatchlist) {
+                  onList();
+                  setWatchlistMessage(
+                    "Removed from watchlist"
+                  );
+                } else {
+                  onList();
+                  setWatchlistMessage(
+                    "Added to watchlist"
+                  );
+                }
 
-      setTimeout(() => {
-        setWatchlistMessage("");
-      }, 2000);
-    }}
-    aria-label={
-      isOnWatchlist
-        ? "Remove " +
-          t.name +
-          " from Watchlist"
-        : "Add " +
-          t.name +
-          " to Watchlist"
-    }
-    title={
-      isOnWatchlist
-        ? "Remove from Watchlist"
-        : "Add to Watchlist"
-    }
-  >
-    {isOnWatchlist ? (
-      <Check size={15} />
-    ) : (
-      <Plus size={15} />
-    )}
-  </button>
+                setTimeout(() => {
+                  setWatchlistMessage("");
+                }, 2000);
+              }}
+              aria-label={
+                isOnWatchlist
+                  ? "Remove " +
+                    t.name +
+                    " from Watchlist"
+                  : "Add " +
+                    t.name +
+                    " to Watchlist"
+              }
+              title={
+                isOnWatchlist
+                  ? "Remove from Watchlist"
+                  : "Add to Watchlist"
+              }
+            >
+              {isOnWatchlist ? (
+                <Check size={15} />
+              ) : (
+                <Plus size={15} />
+              )}
+            </button>
 
-  {watchlistMessage && (
-    <div className="watchlist-message">
-      {watchlistMessage}
-    </div>
-  )}
+          </div>
+        )}
 
-</div>
-)}
+        {watchlistMessage && (
+          <div className="watchlist-message">
+            {watchlistMessage}
+          </div>
+        )}
 
-{isAdmin && (
-  <button
-    type="button"
-    className="remove"
-    onClick={event => {
-      event.preventDefault();
-      event.stopPropagation();
-      onRemove();
-    }}
-    title={
-      hiddenJustAdded
-        ? "Show Again"
-        : "Hide from Just Added"
-    }
-    aria-label={
-      hiddenJustAdded
-        ? "Show Again"
-        : "Hide " +
-          t.name
-    }
-    style={{
-      position: "absolute",
-      zIndex: 20,
-      pointerEvents: "auto",
-      cursor: "pointer"
-    }}
-  >
-    {hiddenJustAdded ? (
-      <Eye size={16} />
-    ) : (
-      <EyeOff size={16} />
-    )}
-  </button>
-)}
+        {isAdmin && (
+          <button
+            type="button"
+            className="remove"
+            onClick={event => {
+              event.preventDefault();
+              event.stopPropagation();
+              onRemove();
+            }}
+            title={
+              hiddenJustAdded
+                ? "Show Again"
+                : "Hide from Just Added"
+            }
+            aria-label={
+              hiddenJustAdded
+                ? "Show Again"
+                : "Hide " +
+                  t.name
+            }
+            style={{
+              position: "absolute",
+              zIndex: 20,
+              pointerEvents: "auto",
+              cursor: "pointer"
+            }}
+          >
+            {hiddenJustAdded ? (
+              <Eye size={16} />
+            ) : (
+              <EyeOff size={16} />
+            )}
+          </button>
+        )}
 
-</div>
+      </div>
 
       <div className="card-body">
 
