@@ -394,7 +394,7 @@ header {
   border: none;
   border-radius: 6px;
   cursor: pointer;
-  background: rgba(0, 0, 0, .72);
+background: #171719;
   color: #fff;
   transition: background .2s ease, transform .2s ease;
 }
@@ -435,7 +435,7 @@ color: #aaa;
 
 @media (min-width: 821px) {
   .hero-actions {
-    gap: 10px;
+    gap: 8px;
   }
    
   .hero-actions .hero-more-info-button,
@@ -451,7 +451,7 @@ color: #aaa;
 
   .hero-actions .poster-reminder-button,
   .hero-actions .poster-list-button {
-    width: 38px;
+    width: 44px;
     padding: 0;
   }
 }
