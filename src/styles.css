@@ -2893,6 +2893,13 @@ footer span {
   display: none;
 }
 
+.header-desktop-controls {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  position: relative;
+}
+
 @media (max-width: 600px) {
 
   .header-desktop-controls {
