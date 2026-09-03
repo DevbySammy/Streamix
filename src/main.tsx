@@ -4291,7 +4291,7 @@ return ( <div className="app">
           {watchlistMessage}
         </div>
       )}
-
+ 
   {/* HEADER */}
 
 <header>
@@ -7100,7 +7100,7 @@ const isRewatch =
   )}
 </button>
             {watchlistMessage && (
-  <div className="watchlist-message">
+  <div className="watchlist-message"> 
     {watchlistMessage}
   </div>
 )}
