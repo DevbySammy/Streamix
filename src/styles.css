@@ -376,6 +376,20 @@ header {
   font-weight: 600;
 }
 
+.hero-watchlist-message {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  background: #171719;
+  border: 0.75px solid #aaa;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
 .hero-actions {
   display: flex;
   align-items: center;
@@ -455,6 +469,7 @@ background: #171719;
     padding: 0;
   }
 }
+
 
 /* =========================================================
    GENERAL BUTTON HOVER
