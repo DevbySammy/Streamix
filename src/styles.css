@@ -722,8 +722,8 @@ overflow: visible;
   gap: 4px;
 }
 
-.poster-watched-button,
-.poster-rewatch-button {
+.poster-reminder-button,
+.poster-list-button {
   width: 30px;
   height: 30px;
   min-height: 30px;
@@ -734,14 +734,30 @@ overflow: visible;
   border-radius: 6px;
   cursor: pointer;
   background: #000;
+}
+
+.poster-reminder-button {
+  color: #FBCB05;
+}
+
+.poster-reminder-button svg {
+  fill: #FBCB05;
+  stroke: #FBCB05;
+}
+
+.poster-list-button {
   color: #fff;
-  font-size: 15px;
-  line-height: 1;
+}
+
+.poster-list-button svg {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.5;
 }
 
 @media (min-width: 601px) {
-  .poster-watched-button:hover,
-  .poster-rewatch-button:hover {
+  .poster-reminder-button:hover,
+  .poster-list-button:hover {
     background: #171719;
   }
 }
