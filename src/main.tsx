@@ -6991,6 +6991,48 @@ function Card({
   const isRewatch =
     st.rewatch.includes(t.id);
 
+function Card({
+  t,
+  st,
+  isAdmin,
+  hiddenJustAdded,
+  onWatch,
+  onList,
+  onRewatch,
+  onRemove,
+  onReminder,
+  onSchedule,
+  onDetails
+}: {
+  t: Title;
+  st: State;
+  isAdmin: boolean;
+  hiddenJustAdded?: boolean;
+  onWatch: () => void;
+  onList: () => void;
+  onRewatch: () => void;
+  onRemove: () => void;
+  onReminder: () => void;
+  onSchedule: () => void;
+  onDetails: () => void;
+}) {
+
+  const [watchedClicked, setWatchedClicked] =
+    useState(false);
+
+  const [watchlistMessage, setWatchlistMessage] =
+    useState("");
+
+  const isOnWatchlist =
+    st.watchlist.includes(t.id);
+
+  const isWatched =
+    watchedClicked ||
+    st.watched.includes(t.id);
+
+  const isRewatch =
+    st.rewatch.includes(t.id);
+
   return (
     <article className="card">
 
@@ -7004,7 +7046,10 @@ function Card({
             event.stopPropagation();
             onDetails();
           }}
-          aria-label={"View details for " + t.name}
+          aria-label={
+            "View details for " +
+            t.name
+          }
         >
           <img
             src={t.poster.replace(
@@ -7162,6 +7207,7 @@ function Card({
                 <span className="action-icon">
                   ✓
                 </span>
+
                 <span className="action-label">
                   {isWatched
                     ? "Watched"
@@ -7181,6 +7227,7 @@ function Card({
                 <span className="action-icon">
                   ↻
                 </span>
+
                 <span className="action-label">
                   Re-watch
                 </span>
