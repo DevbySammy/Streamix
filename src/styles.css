@@ -659,7 +659,7 @@ background: #171719;
 
 .card {
   min-width: 0;
-  overflow: hidden;
+overflow: visible;
   background: #151517;
   border: 1px solid #242428;
   border-radius: 13px;
