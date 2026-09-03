@@ -4476,35 +4476,37 @@ return ( <div className="app">
     {!showDetails && (
   <>
 
-  {/* HERO */}
+{/* HERO */}
 
-  <section
-    className="hero"
-    style={
-      hero &&
-      hero.backdrop
-        ? {
-            backgroundImage:
-              "linear-gradient(90deg, rgba(0,0,0,.92), rgba(0,0,0,.15)), url(" +
-              hero.backdrop +
-              ")",
-            backgroundPosition:
-              String(
-                heroSettings.positionX
-              ) +
-              "% " +
-              String(
-                heroSettings.positionY
-              ) +
-              "%"
-          }
-        : {
-            backgroundImage:
-              "none"
-          }
-    }
-  >
-
+<section
+  className="hero"
+  style={
+    hero &&
+    hero.backdrop
+      ? {
+          backgroundImage:
+            "linear-gradient(90deg, rgba(0,0,0,.92), rgba(0,0,0,.15)), url(" +
+            hero.backdrop +
+            ")",
+          backgroundPosition:
+            String(
+              heroSettings.positionX
+            ) +
+            "% " +
+            String(
+              heroSettings.positionY
+            ) +
+            "%",
+          backgroundSize:
+            String(imageZoom) +
+            "%"
+        }
+      : {
+          backgroundImage:
+            "none"
+        }
+  }
+>
     <div className="hero-content">
 
 {hero ? (
