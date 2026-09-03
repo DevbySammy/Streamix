@@ -758,14 +758,13 @@ border: 0.5px solid #999;
 
 .poster-watchlist-row {
   position: relative;
-  display: block;
-  width: 30px;
-  height: 30px;
+  display: flex;
+  align-items: center;
 }
 
 .watchlist-message {
   position: absolute;
-  left: 38px;
+  left: calc(100% + 8px);
   top: 50%;
   transform: translateY(-50%);
   z-index: 9999;
