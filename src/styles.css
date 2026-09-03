@@ -669,7 +669,7 @@ overflow: visible;
   position: relative;
   aspect-ratio: 2 / 3;
   overflow: visible;
-  background: #202023;
+  background: transparent;
 }
 
 .poster-wrap > img {
