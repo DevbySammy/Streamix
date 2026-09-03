@@ -7059,7 +7059,7 @@ const isRewatch =
               <Bell size={15} />
             </button>
 
-           <button
+         <button
   type="button"
   className="poster-list-button"
   onClick={event => {
