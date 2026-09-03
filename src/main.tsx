@@ -9056,6 +9056,10 @@ useState(
 settings.positionX
 );
 
+const [imageZoom, setImageZoom] =
+useState(100)
+);
+  
 const [positionY, setPositionY] =
 useState(
 settings.positionY
