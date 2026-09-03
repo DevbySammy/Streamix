@@ -423,7 +423,6 @@ background: #171719;
 }
 
 .hero-actions .poster-list-button svg {
-  fill: none;
   stroke: currentColor;
   stroke-width: 2.5;
 }
@@ -750,7 +749,6 @@ overflow: visible;
 }
 
 .poster-list-button svg {
-  fill: none;
   stroke: currentColor;
   stroke-width: 2.5;
 }
