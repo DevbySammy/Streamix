@@ -1582,17 +1582,6 @@ footer span {
     flex: 1;
   }
 
- .switch button:nth-child(1),
- .switch button:nth-child(2) {
-   font-size: 0;
-}
-
-.switch button:nth-child(1) svg,
-.switch button:nth-child(2) svg {
-  width: 18px;
-  height: 18px;
-}
-
   .toolbar {
     gap: 12px;
     margin-bottom: 12px;
