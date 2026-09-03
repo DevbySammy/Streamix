@@ -4520,82 +4520,74 @@ return ( <div className="app">
         : "TV Show"}
     </p>
 
-    <div className="hero-actions">
-      <button
-        type="button"
-        className="hero-more-info-button"
-        onClick={event => {
-          event.preventDefault();
-          event.stopPropagation();
-          openDetails(hero);
-        }}
-      >
-        More Info →
-      </button>
-
-   <div className="poster-actions">
+ <div className="hero-actions">
   <button
     type="button"
-    className="poster-reminder-button"
+    className="hero-more-info-button"
     onClick={event => {
       event.preventDefault();
       event.stopPropagation();
-      onReminder();
+      openDetails(hero);
     }}
-    aria-label={
-      "Set reminder for " +
-      t.name
-    }
-    title="Remind me"
   >
-    <Bell size={15} />
+    More Info →
   </button>
 
-  <button
-    type="button"
-    className="poster-list-button"
-    onClick={event => {
-      event.preventDefault();
-      event.stopPropagation();
-      if (isOnWatchlist) {
-        onList();
-        setWatchlistMessage(
-          "Removed from watchlist"
-        );
-      } else {
-        onList();
-        setWatchlistMessage(
-          "Added to watchlist"
-        );
+  <div className="poster-actions">
+    <button
+      type="button"
+      className="poster-reminder-button"
+      onClick={event => {
+        event.preventDefault();
+        event.stopPropagation();
+        onReminder();
+      }}
+      aria-label={
+        "Set reminder for " +
+        hero.name
       }
-      setTimeout(() => {
-        setWatchlistMessage("");
-      }, 2000);
-    }}
-    aria-label={
-      isOnWatchlist
-        ? "Remove " +
-          t.name +
-          " from Watchlist"
-        : "Add " +
-          t.name +
-          " to Watchlist"
-    }
-    title={
-      isOnWatchlist
-        ? "Remove from Watchlist"
-        : "Add to Watchlist"
-    }
-  >
-    <Heart
-      size={15}
-      fill={
-        isOnWatchlist
-          ? "currentColor"
-          : "none"
+      title="Remind me"
+    >
+      <Bell size={15} />
+    </button>
+
+    <button
+      type="button"
+      className="poster-list-button"
+      onClick={event => {
+        event.preventDefault();
+        event.stopPropagation();
+        toggle(
+          "watchlist",
+          hero.id,
+          hero
+        );
+      }}
+      aria-label={
+        state.watchlist.includes(hero.id)
+          ? "Remove " +
+            hero.name +
+            " from Watchlist"
+          : "Add " +
+            hero.name +
+            " to Watchlist"
       }
-    />
-  </button>
+      title={
+        state.watchlist.includes(hero.id)
+          ? "Remove from Watchlist"
+          : "Add to Watchlist"
+      }
+    >
+      <Heart
+        size={15}
+        fill={
+          state.watchlist.includes(hero.id)
+            ? "currentColor"
+            : "none"
+        }
+      />
+    </button>
+  </div>
 </div>
 
     {isAdmin && (
