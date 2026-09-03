@@ -4285,6 +4285,12 @@ MAIN APP
 ======================================================= */
 
 return ( <div className="app">
+
+         {watchlistMessage && (
+        <div className="watchlist-message">
+          {watchlistMessage}
+        </div>
+      )}
  
   {/* HEADER */}
 
