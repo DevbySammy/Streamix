@@ -756,12 +756,13 @@ border: 0.5px solid #999;
   }
 }
 
+.poster-watchlist-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .watchlist-message {
-  position: absolute;
-  left: calc(100% + 8px);
-  top: 50%;
-  transform: translateY(-50%);
-  z-index: 30;
   padding: 8px 12px;
   border-radius: 6px;
   background: #171719;
