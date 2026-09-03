@@ -436,14 +436,12 @@ header {
   .hero-actions {
     gap: 7px;
   }
-
+   
   .hero-actions .hero-more-info-button,
   .hero-actions .poster-reminder-button,
   .hero-actions .poster-list-button {
     height: 44px;
     min-height: 44px;
-    background: #FBCB05;
-    color: #000;
   }
 
   .hero-actions .hero-more-info-button {
@@ -452,23 +450,8 @@ header {
 
   .hero-actions .poster-reminder-button,
   .hero-actions .poster-list-button {
-    width: 44px;
+    width: 38px;
     padding: 0;
-  }
-
-  .hero-actions .poster-reminder-button svg {
-    fill: #000;
-    stroke: #000;
-  }
-
-  .hero-actions .poster-list-button svg {
-    stroke: #000;
-  }
-
-  .hero-actions .hero-more-info-button:hover,
-  .hero-actions .poster-reminder-button:hover,
-  .hero-actions .poster-list-button:hover {
-    background: #e6b900;
   }
 }
 
