@@ -911,9 +911,7 @@ card actions
   justify-content: center;
   line-height: 1;
   transform: scale(1.3);
-  }
-   .actions button .action-icon svg {
-  stroke-width: 3;
+     font-weight: 900;
   }
 }
 
