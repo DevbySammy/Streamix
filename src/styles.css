@@ -756,12 +756,6 @@ border: 0.5px solid #999;
   }
 }
 
-.poster-watchlist-row {
-  position: relative;
-  display: flex;
-  align-items: center;
-}
-
 .watchlist-message {
   position: absolute;
   left: calc(100% + 8px);
