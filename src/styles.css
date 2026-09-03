@@ -718,36 +718,6 @@ header {
   gap: 4px;
 }
 
-.poster-reminder-button,
-.poster-list-button {
-  width: 30px;
-  height: 30px;
-  min-height: 30px;
-  padding: 0;
-  display: grid;
-  place-items: center;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  background: rgba(0, 0, 0, .72);
-}
-
-.poster-reminder-button {
-  color: #FBCB05;
-}
-
-.poster-reminder-button svg {
-  fill: #FBCB05;
-  stroke: #FBCB05;
-}
-
-.poster-list-button {
-  color: #fff;
-}
-.poster-list-button svg {
-  stroke-width: 2.5;
-}
-
 .poster-reminder-button:hover,
 .poster-reminder-button:active {
   background: rgba(0, 0, 0, .72);
