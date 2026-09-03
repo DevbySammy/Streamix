@@ -84,9 +84,10 @@ type SortOption =
   | "name-desc";
 
 type HeroSettings = {
-titleId: string | null;
-positionX: number;
-positionY: number;
+  titleId: string | null;
+  positionX: number;
+  positionY: number;
+  imageZoom: number;
 };
 
  /* =========================================================
@@ -143,11 +144,11 @@ rewatch: []
 };
 
 const initialHero: HeroSettings = {
-titleId: null,
-positionX: 50,
-positionY: 50
+  titleId: null,
+  positionX: 50,
+  positionY: 50,
+  imageZoom: 100
 };
-
 /* =========================================================
 HELPERS
 ========================================================= */
@@ -4476,34 +4477,28 @@ return ( <div className="app">
     {!showDetails && (
   <>
 
-  {/* HERO */}
+{/* HERO */}
 
-  <section
-    className="hero"
-    style={
-      hero &&
-      hero.backdrop
-        ? {
-            backgroundImage:
-              "linear-gradient(90deg, rgba(0,0,0,.92), rgba(0,0,0,.15)), url(" +
-              hero.backdrop +
-              ")",
-            backgroundPosition:
-              String(
-                heroSettings.positionX
-              ) +
-              "% " +
-              String(
-                heroSettings.positionY
-              ) +
-              "%"
-          }
-        : {
-            backgroundImage:
-              "none"
-          }
-    }
-  >
+<section
+  className="hero"
+  style={
+    hero &&
+    hero.backdrop
+      ? ({
+          "--hero-image":
+            `url(${hero.backdrop})`,
+          "--hero-position-x":
+            `${heroSettings.positionX}%`,
+          "--hero-position-y":
+            `${heroSettings.positionY}%`,
+          "--hero-zoom":
+            String(
+              heroSettings.imageZoom || 100
+            )
+        } as React.CSSProperties)
+      : undefined
+  }
+>
 
     <div className="hero-content">
 
@@ -9057,7 +9052,9 @@ settings.positionX
 );
 
 const [imageZoom, setImageZoom] =
-useState(100);
+  useState(
+    settings.imageZoom
+  );
   
 const [positionY, setPositionY] =
 useState(
@@ -9188,11 +9185,12 @@ return ( <Modal
       <button
         className="pink full"
         onClick={() =>
-          onSave({
-            titleId,
-            positionX,
-            positionY
-          })
+     onSave({
+  titleId,
+  positionX,
+  positionY,
+  imageZoom
+})
         }
       >
         Save Hero
