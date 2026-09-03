@@ -668,9 +668,8 @@ overflow: visible;
 .poster-wrap {
   position: relative;
   aspect-ratio: 2 / 3;
-  overflow: hidden;
+  overflow: visible;
   background: #202023;
-  border-radius: 12px 12px 0 0;
 }
 
 .poster-wrap > img {
