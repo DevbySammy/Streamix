@@ -732,8 +732,9 @@ header {
   background: rgba(0, 0, 0, .72);
 }
 
-.poster-reminder-button {
-  color: #FBCB05;
+.poster-reminder-button,
+.poster-list-button {
+  background: #000;
 }
 
 .poster-reminder-button svg {
@@ -751,7 +752,7 @@ header {
 @media (min-width: 601px) {
   .poster-reminder-button:hover,
   .poster-list-button:hover {
-    background: rgba(0, 0, 0, .9);
+    background: #171719;
   }
 }
 
