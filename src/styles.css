@@ -748,16 +748,11 @@ header {
   stroke-width: 2.5;
 }
 
-.poster-reminder-button:hover,
-.poster-reminder-button:active {
-  background: rgba(0, 0, 0, .72);
-  color: #FBCB05;
-}
-
-.poster-list-button:hover,
-.poster-list-button:active {
-  background: rgba(0, 0, 0, .72);
-  color: #fff;
+@media (min-width: 601px) {
+  .poster-reminder-button:hover,
+  .poster-list-button:hover {
+    background: rgba(255, 255, 255, .12);
+  }
 }
 
 .remove {
