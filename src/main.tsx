@@ -4577,15 +4577,14 @@ return ( <div className="app">
             : "Add to Watchlist"
         }
       >
-       <Heart
+   <Heart
   size={15}
   fill={
-    state.watchlist.includes(hero.id)
+    isOnWatchlist
       ? "currentColor"
       : "none"
   }
 />
-        )}
       </button>
     </div>
 
