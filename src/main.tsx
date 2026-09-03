@@ -5949,10 +5949,9 @@ setShowReminderList(false);
     title={
       showReminder
     }
-    onClose={() => {
-      setShowReminder(null);
-      setShowReminderList(true);
-    }}
+   onClose={() => {
+  setShowReminder(null);
+}}
 onSave={async (
   date,
   time,
