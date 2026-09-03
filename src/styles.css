@@ -726,7 +726,7 @@ background: #171719;
   padding: 0;
   display: grid;
   place-items: center;
-border: 0.75px solid #999;
+border: 0.5px solid #999;
   border-radius: 6px;
   cursor: pointer;
   background: rgba(0, 0, 0, .72);
