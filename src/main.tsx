@@ -4291,7 +4291,7 @@ return ( <div className="app">
           {watchlistMessage}
         </div>
       )}
- 
+
   {/* HEADER */}
 
 <header>
@@ -6964,9 +6964,9 @@ function Card({
   onList,
   onRewatch,
   onRemove,
-  onReminder,
-  onSchedule,
-  onDetails
+ onReminder,
+ onSchedule,
+ onDetails
 }: {
   t: Title;
   st: State;
@@ -6978,31 +6978,35 @@ function Card({
   onRemove: () => void;
   onReminder: () => void;
   onSchedule: () => void;
-  onDetails: () => void;
+   onDetails: () => void;
 }) {
 
-  const [watchedClicked, setWatchedClicked] =
-    useState(false);
+   {/*just added this code
+   const [watchedClicked, setWatchedClicked] =
+  useState(false);
+  */}
+const [watchedClicked, setWatchedClicked] =
+  useState(false);
 
-  const [watchlistMessage, setWatchlistMessage] =
-    useState("");
+const [watchlistAddedClicked, setWatchlistAddedClicked] =
+  useState(false);
+   
+   const isOnWatchlist =
+  st.watchlist.includes(t.id);
 
-  const isOnWatchlist =
-    st.watchlist.includes(t.id);
+const isWatched =
+  watchedClicked ||
+  st.watched.includes(t.id);
 
-  const isWatched =
-    watchedClicked ||
-    st.watched.includes(t.id);
-
-  const isRewatch =
-    st.rewatch.includes(t.id);
+const isRewatch =
+  st.rewatch.includes(t.id);
 
   return (
     <article className="card">
 
       <div className="poster-wrap">
 
-        <button
+                <button
           type="button"
           className="poster-details-button"
           onClick={event => {
@@ -7012,20 +7016,21 @@ function Card({
           }}
           aria-label={"View details for " + t.name}
         >
-          <img
-            src={t.poster.replace(
-              "/w500/",
-              "/w342/"
-            )}
-            alt={t.name}
-            loading="lazy"
-            decoding="async"
-            onError={event => {
-              event.currentTarget.src =
-                "https://placehold.co/500x750/171717/ffffff?text=" +
-                encodeURIComponent(t.name);
-            }}
-          />
+  <img
+  src={t.poster.replace(
+    "/w500/",
+    "/w342/"
+  )}
+  alt={t.name}
+  loading="lazy"
+  decoding="async"
+  onError={event => {
+    event.currentTarget.src =
+      "https://placehold.co/500x750/171717/ffffff?text=" +
+      encodeURIComponent(t.name);
+  }}
+/>
+                
         </button>
 
         <span className="kind">
@@ -7054,57 +7059,49 @@ function Card({
               <Bell size={15} />
             </button>
 
-            <button
-              type="button"
-              className="poster-list-button"
-              onClick={event => {
-                event.preventDefault();
-                event.stopPropagation();
+         <button
+  type="button"
+  className="poster-list-button"
+  onClick={event => {
+    event.preventDefault();
+    event.stopPropagation();
 
-                if (isOnWatchlist) {
-                  onList();
-                  setWatchlistMessage(
-                    "Removed from watchlist"
-                  );
-                } else {
-                  onList();
-                  setWatchlistMessage(
-                    "Added to watchlist"
-                  );
-                }
+    if (!isOnWatchlist) {
+      onList();
+      setWatchlistAddedClicked(true);
 
-                setTimeout(() => {
-                  setWatchlistMessage("");
-                }, 2000);
-              }}
-              aria-label={
-                isOnWatchlist
-                  ? "Remove " +
-                    t.name +
-                    " from Watchlist"
-                  : "Add " +
-                    t.name +
-                    " to Watchlist"
-              }
-              title={
-                isOnWatchlist
-                  ? "Remove from Watchlist"
-                  : "Add to Watchlist"
-              }
-            >
-              {isOnWatchlist ? (
-                <Check size={15} />
-              ) : (
-                <Plus size={15} />
-              )}
-            </button>
+      setTimeout(() => {
+        setWatchlistAddedClicked(false);
+      }, 2000);
+    } else {
+      onList();
+      setWatchlistAddedClicked(false);
+    }
+  }}
+  aria-label={
+    isOnWatchlist
+      ? "Remove " +
+        t.name +
+        " from Watchlist"
+      : "Add " +
+        t.name +
+        " to Watchlist"
+  }
+  title={
+    isOnWatchlist
+      ? "Remove from Watchlist"
+      : "Add to Watchlist"
+  }
+>
+  {watchlistAddedClicked ? (
+    "Added to watchlist"
+  ) : isOnWatchlist ? (
+    <Check size={15} />
+  ) : (
+    <Plus size={15} />
+  )}
+</button>
 
-          </div>
-        )}
-
-        {watchlistMessage && (
-          <div className="watchlist-message">
-            {watchlistMessage}
           </div>
         )}
 
@@ -7145,52 +7142,48 @@ function Card({
 
       </div>
 
-      <div className="card-body">
+    <div className="card-body">
 
-        <h3>{t.name}</h3>
+  <h3>{t.name}</h3>
 
-        <p>{t.year}</p>
+  <p>{t.year}</p>
 
-        {!isAdmin && (
-          <>
+  {!isAdmin && (
+    <>
 
-            <div className="actions">
+      <div className="actions">
 
-              <button
-                type="button"
-                className={
-                  isWatched
-                    ? "on"
-                    : ""
-                }
-                onClick={onWatch}
-              >
-                <span className="action-icon">
-                  ✓
-                </span>
-                <span className="action-label">
-                  {isWatched
-                    ? "Watched"
-                    : "Watched"}
-                </span>
-              </button>
+<button
+  type="button"
+  className={
+    isWatched
+      ? "on"
+      : ""
+  }
+  onClick={onWatch}
+>
+  <span className="action-icon">✓</span>
+  <span className="action-label">
+    {isWatched
+      ? "Watched"
+      : "Watched"}
+  </span>
+</button>
 
-              <button
-                type="button"
-                className={
-                  isRewatch
-                    ? "rewatch-action on"
-                    : "rewatch-action"
-                }
-                onClick={onRewatch}
-              >
-                <span className="action-icon">
-                  ↻
-                </span>
-                <span className="action-label">
-                  Re-watch
-                </span>
-              </button>
+     <button
+  type="button"
+  className={
+    isRewatch
+      ? "rewatch-action on"
+      : "rewatch-action"
+  }
+  onClick={onRewatch}
+>
+  <span className="action-icon">↻</span>
+  <span className="action-label">
+    Re-watch
+  </span>
+</button>
 
             </div>
 
