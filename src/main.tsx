@@ -14,7 +14,7 @@ Clock,
 Eye,
 EyeOff,
 Film,
-Plus, 
+Heart, 
 ArrowUp,
 Search,
 Settings,
@@ -4577,10 +4577,14 @@ return ( <div className="app">
             : "Add to Watchlist"
         }
       >
-        {state.watchlist.includes(hero.id) ? (
-          <Check size={15} />
-        ) : (
-          <Plus size={15} />
+       <Heart
+  size={15}
+  fill={
+    state.watchlist.includes(hero.id)
+      ? "currentColor"
+      : "none"
+  }
+/>
         )}
       </button>
     </div>
@@ -7078,12 +7082,15 @@ function Card({
                   : "Add to Watchlist"
               }
             >
-              {isOnWatchlist ? (
-                <Check size={15} />
-              ) : (
-                <Plus size={15} />
-              )}
-            </button>
+             <Heart
+            size={15}
+            fill={
+            isOnWatchlist
+            ? "currentColor"
+            : "none"
+            }
+            />
+          </button>
 
           </div>
         )}
@@ -7140,47 +7147,70 @@ function Card({
         {!isAdmin && (
           <>
 
-            <div className="actions">
+          <div className="actions">
 
-              <button
-                type="button"
-                className={
-                  isWatched
-                    ? "on"
-                    : ""
-                }
-                onClick={onWatch}
-              >
-                <span className="action-icon">
-                  ✓
-                </span>
+  <button
+    type="button"
+    className={
+      isOnWatchlist
+        ? "on"
+        : ""
+    }
+    onClick={onList}
+  >
+    <span className="action-icon">
+      <Heart
+        size={15}
+        fill={
+          isOnWatchlist
+            ? "currentColor"
+            : "none"
+        }
+      />
+    </span>
 
-                <span className="action-label">
-                  {isWatched
-                    ? "Watched"
-                    : "Watched"}
-                </span>
-              </button>
+    <span className="action-label">
+      Watchlist
+    </span>
+  </button>
 
-              <button
-                type="button"
-                className={
-                  isRewatch
-                    ? "rewatch-action on"
-                    : "rewatch-action"
-                }
-                onClick={onRewatch}
-              >
-                <span className="action-icon">
-                  ↻
-                </span>
+  <button
+    type="button"
+    className={
+      isWatched
+        ? "on"
+        : ""
+    }
+    onClick={onWatch}
+  >
+    <span className="action-icon">
+      ✓
+    </span>
 
-                <span className="action-label">
-                  Re-watch
-                </span>
-              </button>
+    <span className="action-label">
+      Watched
+    </span>
+  </button>
 
-            </div>
+  <button
+    type="button"
+    className={
+      isRewatch
+        ? "rewatch-action on"
+        : "rewatch-action"
+    }
+    onClick={onRewatch}
+  >
+    <span className="action-icon">
+      ↻
+    </span>
+
+    <span className="action-label">
+      Re-watch
+    </span>
+  </button>
+
+</div>
 
           </>
         )}
