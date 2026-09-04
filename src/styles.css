@@ -2420,6 +2420,25 @@ footer span {
 }
 
 /* =========================================================
+   DETAILS - LAST EPISODE
+========================================================= */
+
+.details-last-episode {
+  width: 100vw;
+  margin-left: calc(50% - 50vw);
+  margin-top: 52px;
+  padding: 42px 28px 46px;
+  box-sizing: border-box;
+  background: #171719;
+}
+
+.details-last-episode > * {
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* =========================================================
    DETAILS - CAST
 ========================================================= */
 
@@ -2762,6 +2781,11 @@ footer span {
     font-size: 21px;
   }
 
+  .details-last-episode {
+    margin-top: 40px;
+    padding: 32px 14px 36px;
+  }
+
   .details-cast-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 10px;
@@ -2852,7 +2876,7 @@ footer span {
   .details-recommendation span {
     font-size: 12px;
   }
-     }
+}
 
 /* =========================================================
    DETAILS PAGE - VERY SMALL PHONES
@@ -2995,3 +3019,4 @@ footer span {
   }
 
 }
+
