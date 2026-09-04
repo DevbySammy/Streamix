@@ -4403,40 +4403,30 @@ return ( <div className="app">
           </button>
         )}
 
-      {menu &&
-        isAdmin && (
-          <div className="admin-menu">
-            <button
-              onClick={() => {
-                setShowAdd(true);
-                setMenu(false);
-              }}
-            >
-              <Plus />
-              Add media
-            </button>
+   {menu &&
+  isAdmin && (
+    <div className="admin-menu">
+      <button
+        onClick={() => {
+          setShowHero(true);
+          setMenu(false);
+        }}
+      >
+        <Settings />
+        Edit hero
+      </button>
 
-            <button
-              onClick={() => {
-                setShowHero(true);
-                setMenu(false);
-              }}
-            >
-              <Settings />
-              Edit hero
-            </button>
-
-            <button
-              onClick={() => {
-                setShowDeleted(true);
-                setMenu(false);
-              }}
-            >
-              <Trash2 />
-              Deleted profiles
-            </button>
-          </div>
-        )}
+      <button
+        onClick={() => {
+          setShowDeleted(true);
+          setMenu(false);
+        }}
+      >
+        <Trash2 />
+        Deleted profiles
+      </button>
+    </div>
+  )}
 
       <button
         className="admin-badge"
@@ -4550,43 +4540,32 @@ return ( <div className="app">
           </button>
         )}
 
-        {isAdmin &&
-          !isViewingAs && (
-            <>
-              <button
-                type="button"
-                onClick={() => {
-                  setShowAdd(true);
-                  setMobileMenu(false);
-                }}
-              >
-                <Plus />
-                Add media
-              </button>
+     {isAdmin &&
+  !isViewingAs && (
+    <>
+      <button
+        type="button"
+        onClick={() => {
+          setShowHero(true);
+          setMobileMenu(false);
+        }}
+      >
+        <Settings />
+        Edit hero
+      </button>
 
-              <button
-                type="button"
-                onClick={() => {
-                  setShowHero(true);
-                  setMobileMenu(false);
-                }}
-              >
-                <Settings />
-                Edit hero
-              </button>
-
-              <button
-                type="button"
-                onClick={() => {
-                  setShowDeleted(true);
-                  setMobileMenu(false);
-                }}
-              >
-                <Trash2 />
-                Deleted profiles
-              </button>
-            </>
-          )}
+      <button
+        type="button"
+        onClick={() => {
+          setShowDeleted(true);
+          setMobileMenu(false);
+        }}
+      >
+        <Trash2 />
+        Deleted profiles
+      </button>
+    </>
+  )}
 
         <button
           type="button"
@@ -4901,7 +4880,8 @@ LIBRARY CONTROLS
         <Search size={18} />
 
         <input
-          value={q}
+         type="search"
+         value={q}
           onChange={event =>
             setQ(event.target.value)
           }
@@ -9213,12 +9193,95 @@ useState(
 settings.positionY
 );
 
-const selectedTitle =
-library.find(
-title =>
-title.id === titleId
-) || hero;
+  const [heroQuery, setHeroQuery] =
+useState("");
 
+const [heroResults, setHeroResults] =
+useState<Title[]>([]);
+
+const [heroLoading, setHeroLoading] =
+useState(false);
+
+  useEffect(() => {
+  const cleanQuery =
+    heroQuery.trim();
+
+  if (!cleanQuery) {
+    setHeroResults([]);
+    setHeroLoading(false);
+    return;
+  }
+
+  const timer =
+    window.setTimeout(
+      async () => {
+        setHeroLoading(true);
+
+        try {
+          const data =
+            await searchTMDB(
+              cleanQuery
+            );
+
+          setHeroResults(data);
+        } catch (error) {
+          console.error(
+            "Failed to search TMDB for hero:",
+            error
+          );
+
+          setHeroResults([]);
+        } finally {
+          setHeroLoading(false);
+        }
+      },
+      400
+    );
+
+  return () =>
+    window.clearTimeout(
+      timer
+    );
+}, [heroQuery]);
+  
+const selectedTitle =
+  heroResults.find(
+    title =>
+      title.id === titleId
+  ) ||
+  library.find(
+    title =>
+      title.id === titleId
+  ) ||
+  hero;
+
+async function handleHeroSave() {
+  let finalTitleId = titleId;
+
+  const selectedTMDBTitle =
+    heroResults.find(
+      title =>
+        title.id === titleId
+    );
+
+  if (selectedTMDBTitle) {
+    const libraryTitle =
+      await ensureTMDBLibraryItem(
+        selectedTMDBTitle
+      );
+
+    finalTitleId =
+      libraryTitle.id;
+  }
+
+  onSave({
+    titleId:
+      finalTitleId,
+    positionX,
+    positionY
+  });
+}
+  
 return ( <Modal
    title="Edit Hero"
    onClose={onClose}
@@ -9229,6 +9292,49 @@ return ( <Modal
     Choose which title appears
     in the featured hero.
   </p>
+  <label>
+  Search TMDB
+
+  <input
+    type="search"
+    value={heroQuery}
+    onChange={event =>
+      setHeroQuery(
+        event.target.value
+      )
+    }
+    placeholder="Search movies or TV shows"
+  />
+</label>
+
+{heroLoading && (
+  <p className="muted">
+    Searching TMDB...
+  </p>
+)}
+
+{heroResults.length > 0 && (
+  <div>
+    {heroResults.map(
+      title => (
+        <button
+          key={title.id}
+          type="button"
+          onClick={() =>
+            setTitleId(
+              title.id
+            )
+          }
+        >
+          {title.name}
+          {title.year
+            ? ` (${title.year})`
+            : ""}
+        </button>
+      )
+    )}
+  </div>
+)}
 
   {library.length ===
   0 ? (
@@ -9314,13 +9420,7 @@ return ( <Modal
 
       <button
         className="pink full"
-        onClick={() =>
-     onSave({
-  titleId,
-  positionX,
-  positionY,
-})
-        }
+      onClick={handleHeroSave}
       >
         Save Hero
       </button>
