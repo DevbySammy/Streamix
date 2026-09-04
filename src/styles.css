@@ -1619,12 +1619,12 @@ footer span {
     padding: 0 14px 35px;
   }
 
-   .hero {
-    min-height: 310px;
-    background-size: cover, contain;
-    background-position: center, center;
-    background-repeat: no-repeat, no-repeat;
-  }
+.hero {
+  min-height: 310px;
+  background-size: cover, cover;
+  background-position: center top, center top;
+  background-repeat: no-repeat, no-repeat;
+}
 
   .hero-content {
     padding:
