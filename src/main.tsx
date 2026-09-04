@@ -4447,18 +4447,18 @@ return ( <div className="app">
 
     </div>
 
-    {/* NOTIFICATIONS — ALWAYS OUTSIDE MOBILE MENU */}
+ {/* DESKTOP NOTIFICATIONS */}
 
-    <button
-      className="notification-bell"
-      onClick={() =>
-        setShowReminderList(true)
-      }
-      aria-label="Notifications"
-      title="Notifications"
-    >
-      <Bell size={18} />
-    </button>
+<button
+  className="notification-bell"
+  onClick={() =>
+    setShowReminderList(true)
+  }
+  aria-label="Notifications"
+  title="Notifications"
+>
+  <Bell size={18} />
+</button>
 
     {/* MOBILE HAMBURGER */}
 
