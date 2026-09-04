@@ -2245,14 +2245,28 @@ async function openDetails(title: Title) {
       title.id
     );
 
+    const currentDepth =
+      Number(
+        window.history.state?.streamixDetailsDepth || 0
+      );
+
     window.history.pushState(
-      {},
+      {
+        streamixDetailsDepth:
+          currentDepth + 1
+      },
       "",
       `${window.location.pathname}?${params.toString()}`
     );
 
     setShowDetails(title);
   } catch (error) {
+    console.error(
+      "Failed to load title details:",
+      error
+    );
+  }
+}
     console.error(
       "Failed to load title details:",
       error
@@ -4594,15 +4608,25 @@ return ( <div className="app">
   key={showDetails.id}
   title={showDetails}
   initialDetails={showDetailsData}
-  onClose={() => {
-      window.history.pushState(
-        {},
-        "",
-        window.location.pathname
-      );
+onClose={() => {
+  const detailsDepth =
+    Number(
+      window.history.state?.streamixDetailsDepth || 0
+    );
 
-      setShowDetails(null);
-    }}
+  if (detailsDepth > 1) {
+    window.history.back();
+    return;
+  }
+
+  window.history.pushState(
+    {},
+    "",
+    window.location.pathname
+  );
+
+  setShowDetails(null);
+}}
     onDetails={openDetails}
   />
 )}
