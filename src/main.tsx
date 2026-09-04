@@ -7902,7 +7902,7 @@ const [watchProviders, setWatchProviders] =
                         provider.provider_id
                       }
                       className="details-provider"
-                  href={watchProviderLink || getProviderUrl(provider.provider_id)}
+                  href={getProviderUrl(provider.provider_id)}
                     >
                       {provider.logo_path && (
                         <img
@@ -8076,49 +8076,7 @@ const [watchProviders, setWatchProviders] =
               </section>
             )}
 
-          {productionCompanies.length > 0 && (
-            <section className="details-section">
-
-              <h2>
-                Production
-              </h2>
-
-              <div className="details-production">
-
-                {productionCompanies.map(
-                  (company: any) => (
-                    <div
-                      className="details-production-card"
-                      key={
-                        company.id
-                      }
-                    >
-
-                      {company.logo_path && (
-                        <img
-                          src={
-                            "https://image.tmdb.org/t/p/w300" +
-                            company.logo_path
-                          }
-                          alt={
-                            company.name
-                          }
-                        />
-                      )}
-
-                      <span>
-                        {company.name}
-                      </span>
-
-                    </div>
-                  )
-                )}
-
-              </div>
-
-            </section>
-          )}
-
+    
           {recommendations.length > 0 && (
             <section className="details-section">
 
