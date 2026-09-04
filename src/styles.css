@@ -2246,7 +2246,7 @@ footer span {
   width: 100%;
   min-height: calc(100vh - 76px);
   overflow-y: visible;
-  background: #000;
+  background: #0d0d0f;
   color: #fff;
   padding: 0 28px 50px;
   box-sizing: border-box;
