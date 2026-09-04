@@ -2424,10 +2424,8 @@ footer span {
 ========================================================= */
 
 .details-last-episode {
-  position: relative;
-  left: 50%;
   width: 100vw;
-  margin-left: 0;
+  margin-left: calc(50% - 50vw);
   margin-top: 52px;
   padding: 42px;
   box-sizing: border-box;
