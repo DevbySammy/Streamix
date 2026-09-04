@@ -7846,7 +7846,12 @@ const [watchProviders, setWatchProviders] =
                 </div>
               )}
 
-              {title.kind === "tv" &&
+            
+            </div>
+
+          </div>
+
+           {title.kind === "tv" &&
                 lastEpisode && (
                   <div className="details-last-episode">
                    <div className="details-last-episode-inner">
@@ -7912,11 +7917,7 @@ const [watchProviders, setWatchProviders] =
                 </div>
       
                 )}
-
-            </div>
-
-          </div>
-
+          
                 {watchProviders.length > 0 && (
             <section className="details-section">
               <h2>
