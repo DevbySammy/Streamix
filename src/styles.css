@@ -1619,9 +1619,11 @@ footer span {
     padding: 0 14px 35px;
   }
 
-  .hero {
+   .hero {
     min-height: 310px;
-    background-position: center;
+    background-size: cover, contain;
+    background-position: center, center;
+    background-repeat: no-repeat, no-repeat;
   }
 
   .hero-content {
