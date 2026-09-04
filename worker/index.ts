@@ -4373,9 +4373,10 @@ if (
   const canada =
     data?.results?.CA || null;
 
-  return json({
-    results: canada
-  });
+return json({
+  results: canada,
+  link: canada?.link || null
+});
 }
 
     // ==================================================
