@@ -7558,8 +7558,28 @@ const [watchProviders, setWatchProviders] =
               : [])
           ];
 
-          const uniqueProviders =
+                  const allowedProviders = [
+            "Netflix",
+            "Amazon Prime Video",
+            "Disney Plus",
+            "Disney+",
+            "Crave",
+            "Apple TV",
+            "Apple TV+",
+            "Paramount Plus",
+            "Paramount+"
+          ];
+
+          const filteredProviders =
             providers.filter(
+              (provider: WatchProvider) =>
+                allowedProviders.includes(
+                  provider.provider_name
+                )
+            );
+
+          const uniqueProviders =
+            filteredProviders.filter(
               (
                 provider: WatchProvider,
                 index: number,
