@@ -7847,6 +7847,7 @@ const [watchProviders, setWatchProviders] =
               {title.kind === "tv" &&
                 lastEpisode && (
                   <div className="details-last-episode">
+                   <div className="details-last-episode-inner">
 
                     <h3>
                       Last Episode
