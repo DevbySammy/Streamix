@@ -114,6 +114,12 @@ header {
   min-width: 0;
 }
 
+.header-desktop-controls {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
 .profile-pill,
 .admin-badge {
   min-height: 40px;
@@ -2890,10 +2896,6 @@ footer span {
 .mobile-menu-button,
 .mobile-header-menu {
   display: none;
-}
-
-.header-desktop-controls {
-  display: contents;
 }
 
 @media (max-width: 600px) {
