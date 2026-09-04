@@ -2307,12 +2307,14 @@ useEffect(() => {
     }
   }
 
-  window.addEventListener(
-    "popstate",
-    handlePopState
-  );
+handlePopState();
 
-  return () => {
+window.addEventListener(
+  "popstate",
+  handlePopState
+);
+
+return () => {
     window.removeEventListener(
       "popstate",
       handlePopState
