@@ -4915,7 +4915,7 @@ return json(
       env,
       reminder.profile_id,
       {
-        title: "Streamix Reminder",
+        title: "Reminder",
         body:
           `Time to watch ${reminder.title}!`,
         url: "/"
