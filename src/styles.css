@@ -2837,10 +2837,10 @@ footer span {
     font-size: 21px;
   }
 
-  .details-last-episode {
-    margin-top: 40px;
-    padding: 32px 14px 36px;
-  }
+.details-last-episode {
+  margin-top: 40px;
+  padding: 28px;
+}
 
   .details-last-episode-inner {
     width: 100%;
