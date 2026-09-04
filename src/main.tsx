@@ -4630,29 +4630,32 @@ return ( <div className="app">
 
 <section
   className="hero"
-  style={
-    hero &&
-    hero.backdrop
-      ? {
-          backgroundImage:
-            "linear-gradient(90deg, rgba(0,0,0,.92), rgba(0,0,0,.15)), url(" +
-            hero.backdrop +
-            ")",
-          backgroundPosition:
-            String(
-              heroSettings.positionX
-            ) +
-            "% " +
-            String(
-              heroSettings.positionY
-            ) +
-            "%"
-        }
-      : {
-          backgroundImage:
-            "none"
-        }
-  }
+ style={
+  hero
+    ? {
+        backgroundImage:
+          "linear-gradient(90deg, rgba(0,0,0,.92), rgba(0,0,0,.15)), url(" +
+          (window.innerWidth <= 600
+            ? hero.poster
+            : hero.backdrop) +
+          ")",
+        backgroundPosition:
+          window.innerWidth <= 600
+            ? "center"
+            : String(
+                heroSettings.positionX
+              ) +
+              "% " +
+              String(
+                heroSettings.positionY
+              ) +
+              "%"
+      }
+    : {
+        backgroundImage:
+          "none"
+      }
+}
 >
 
     <div className="hero-content">
@@ -9230,7 +9233,7 @@ return ( <Modal
   {library.length ===
   0 ? (
     <p className="muted">
-      Add a movie or TV show
+      Add a Movie or TV show
       to your library first.
     </p>
   ) : (
