@@ -636,11 +636,6 @@ header {
   -webkit-appearance: none;
 }
 
-.sort-select:hover {
-  background-color: rgba(255, 255, 255, .12);
-  color: #fff;
-}
-
 @media (min-width: 601px) {
   .sort-select {
     appearance: none;
