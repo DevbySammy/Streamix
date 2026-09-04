@@ -2432,10 +2432,59 @@ footer span {
   background: #171719;
 }
 
-.details-last-episode > * {
+.details-last-episode-inner {
+  width: 100%;
   max-width: 1200px;
-  margin-left: auto;
-  margin-right: auto;
+  margin: 0 auto;
+}
+
+.details-last-episode-content {
+  display: grid;
+  grid-template-columns: 300px minmax(0, 1fr);
+  gap: 28px;
+  align-items: start;
+}
+
+.details-last-episode-content img {
+  display: block;
+  width: 100%;
+  max-width: 300px;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  border-radius: 10px;
+}
+
+.details-last-episode-content > div {
+  min-width: 0;
+}
+
+.details-last-episode-content strong,
+.details-last-episode-content span,
+.details-last-episode-content p {
+  display: block;
+  overflow-wrap: anywhere;
+  word-break: normal;
+}
+
+.details-last-episode-content strong {
+  margin-bottom: 8px;
+  color: #fff;
+  font-size: 18px;
+  line-height: 1.3;
+}
+
+.details-last-episode-content span {
+  margin-bottom: 6px;
+  color: #aaa;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.details-last-episode-content p {
+  margin: 12px 0 0;
+  color: #ccc;
+  font-size: 15px;
+  line-height: 1.65;
 }
 
 /* =========================================================
@@ -2784,6 +2833,31 @@ footer span {
   .details-last-episode {
     margin-top: 40px;
     padding: 32px 14px 36px;
+  }
+
+  .details-last-episode-inner {
+    width: 100%;
+  }
+
+  .details-last-episode-content {
+    grid-template-columns: 1fr;
+    gap: 18px;
+  }
+
+  .details-last-episode-content img {
+    width: 100%;
+    max-width: none;
+    aspect-ratio: 16 / 9;
+  }
+
+  .details-last-episode-content > div {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .details-last-episode-content p {
+    overflow-wrap: anywhere;
+    word-break: normal;
   }
 
   .details-cast-grid {
