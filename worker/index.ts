@@ -4276,6 +4276,109 @@ if (
 }
 
     // ==================================================
+// TMDB WATCH PROVIDERS
+// ==================================================
+
+if (
+  url.pathname ===
+    "/api/tmdb/watch-providers" &&
+  request.method === "GET"
+) {
+  const auth =
+    await requireSession();
+
+  if (auth instanceof Response) {
+    return auth;
+  }
+
+  const type =
+    url.searchParams.get(
+      "type"
+    );
+
+  const id =
+    url.searchParams.get(
+      "id"
+    );
+
+  if (
+    type !== "movie" &&
+    type !== "tv"
+  ) {
+    return json(
+      {
+        error:
+          "Invalid media type."
+      },
+      400
+    );
+  }
+
+  if (!id) {
+    return json(
+      {
+        error:
+          "TMDB ID is required."
+      },
+      400
+    );
+  }
+
+  if (
+    !env.TMDB_READ_ACCESS_TOKEN
+  ) {
+    return json(
+      {
+        error:
+          "TMDB_READ_ACCESS_TOKEN is not configured."
+      },
+      500
+    );
+  }
+
+  const tmdbUrl =
+    "https://api.themoviedb.org/3/" +
+    type +
+    "/" +
+    encodeURIComponent(id) +
+    "/watch/providers";
+
+  const tmdbResponse =
+    await fetch(
+      tmdbUrl,
+      {
+        headers: {
+          Authorization:
+            "Bearer " +
+            env.TMDB_READ_ACCESS_TOKEN,
+          Accept:
+            "application/json"
+        }
+      }
+    );
+
+  const data =
+    await tmdbResponse.json();
+
+  if (!tmdbResponse.ok) {
+    return json(
+      {
+        error:
+          "TMDB watch providers failed."
+      },
+      tmdbResponse.status
+    );
+  }
+
+  const canada =
+    data?.results?.CA || null;
+
+  return json({
+    results: canada
+  });
+}
+
+    // ==================================================
 // TMDB DETAILS
 // ==================================================
 
