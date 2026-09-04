@@ -1,4 +1,4 @@
-import React, {
+  import React, {
   useEffect,
   useMemo,
   useRef,
@@ -37,12 +37,16 @@ type Title = {
   name: string;
   kind: Kind;
   year: number;
-  releaseDate?: string;
   poster: string;
   backdrop: string;
   overview: string;
-  popularity: number;
   addedAt?: string;
+};
+
+type WatchProvider = {
+  provider_id: number;
+  provider_name: string;
+  logo_path: string | null;
 };
 
 type Profile = {
@@ -7357,6 +7361,32 @@ function Card({
    DETAILS VIEW
 ========================================================= */
 
+function getProviderUrl(
+  providerId: number
+) {
+  const providerUrls: Record<
+    number,
+    string
+  > = {
+    8: "https://www.netflix.com/",
+    119: "https://www.primevideo.com/",
+    337: "https://www.disneyplus.com/",
+    350: "https://tv.apple.com/",
+    230: "https://www.crave.ca/",
+    531: "https://www.paramountplus.com/",
+    283: "https://www.crunchyroll.com/",
+    384: "https://www.max.com/",
+    300: "https://pluto.tv/",
+    73: "https://tubitv.com/",
+    1853: "https://www.youtube.com/",
+  };
+
+  return (
+    providerUrls[providerId] ||
+    "https://www.themoviedb.org/"
+  );
+}
+
 function DetailsView({
   title,
   initialDetails,
@@ -7373,6 +7403,12 @@ const [details, setDetails] =
   useState<any | null>(
     initialDetails
   );
+
+const [watchProviders, setWatchProviders] =
+  useState<WatchProvider[]>([]);
+
+  const [watchProviderLink, setWatchProviderLink] =
+  useState<string | null>(null);
 
   useEffect(() => {
     window.scrollTo({
@@ -7449,10 +7485,116 @@ const [details, setDetails] =
       ? details.production_companies
       : [];
 
-  const watchProviders =
-    details?.["watch/providers"]?.results?.CA;
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadWatchProviders() {
+      setWatchProviders([]);
+
+      const prefix =
+        title.kind === "movie"
+          ? "tmdb-movie-"
+          : "tmdb-tv-";
+
+      if (!title.id.startsWith(prefix)) {
+        return;
+      }
+
+      const tmdbId =
+        title.id.slice(prefix.length);
+
+      const sessionId =
+        localStorage.getItem(
+          "sx-session-token"
+        );
+
+      if (!sessionId) {
+        return;
+      }
+
+      try {
+        const response =
+          await fetch(
+            "https://streamix.gaintrainstrong.workers.dev/api/tmdb/watch-providers?type=" +
+              encodeURIComponent(
+                title.kind
+              ) +
+              "&id=" +
+              encodeURIComponent(
+                tmdbId
+              ),
+            {
+              headers: {
+                Authorization:
+                  `Bearer ${sessionId}`
+              }
+            }
+          );
+
+        const data =
+          await response.json();
+        setWatchProviderLink(
+        data?.link || null
+      );
+        if (
+          !cancelled &&
+          response.ok
+        ) {
+          const providers = [
+            ...(Array.isArray(
+              data?.results?.flatrate
+            )
+              ? data.results.flatrate
+              : []),
+            ...(Array.isArray(
+              data?.results?.free
+            )
+              ? data.results.free
+              : []),
+            ...(Array.isArray(
+              data?.results?.ads
+            )
+              ? data.results.ads
+              : [])
+          ];
+
+          const uniqueProviders =
+            providers.filter(
+              (
+                provider: WatchProvider,
+                index: number,
+                array: WatchProvider[]
+              ) =>
+                array.findIndex(
+                  item =>
+                    item.provider_id ===
+                    provider.provider_id
+                ) === index
+            );
+
+          setWatchProviders(
+            uniqueProviders
+          );
+        }
+      } catch {
+        if (!cancelled) {
+          setWatchProviders([]);
+        }
+      }
+    }
+
+    loadWatchProviders();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    title.id,
+    title.kind
+  ]);
 
   const recommendations =
+    
     Array.isArray(
       details?.recommendations?.results
     )
@@ -7746,9 +7888,46 @@ const [details, setDetails] =
 
           </div>
 
+                {watchProviders.length > 0 && (
+            <section className="details-section">
+              <h2>
+                Where to Watch
+              </h2>
+
+              <div className="details-providers">
+                {watchProviders.map(
+                  (provider) => (
+                    <a
+                      key={
+                        provider.provider_id
+                      }
+                      className="details-provider"
+                  href={watchProviderLink || getProviderUrl(provider.provider_id)}
+                    >
+                      {provider.logo_path && (
+                        <img
+                          src={
+                            "https://image.tmdb.org/t/p/w92" +
+                            provider.logo_path
+                          }
+                          alt={
+                            provider.provider_name
+                          }
+                        />
+                      )}
+
+                      <span>
+                        {provider.provider_name}
+                      </span>
+                    </a>
+                  )
+                )}
+              </div>
+            </section>
+          )}
+
           {cast.length > 0 && (
             <section className="details-section">
-
               <h2>
                 Cast
               </h2>
@@ -7934,114 +8113,6 @@ const [details, setDetails] =
                     </div>
                   )
                 )}
-
-              </div>
-
-            </section>
-          )}
-
-          {watchProviders && (
-            <section className="details-section">
-
-              <h2>
-                Where to Watch
-              </h2>
-
-              <div className="details-providers">
-
-                {watchProviders.flatrate &&
-                  watchProviders.flatrate.map(
-                    (provider: any) => (
-                      <div
-                        className="details-provider"
-                        key={
-                          provider.provider_id
-                        }
-                      >
-
-                        {provider.logo_path && (
-                          <img
-                            src={
-                              "https://image.tmdb.org/t/p/w92" +
-                              provider.logo_path
-                            }
-                            alt={
-                              provider.provider_name
-                            }
-                          />
-                        )}
-
-                        <span>
-                          {provider.provider_name}
-                        </span>
-
-                      </div>
-                    )
-                  )}
-
-                {watchProviders.rent &&
-                  watchProviders.rent.map(
-                    (provider: any) => (
-                      <div
-                        className="details-provider"
-                        key={
-                          "rent-" +
-                          provider.provider_id
-                        }
-                      >
-
-                        {provider.logo_path && (
-                          <img
-                            src={
-                              "https://image.tmdb.org/t/p/w92" +
-                              provider.logo_path
-                            }
-                            alt={
-                              provider.provider_name
-                            }
-                          />
-                        )}
-
-                        <span>
-                          Rent:{" "}
-                          {provider.provider_name}
-                        </span>
-
-                      </div>
-                    )
-                  )}
-
-                {watchProviders.buy &&
-                  watchProviders.buy.map(
-                    (provider: any) => (
-                      <div
-                        className="details-provider"
-                        key={
-                          "buy-" +
-                          provider.provider_id
-                        }
-                      >
-
-                        {provider.logo_path && (
-                          <img
-                            src={
-                              "https://image.tmdb.org/t/p/w92" +
-                              provider.logo_path
-                            }
-                            alt={
-                              provider.provider_name
-                            }
-                          />
-                        )}
-
-                        <span>
-                          Buy:{" "}
-                          {provider.provider_name}
-                        </span>
-
-                      </div>
-                    )
-                  )}
 
               </div>
 
@@ -9293,7 +9364,7 @@ return ( <Modal
     in the featured hero.
   </p>
   <label>
-  Search TMDB
+  Select a Hero image
 
   <input
     type="search"
@@ -9303,7 +9374,7 @@ return ( <Modal
         event.target.value
       )
     }
-    placeholder="Search movies or TV shows"
+    placeholder="Search Movies or TV Shows"
   />
 </label>
 
