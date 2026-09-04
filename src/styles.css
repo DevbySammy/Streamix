@@ -2251,7 +2251,7 @@ footer span {
   width: 100%;
   min-height: calc(100vh - 76px);
   overflow-y: visible;
-  background: #111113;
+  background: #000;
   color: #fff;
   padding: 0 28px 50px;
   box-sizing: border-box;
@@ -2629,6 +2629,7 @@ footer span {
   width: 100%;
   aspect-ratio: 2 / 3;
   object-fit: cover;
+  border-radius: 10px 10px 0 0;
 }
 
 .details-recommendation div {
