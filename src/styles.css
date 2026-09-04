@@ -288,8 +288,10 @@ header {
   font-size: 11px;
 }
 
-.notification-item-actions button:hover {
-  background: #1a1a1d;
+@media (min-width: 601px) {
+  .notification-item-actions button:hover {
+    background: #1a1a1d;
+  }
 }
 
 .admin-menu {
@@ -446,10 +448,10 @@ header {
   stroke-width: 2.5;
 }
 
-.hero-actions .hero-more-info-button:hover,
-.hero-actions .poster-reminder-button:hover,
-.hero-actions .poster-list-button:hover {
-  background: #303033;
+@media (min-width: 601px) {
+  .hero-actions .hero-more-info-button:hover {
+    background: #303033;
+  }
 }
 
 @media (min-width: 821px) {
@@ -476,29 +478,31 @@ header {
 }
 
 /* =========================================================
-   GENERAL BUTTON HOVER
+   GENERAL BUTTON HOVER - DESKTOP ONLY
 ========================================================= */
 
-.details-back-button:hover {
-  background: rgba(255, 255, 255, .12);
-  border-color: #444;
-}
+@media (min-width: 601px) {
+  .details-back-button:hover {
+    background: rgba(255, 255, 255, .12);
+    border-color: #444;
+  }
 
-.switch button:hover:not(.active) {
-  background: rgba(255, 255, 255, .12);
-  color: #fff;
-}
+  .switch button:hover:not(.active) {
+    background: rgba(255, 255, 255, .12);
+    color: #fff;
+  }
 
-.filters button:hover:not(.selected),
-.format button:hover:not(.selected) {
-  background: rgba(255, 255, 255, .12);
-  color: #fff;
-}
+  .filters button:hover:not(.selected),
+  .format button:hover:not(.selected) {
+    background: rgba(255, 255, 255, .12);
+    color: #fff;
+  }
 
-.actions button:hover:not(.on),
-.small-actions button:hover:not(.on) {
-  background: rgba(255, 255, 255, .12);
-  color: #fff;
+  .actions button:hover:not(.on),
+  .small-actions button:hover:not(.on) {
+    background: rgba(255, 255, 255, .12);
+    color: #fff;
+  }
 }
 
 /* =========================================================
@@ -2275,8 +2279,10 @@ footer span {
   cursor: pointer;
 }
 
-.details-back-button:hover {
-  border-color: #ff4f9a;
+@media (min-width: 601px) {
+  .details-back-button:hover {
+    border-color: #ff4f9a;
+  }
 }
 
 .details-shell {
@@ -2973,10 +2979,6 @@ footer span {
     font-size: 13px;
     text-align: left;
     cursor: pointer;
-  }
-
-  .mobile-header-menu button:hover {
-    background: rgba(255, 255, 255, 0.06);
   }
 
   .mobile-header-menu button svg {
