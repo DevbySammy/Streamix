@@ -2419,6 +2419,10 @@ footer span {
   letter-spacing: -.2px;
 }
 
+.details-mobile-hero {
+  position: relative;
+}
+
 /* =========================================================
    DETAILS - LAST EPISODE
 ========================================================= */
@@ -2778,26 +2782,49 @@ footer span {
     font-size: 14px;
   }
 
-  .details-backdrop {
-    top: -12px;
-    height: 430px;
-  }
+.details-backdrop {
+  top: -12px;
+  height: 360px;
+}
 
-  .details-content {
-    margin-top: 34px;
-    grid-template-columns: 1fr;
-    gap: 22px;
-  }
+.details-content {
+  position: relative;
+  margin-top: 34px;
+  grid-template-columns: 1fr;
+  gap: 0;
+}
 
-  .details-poster img {
-    max-width: 190px;
-    margin: 0 auto;
-  }
+.details-mobile-hero {
+  position: relative;
+  z-index: 1;
+  height: 360px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 
-  .details-info {
-    max-width: none;
-    padding-top: 0;
-  }
+.details-poster {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+
+.details-poster img {
+  display: block;
+  width: 190px;
+  max-width: 190px;
+  margin: 0 auto;
+}
+
+.details-info {
+  position: relative;
+  z-index: 2;
+  max-width: none;
+  padding-top: 28px;
+}
 
   .details-info h1 {
     font-size: 32px;
@@ -2966,13 +2993,18 @@ footer span {
 ========================================================= */
 
 @media (max-width: 380px) {
-  .details-content {
-    margin-top: 28px;
-  }
+ 
+   .details-mobile-hero {
+  height: 330px;
+}
 
-  .details-poster img {
-    max-width: 170px;
-  }
+.details-backdrop {
+  height: 330px;
+}
+
+.details-poster img {
+  max-width: 170px;
+}
 
   .details-info h1 {
     font-size: 29px;
