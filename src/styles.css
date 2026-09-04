@@ -2778,9 +2778,14 @@ footer span {
     font-size: 14px;
   }
 
+  /*
+    Mobile hero:
+    The backdrop sits behind the centered poster only.
+    The details text begins after this area.
+  */
   .details-backdrop {
     top: -12px;
-    height: 430px;
+    height: 246px;
   }
 
   .details-content {
@@ -2789,17 +2794,33 @@ footer span {
     gap: 22px;
   }
 
+  .details-poster {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    justify-content: center;
+  }
+
   .details-poster img {
+    display: block;
+    width: 190px;
     max-width: 190px;
     margin: 0 auto;
   }
 
+  /*
+    Everything inside details-info sits below
+    the background/poster hero area.
+  */
   .details-info {
+    position: relative;
+    z-index: 2;
     max-width: none;
     padding-top: 0;
   }
 
   .details-info h1 {
+    margin-top: 0;
     font-size: 32px;
     line-height: 1.08;
   }
@@ -2839,34 +2860,9 @@ footer span {
     font-size: 21px;
   }
 
-.details-last-episode {
-  margin-top: 40px;
-  padding: 28px;
-}
-
-  .details-last-episode-inner {
-    width: 100%;
-  }
-
-  .details-last-episode-content {
-    grid-template-columns: 1fr;
-    gap: 18px;
-  }
-
-  .details-last-episode-content img {
-    width: 100%;
-    max-width: none;
-    aspect-ratio: 16 / 9;
-  }
-
-  .details-last-episode-content > div {
-    width: 100%;
-    min-width: 0;
-  }
-
-  .details-last-episode-content p {
-    overflow-wrap: anywhere;
-    word-break: normal;
+  .details-last-episode {
+    margin-top: 40px;
+    padding: 28px;
   }
 
   .details-cast-grid {
@@ -2968,6 +2964,10 @@ footer span {
 @media (max-width: 380px) {
   .details-content {
     margin-top: 28px;
+  }
+
+  .details-backdrop {
+    height: 220px;
   }
 
   .details-poster img {
