@@ -7405,6 +7405,10 @@ const [details, setDetails] =
     initialDetails
   );
 
+useEffect(() => {
+  setDetails(initialDetails);
+}, [initialDetails]);
+
 const [watchProviders, setWatchProviders] =
   useState<WatchProvider[]>([]);
 
