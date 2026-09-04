@@ -4591,6 +4591,7 @@ return ( <div className="app">
 
 {showDetails && (
 <DetailsView
+  key={showDetails.id}
   title={showDetails}
   initialDetails={showDetailsData}
   onClose={() => {
