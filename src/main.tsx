@@ -7685,21 +7685,29 @@ const [watchProviders, setWatchProviders] =
             }}
           />
 
-          <div className="details-content">
+         <div className="details-content">
 
-            <div className="details-poster">
-              <img
-                src={
-                  details.poster_path
-                    ? "https://image.tmdb.org/t/p/w500" +
-                      details.poster_path
-                    : title.poster
-                }
-                alt={displayTitle}
-              />
-            </div>
+  <div className="details-mobile-hero">
 
-            <div className="details-info">
+    <div className="details-poster">
+      {details.poster_path && (
+        <img
+          src={
+            "https://image.tmdb.org/t/p/w500" +
+            details.poster_path
+          }
+          alt={
+            details.name ||
+            details.title ||
+            title.name
+          }
+        />
+      )}
+    </div>
+
+  </div>
+
+  <div className="details-info">
 
               <div className="eyebrow">
                 {title.kind === "movie"
