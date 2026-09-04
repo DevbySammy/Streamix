@@ -419,7 +419,7 @@ header {
 }
 
 .hero-actions .hero-more-info-button {
-  padding: 0 14px;
+  padding: 0 16px;
 }
 
 .hero-actions .poster-reminder-button,
@@ -1631,6 +1631,11 @@ footer span {
       70px 14px 35px;
   }
 
+   .hero-actions .hero-more-info-button {
+  padding: 0 10px;
+  white-space: nowrap;
+}
+   
   .hero h1 {
     font-size: clamp(30px, 10vw, 46px);
   }
