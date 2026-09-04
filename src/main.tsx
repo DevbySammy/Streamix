@@ -2267,13 +2267,7 @@ async function openDetails(title: Title) {
     );
   }
 }
-    console.error(
-      "Failed to load title details:",
-      error
-    );
-  }
-}
-
+  
 useEffect(() => {
   async function handlePopState() {
     const params =
