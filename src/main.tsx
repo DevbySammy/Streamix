@@ -2279,9 +2279,7 @@ useEffect(() => {
     const title: Title = {
       id: detailsId,
       name: "",
-      kind: detailsId.startsWith(
-        "tmdb-tv-"
-      )
+      kind: detailsId.startsWith("tmdb-tv-")
         ? "tv"
         : "movie",
       year: 0,
@@ -2303,18 +2301,18 @@ useEffect(() => {
       );
 
       setShowDetailsData(null);
-      setShowDetails(title);
+      setShowDetails(null);
     }
   }
 
-handlePopState();
+  handlePopState();
 
-window.addEventListener(
-  "popstate",
-  handlePopState
-);
+  window.addEventListener(
+    "popstate",
+    handlePopState
+  );
 
-return () => {
+  return () => {
     window.removeEventListener(
       "popstate",
       handlePopState
