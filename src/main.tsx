@@ -8167,76 +8167,83 @@ const [watchProviders, setWatchProviders] =
 
               <div className="details-recommendations">
 
-                {recommendations.map(
-                  (item: any) => (
-                    <button
-                      type="button"
-                      className="details-recommendation"
-                      key={
-                        item.id
-                      }
-                      onClick={() =>
-                        onDetails({
-                          id:
-                            "tmdb-" +
-                            (title.kind ===
-                            "movie"
-                              ? "movie-"
-                              : "tv-") +
-                            item.id,
-                          name:
-                            item.title ||
-                            item.name,
-                          kind:
-                            title.kind,
-                          year:
-                            (
-                              item.release_date ||
-                              item.first_air_date ||
-                              ""
-                            ).slice(0, 4),
-                          poster:
-                            item.poster_path
-                              ? "https://image.tmdb.org/t/p/w500" +
-                                item.poster_path
-                              : "",
-                          overview:
-                            item.overview ||
-                            ""
-                        })
-                      }
-                    >
+              {recommendations.map(
+  (item: any) => (
+    <button
+      type="button"
+      className="details-recommendation"
+      key={
+        item.id
+      }
+      onClick={() =>
+        onDetails({
+          id:
+            "tmdb-" +
+            (item.media_type ===
+            "movie"
+              ? "movie-"
+              : "tv-") +
+            item.id,
+          name:
+            item.title ||
+            item.name,
+          kind:
+            item.media_type ===
+            "tv"
+              ? "tv"
+              : "movie",
+          year:
+            (
+              item.release_date ||
+              item.first_air_date ||
+              ""
+            ).slice(0, 4),
+          poster:
+            item.poster_path
+              ? "https://image.tmdb.org/t/p/w500" +
+                item.poster_path
+              : "",
+          overview:
+            item.overview ||
+            ""
+        })
+      }
+    >
+      <img
+        src={
+          "https://image.tmdb.org/t/p/w342" +
+          item.poster_path
+        }
+        alt={
+          item.title ||
+          item.name
+        }
+      />
+      <div>
+        <strong>
+          {item.title ||
+            item.name}
+        </strong>
 
-                      <img
-                        src={
-                          "https://image.tmdb.org/t/p/w342" +
-                          item.poster_path
-                        }
-                        alt={
-                          item.title ||
-                          item.name
-                        }
-                      />
+        <span>
+          {item.media_type ===
+          "tv"
+            ? "TV SHOW"
+            : "MOVIE"}
+        </span>
 
-                      <div>
-                        <strong>
-                          {item.title ||
-                            item.name}
-                        </strong>
-
-                        {item.vote_average && (
-                          <span>
-                            ★{" "}
-                            {Number(
-                              item.vote_average
-                            ).toFixed(1)}
-                          </span>
-                        )}
-                      </div>
-
-                    </button>
-                  )
-                )}
+        {item.vote_average && (
+          <span>
+            ★{" "}
+            {Number(
+              item.vote_average
+            ).toFixed(1)}
+          </span>
+        )}
+      </div>
+    </button>
+  )
+)}
 
               </div>
 
