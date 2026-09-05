@@ -500,13 +500,8 @@ useEffect(() => {
       return;
     }
 
-setTmdbCatalog([]);
-setTmdbCatalogKey("");
-setTmdbCatalogPage(1);
-setTmdbCatalogLimit(40);
-setTmdbCatalogHasMore(true);
-setTmdbCatalogLoading(true);
-    
+    setTmdbCatalogLoading(true);
+
     try {
       const sessionId =
         localStorage.getItem(
