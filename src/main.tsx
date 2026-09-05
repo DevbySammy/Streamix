@@ -9454,7 +9454,7 @@ return ( <Modal
             alt=""
           />
 
-         <div className="hero-search-result-info">
+<div className="hero-search-result-info">
   <strong>
     {title.name}
   </strong>
@@ -9463,6 +9463,12 @@ return ( <Modal
     {title.year
       ? title.year
       : "Year unknown"}
+  </span>
+
+  <span>
+    {title.kind === "movie"
+      ? "Movie"
+      : "TV Show"}
   </span>
 </div>
         </button>
