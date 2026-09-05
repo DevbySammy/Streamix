@@ -2112,11 +2112,11 @@ footer span {
 }
 
 .hero-search-result img {
-  width: 28px;
-  height: 42px;
-  flex: 0 0 28px;
+  width: 40px;
+  height: 60px;
+  flex: 0 0 40px;
   object-fit: cover;
-  border-radius: 4px;
+  border-radius: 5px;
   background: #202023;
 }
 
