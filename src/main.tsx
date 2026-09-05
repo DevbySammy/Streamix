@@ -9429,21 +9429,51 @@ return ( <Modal
     Searching TMDB...
   </p>
 )}
-<img
-  src={title.poster}
-  alt=""
-  style={{
-    width: "40px",
-    height: "60px",
-    minWidth: "40px",
-    maxWidth: "40px",
-    minHeight: "60px",
-    maxHeight: "60px",
-    objectFit: "cover",
-    flex: "0 0 40px",
-    display: "block"
-  }}
-/>
+
+{heroResults.length > 0 && (
+  <div className="hero-search-results">
+    {heroResults.map(
+      title => (
+        <button
+          key={title.id}
+          type="button"
+          className={
+            "hero-search-result" +
+            (title.id === titleId
+              ? " selected"
+              : "")
+          }
+          onClick={() =>
+            setTitleId(
+              title.id
+            )
+          }
+        >
+          <img
+            src={title.poster}
+            alt=""
+          />
+
+          <div className="hero-search-result-info">
+            <strong>
+              {title.name}
+            </strong>
+
+            <span>
+              {title.year
+                ? title.year
+                : "Year unknown"}{" "}
+              ·{" "}
+              {title.kind === "movie"
+                ? "Movie"
+                : "TV Show"}
+            </span>
+          </div>
+        </button>
+      )
+    )}
+  </div>
+)}
 
   {library.length ===
   0 ? (
