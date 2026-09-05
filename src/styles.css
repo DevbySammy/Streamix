@@ -2119,7 +2119,7 @@ footer span {
 }
 
 .hero-search-result > img {
-  display: block;
+  display: block !important;
 
   width: 40px !important;
   height: 60px !important;
@@ -2132,7 +2132,17 @@ footer span {
 
   flex: 0 0 40px !important;
 
-  object-fit: cover;
+  aspect-ratio: 2 / 3 !important;
+
+  object-fit: cover !important;
+  object-position: center !important;
+
+  margin: 0 !important;
+  padding: 0 !important;
+
+  position: static !important;
+  transform: none !important;
+
   border-radius: 5px;
   background: #202023;
 }
