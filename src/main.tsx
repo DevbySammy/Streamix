@@ -9454,21 +9454,17 @@ return ( <Modal
             alt=""
           />
 
-          <div className="hero-search-result-info">
-            <strong>
-              {title.name}
-            </strong>
+         <div className="hero-search-result-info">
+  <strong>
+    {title.name}
+  </strong>
 
-            <span>
-              {title.year
-                ? title.year
-                : "Year unknown"}{" "}
-              ·{" "}
-              {title.kind === "movie"
-                ? "Movie"
-                : "TV Show"}
-            </span>
-          </div>
+  <span>
+    {title.year
+      ? title.year
+      : "Year unknown"}
+  </span>
+</div>
         </button>
       )
     )}
