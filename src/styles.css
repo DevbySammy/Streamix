@@ -2078,6 +2078,77 @@ footer span {
     color: #777;
   }
 
+   
+/* =========================================================
+   HERO SEARCH RESULTS
+========================================================= */
+
+.hero-search-results {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 320px;
+  margin: -8px 0 17px;
+  padding: 6px;
+  overflow-y: auto;
+  background: #101012;
+  border: 1px solid #303035;
+  border-radius: 10px;
+}
+
+.hero-search-result {
+  width: 100%;
+  min-height: 64px;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 6px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  color: #fff;
+  cursor: pointer;
+  text-align: left;
+}
+
+.hero-search-result img {
+  width: 40px;
+  height: 60px;
+  flex: 0 0 40px;
+  object-fit: cover;
+  border-radius: 5px;
+  background: #202023;
+}
+
+.hero-search-result-info {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.hero-search-result-info strong {
+  color: #fff;
+  font-size: 14px;
+  line-height: 1.25;
+}
+
+.hero-search-result-info span {
+  color: #999;
+  font-size: 12px;
+}
+
+.hero-search-result.selected {
+  border-color: #ff4f9a;
+  background: #202023;
+}
+
+@media (min-width: 601px) {
+  .hero-search-result:hover {
+    background: #202023;
+  }
+}
+   
   /* =======================================================
      RESULTS SCROLL ONLY
   ======================================================= */
