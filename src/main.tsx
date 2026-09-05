@@ -2253,37 +2253,38 @@ async function fetchTMDBDetails(
 }
    
 async function openDetails(title: Title) {
+  const params =
+    new URLSearchParams(
+      window.location.search
+    );
+
+  params.set(
+    "details",
+    title.id
+  );
+
+  const currentDepth =
+    Number(
+      window.history.state?.streamixDetailsDepth || 0
+    );
+
+  window.history.pushState(
+    {
+      streamixDetailsDepth:
+        currentDepth + 1
+    },
+    "",
+    `${window.location.pathname}?${params.toString()}`
+  );
+
+  setShowDetailsData(null);
+  setShowDetails(title);
+
   try {
     const details =
       await fetchTMDBDetails(title);
 
     setShowDetailsData(details);
-
-    const params =
-      new URLSearchParams(
-        window.location.search
-      );
-
-    params.set(
-      "details",
-      title.id
-    );
-
-    const currentDepth =
-      Number(
-        window.history.state?.streamixDetailsDepth || 0
-      );
-
-    window.history.pushState(
-      {
-        streamixDetailsDepth:
-          currentDepth + 1
-      },
-      "",
-      `${window.location.pathname}?${params.toString()}`
-    );
-
-    setShowDetails(title);
   } catch (error) {
     console.error(
       "Failed to load title details:",
