@@ -469,8 +469,16 @@ const [
 
 const tmdbCatalogCache =
   useRef<Record<string, Title[]>>({});
+
+  const tmdbCatalogInitialLoad =
+  useRef(false);
    
 useEffect(() => {
+  if (!tmdbCatalogInitialLoad.current) {
+    tmdbCatalogInitialLoad.current = true;
+    return;
+  }
+
   const controller =
     new AbortController();
 
