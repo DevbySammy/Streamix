@@ -2098,51 +2098,24 @@ footer span {
 
 .hero-search-result {
   width: 100%;
-  min-height: 60px;
-  max-height: 60px;
-
+  min-height: 64px;
   display: flex;
   align-items: center;
-
-  gap: 10px;
-  padding: 0 6px;
-
-  box-sizing: border-box;
-
+  gap: 11px;
+  padding: 6px;
   background: transparent;
   border: 1px solid transparent;
   border-radius: 8px;
-
   color: #fff;
   cursor: pointer;
   text-align: left;
 }
 
-.hero-search-result > img {
-  display: block !important;
-
-  width: 40px !important;
-  height: 60px !important;
-
-  min-width: 40px !important;
-  max-width: 40px !important;
-
-  min-height: 60px !important;
-  max-height: 60px !important;
-
-  flex: 0 0 40px !important;
-
-  aspect-ratio: 2 / 3 !important;
-
-  object-fit: cover !important;
-  object-position: center !important;
-
-  margin: 0 !important;
-  padding: 0 !important;
-
-  position: static !important;
-  transform: none !important;
-
+.hero-search-result img {
+  width: 40px;
+  height: 60px;
+  flex: 0 0 40px;
+  object-fit: cover;
   border-radius: 5px;
   background: #202023;
 }
