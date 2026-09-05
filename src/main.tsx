@@ -9431,22 +9431,44 @@ return ( <Modal
 )}
 
 {heroResults.length > 0 && (
-  <div>
+  <div className="hero-search-results">
     {heroResults.map(
       title => (
         <button
           key={title.id}
           type="button"
+          className={
+            "hero-search-result" +
+            (title.id === titleId
+              ? " selected"
+              : "")
+          }
           onClick={() =>
             setTitleId(
               title.id
             )
           }
         >
-          {title.name}
-          {title.year
-            ? ` (${title.year})`
-            : ""}
+          <img
+            src={title.poster}
+            alt=""
+          />
+
+          <div className="hero-search-result-info">
+            <strong>
+              {title.name}
+            </strong>
+
+            <span>
+              {title.year
+                ? title.year
+                : "Year unknown"}{" "}
+              ·{" "}
+              {title.kind === "movie"
+                ? "Movie"
+                : "TV Show"}
+            </span>
+          </div>
         </button>
       )
     )}
