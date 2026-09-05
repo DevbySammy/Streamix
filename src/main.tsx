@@ -7736,8 +7736,8 @@ const [watchProviders, setWatchProviders] =
 
               <div className="eyebrow">
                 {title.kind === "movie"
-                  ? "MOVIE"
-                  : "TV SHOW"}
+                  ? "Movie"
+                  : "TV Show"}
               </div>
 
               <h1>
