@@ -2695,6 +2695,8 @@ footer span {
 
 .details-recommendation {
   overflow: hidden;
+  border: 0;
+  padding: 0;
   border-radius: 10px;
   background: #202023;
   cursor: pointer;
