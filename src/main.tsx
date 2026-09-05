@@ -1417,88 +1417,112 @@ loadHeroSettings();
   const [pushSubscribed, setPushSubscribed] =
     useState(false);
 
- useEffect(() => {
-   async function restoreSession() {
-     const sessionId =
-       localStorage.getItem(
-         "sx-session-token"
-       );
+useEffect(() => {
+  async function restoreSession() {
+    const sessionId =
+      localStorage.getItem(
+        "sx-session-token"
+      );
 
-     if (!sessionId) {
-       setSessionRestoring(false);
-       return;
-     }
+    if (!sessionId) {
+      setSessionRestoring(false);
+      return;
+    }
 
-     try {
-       const response = await fetch(
-         "https://streamix.gaintrainstrong.workers.dev/api/auth/session",
-         {
-           method: "GET",
-           headers: {
-             Authorization:
-               `Bearer ${sessionId}`
-           }
-         }
-       );
+    let lastError: unknown = null;
 
-    if (!response.ok) {
-  // The saved session is no longer valid.
-  localStorage.removeItem(
-    "sx-session-token"
-  );
-  setProfileId(null);
-  setViewingAs(null);
-  setSessionRestoring(false);
-  return;
-}
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      try {
+        const response =
+          await fetch(
+            "https://streamix.gaintrainstrong.workers.dev/api/auth/session",
+            {
+              method: "GET",
+              headers: {
+                Authorization:
+                  `Bearer ${sessionId}`
+              }
+            }
+          );
 
-const data =
-  await response.json();
+        if (response.ok) {
+          const data =
+            await response.json();
 
-if (
-  data.authenticated &&
-  data.profile?.id
-) {
-  const savedTestingProfile =
-    localStorage.getItem(
-      "sx-testing-active"
+          if (
+            data.authenticated &&
+            data.profile?.id
+          ) {
+            const savedTestingProfile =
+              localStorage.getItem(
+                "sx-testing-active"
+              );
+
+            if (
+              data.profile.id === "admin" &&
+              savedTestingProfile === "true"
+            ) {
+              setProfileId("testing");
+            } else {
+              setProfileId(
+                data.profile.id
+              );
+            }
+
+            setSessionRestoring(false);
+            return;
+          }
+
+          // The server explicitly says the
+          // saved session is not authenticated.
+          localStorage.removeItem(
+            "sx-session-token"
+          );
+          setProfileId(null);
+          setViewingAs(null);
+          setSessionRestoring(false);
+          return;
+        }
+
+        // Only treat an actual authentication
+        // rejection as an invalid session.
+        if (
+          response.status === 401 ||
+          response.status === 403
+        ) {
+          localStorage.removeItem(
+            "sx-session-token"
+          );
+          setProfileId(null);
+          setViewingAs(null);
+          setSessionRestoring(false);
+          return;
+        }
+
+        lastError = new Error(
+          `Session request failed with status ${response.status}`
+        );
+      } catch (error) {
+        lastError = error;
+      }
+
+      if (attempt < 3) {
+        await new Promise(resolve =>
+          setTimeout(resolve, 750)
+        );
+      }
+    }
+
+    console.error(
+      "Failed to restore session after 3 attempts:",
+      lastError
     );
 
-  if (
-    data.profile.id === "admin" &&
-    savedTestingProfile === "true"
-  ) {
-    setProfileId(
-      "testing"
-    );
-  } else {
-    setProfileId(
-      data.profile.id
-    );
+    setSessionRestoring(false);
   }
-}
-else {
-  localStorage.removeItem(
-    "sx-session-token"
-  );
-  setProfileId(null);
-  setViewingAs(null);
-}
-} catch (error) {
-  console.error(
-    "Failed to restore session:",
-    error
-  );
 
-       // Keep the saved session if this was
-       // only a temporary network problem.
-     } finally {
-       setSessionRestoring(false);
-     }
-   }
-
-   restoreSession();
- }, []);
+  restoreSession();
+}, []);
 
    useEffect(() => {
   if (!("serviceWorker" in navigator)) {
